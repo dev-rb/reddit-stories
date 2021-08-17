@@ -1,0 +1,21 @@
+.commentsContainer{
+    flex: 2;
+    height: fit-content;
+    background: #171717;
+    border: 2px solid rgb(39, 39, 39);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 1.5rem;
+}
+
+@media screen and (max-width: 700px) {
+    .commentsContainer{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 0.5rem;
+    }
+}
