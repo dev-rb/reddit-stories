@@ -34,6 +34,17 @@
 //     created_utc: number;
 //     num_crossposts: number;
 // }
+
+export interface IPost {
+    title: string,
+    id: string,
+    created: number,
+    score: number,
+    author: string,
+    permalink: string,
+    stories: CommentDetails[]
+}
+
 export interface Posts {
     kind: string,
     data: Post

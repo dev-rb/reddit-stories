@@ -1,13 +1,15 @@
 import * as React from 'react';
-import { IPost } from '../../Pages/Main';
+import { IPost } from '../../interfaces/reddit';
+
 import CommentDisplay from '../Comment';
 import styles from './commentsContainer.module.css';
 
 interface Props {
-    post: IPost
+    post?: IPost,
+    postId: string | string[] | undefined
 }
 
-const CommentsContainer = ({ post }: Props) => {
+const CommentsContainer = ({ post, postId }: Props) => {
 
     return (
         <div className={styles.commentsContainer}>

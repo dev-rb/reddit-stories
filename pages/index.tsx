@@ -5,20 +5,10 @@ import Head from 'next/head';
 import Image from 'next/image';
 import CommentsContainer from '../components/CommentsContainer';
 import Post from '../components/Post';
-import { CommentDetails } from '../interfaces/reddit';
+import { CommentDetails, IPost } from '../interfaces/reddit';
 import styles from '../styles/Home.module.css';
 import { fetchFromUrl } from '../helpers/fetchData';
 import { getAllPrompts } from '../helpers/cleanData';
-
-export interface IPost {
-  title: string,
-  id: string,
-  created: number,
-  score: number,
-  author: string,
-  permalink: string,
-  stories: CommentDetails[]
-}
 
 const Home: NextPage = () => {
 
@@ -56,9 +46,6 @@ const Home: NextPage = () => {
           }) : <p>Loading...</p>}
         </div>
 
-        {selectedPost &&
-          <CommentsContainer post={selectedPost} />
-        }
       </div>
 
 

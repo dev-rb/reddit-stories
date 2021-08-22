@@ -1,5 +1,4 @@
-import { Posts, CommentDetails, PostInfo } from "../interfaces/reddit";
-import { IPost } from "../pages";
+import { Posts, CommentDetails, PostInfo, IPost } from "../interfaces/reddit";
 import { fetchFromUrl } from "./fetchData";
 
 export const getAllPrompts = (data: Posts) => {
@@ -14,7 +13,6 @@ export const getAllPrompts = (data: Posts) => {
             fetchFromUrl(permalink).then((commentPosts: Posts[]) => {
                 let comments: PostInfo[] = commentPosts[1].data.children;
                 comments.shift();
-
                 // console.log(comments)
                 comments.forEach((comment) => {
                     if (comment.data.author === "AutoModerator" && comments.length <= 2) {
@@ -33,4 +31,11 @@ export const getAllPrompts = (data: Posts) => {
     // console.log(prompts)
     prompts = prompts.sort((a, b) => b.score - a.score);
     return prompts;
+}
+
+//       /r/WritingPrompts/comments/p86yum/wp_youve_just_defeated_the_dark_lord_as_you_were/
+export const storiesForPostWithId = (postId: string) => {
+    fetchFromUrl(`/r/WritingPrompts/comments/${postId}`).then((comment: PostInfo[]) => {
+        console.warn(comment)
+    })
 }
