@@ -34,8 +34,18 @@ export const getAllPrompts = (data: Posts) => {
 }
 
 //       /r/WritingPrompts/comments/p86yum/wp_youve_just_defeated_the_dark_lord_as_you_were/
-export const storiesForPostWithId = (postId: string) => {
-    fetchFromUrl(`/r/WritingPrompts/comments/${postId}`).then((comment: PostInfo[]) => {
-        console.warn(comment)
-    })
+export const storiesForPostWithId = (data: Posts[]) => {
+    let stories: CommentDetails[] = [];
+    let comments: PostInfo[] = data[1].data.children;
+    comments.shift();
+    // console.log(comments)
+    comments.forEach((comment) => {
+        if (comment.data.author === "AutoModerator" && comments.length <= 2) {
+            console.log(comment.data.body)
+        }
+        let { title, body, author, ups, score, id, permalink, body_html, created } = comment.data;
+        let newComment: CommentDetails = { body: body, author: author, body_html: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: created }
+        stories.push(newComment);
+    });
+    return stories;
 }

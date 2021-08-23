@@ -1,13 +1,14 @@
 import { useRouter } from 'next/router';
 import * as React from 'react';
 import CommentsContainer from '../../components/CommentsContainer';
+import { storiesForPostWithId } from '../../helpers/cleanData';
 
 const CommentsOfPostId = () => {
     const router = useRouter()
-    const { pid } = router.query;
+    const { id } = router.query;
 
     return (
-        <CommentsContainer postId={pid} />
+        <CommentsContainer postId={id} />
     );
 }
 
