@@ -6,6 +6,7 @@ import { CommentDetails, IPost } from '../../interfaces/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
 import styles from './commentsContainer.module.css';
+import { useRouter } from 'next/router';
 
 interface Props {
     post?: IPost,
@@ -14,6 +15,8 @@ interface Props {
 const CommentsContainer = ({ post, postId }: Props) => {
     let { data } = useSWR(`/r/WritingPrompts/comments/${postId}`, fetchFromUrl)
     const [stories, setStories] = React.useState<CommentDetails[]>();
+    const router = useRouter();
+
 
     React.useEffect(() => {
         if (data) {
@@ -61,7 +64,7 @@ const CommentsContainer = ({ post, postId }: Props) => {
     return (
         <div className={styles.commentsContainer}>
             <div id="navBar" className={styles.navigationBar}>
-                <MdKeyboardBackspace size={30} color="white" />
+                <MdKeyboardBackspace size={30} color="white" onClick={() => { router.back() }} />
             </div>
             <div className={styles.stories}>
                 {stories?.map((story) => {

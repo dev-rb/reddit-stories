@@ -2,8 +2,7 @@
     width: 40rem;
     min-height: auto;
     background: #171717;
-    border: 2px solid rgb(61, 61, 61);
-    border-radius: 4px;
+    border: 2px solid #212121;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,6 +10,7 @@
     padding: 0.8rem;
     cursor: pointer;
     text-decoration: none;
+    margin-top: -2px;
 }
 
 .postContainer > p{

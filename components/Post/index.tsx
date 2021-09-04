@@ -17,7 +17,7 @@ const Post = ({ title, id, score, author, permalink, stories, created, selectPos
     // href={`https://www.reddit.com${permalink}`}
 
     return (
-        <Link href={`/posts/${id}`}>
+        <Link scroll={false} href={`/posts/${id}`}>
             <div onClick={() => selectPost(id)} className={styles.postContainer}>
 
                 <p> {(new Date(created * 1000).toLocaleString('en-US'))} </p>
