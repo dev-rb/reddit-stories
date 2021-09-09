@@ -1,7 +1,7 @@
 import { Posts, CommentDetails, PostInfo, IPost } from "../interfaces/reddit";
 import { fetchFromUrl } from "./fetchData";
 
-export const getAllPrompts = (data: Posts) => {
+export const getAllPrompts = (data: Posts, type: string) => {
     let posts = data.data.children;
 
     let prompts: IPost[] = [];
@@ -16,20 +16,24 @@ export const getAllPrompts = (data: Posts) => {
                 // console.log(comments)
                 comments.forEach((comment) => {
                     if (comment.data.author === "AutoModerator" && comments.length <= 2) {
-                        console.log(comment.data.body)
+                        // console.log(comment.data.body)
                     }
                     let { title, body, author, ups, score, id, permalink, body_html, created } = comment.data;
                     let newComment: CommentDetails = { body: body, author: author, body_html: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: created }
                     stories.push(newComment);
                 });
             });
-            prompts.push({ title, id, score, author, permalink: permalink, stories: stories, created: created })
+            let hoursAgo = Math.abs(new Date().getHours() - new Date(created * 1000).getHours());
+            let minutesAgo = Math.abs(new Date().getMinutes() - new Date(created * 1000).getMinutes());
+            // console.log(title, score, "Hours: ", hoursAgo, "Minutes: ", minutesAgo)
+            prompts.push({ title, id, score, author, permalink: permalink, stories: stories, created: { hoursAgo, minutesAgo } })
+
         }
     });
 
-    prompts = prompts.filter((prompt) => prompt.stories.length < 1)
+    // prompts = prompts.filter((prompt) => prompt.stories.length < 1)
     // console.log(prompts)
-    prompts = prompts.sort((a, b) => b.score - a.score);
+    prompts = type == "hot" ? prompts.sort((a, b) => b.score - a.score) : type == "rising" ? prompts.sort((a, b) => (b.score - a.score) || (a.created.hoursAgo - b.created.hoursAgo)) : prompts.sort((a, b) => a.created.hoursAgo - b.created.hoursAgo);
     return prompts;
 }
 

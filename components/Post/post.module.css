@@ -37,6 +37,7 @@
 
 .details p:nth-child(1){
     color: #F8A130;
+    font-weight: 500;
 }
 
 @media screen and (max-width: 700px) {

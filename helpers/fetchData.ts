@@ -1,4 +1,4 @@
-export const fetchFromUrl = async (url: string, count: number = 100): Promise<any> => {
-    let response = await (await fetch(`https://www.reddit.com${url}.json?limit=${count}&raw_json=1`)).json();
-    return await response;
+export const fetchFromUrl = async (url: string, count: number = 100) => {
+    let response = (await fetch(`https://www.reddit.com${url}.json?limit=${count}&raw_json=1`)).json();
+    return response;
 }

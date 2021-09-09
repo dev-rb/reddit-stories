@@ -38,7 +38,7 @@
 export interface IPost {
     title: string,
     id: string,
-    created: number,
+    created: { hoursAgo: number, minutesAgo: number },
     score: number,
     author: string,
     permalink: string,
