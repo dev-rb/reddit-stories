@@ -1,16 +1,13 @@
 import * as React from 'react';
 import type { NextPage } from 'next';
-import useSWR from 'swr';
 import Head from 'next/head';
-import Image from 'next/image';
-import CommentsContainer from '../components/CommentsContainer';
 import Post from '../components/Post';
-import { CommentDetails, IPost } from '../interfaces/reddit';
+import { IPost } from '../interfaces/reddit';
 import styles from '../styles/Home.module.css';
 import { fetchFromUrl } from '../helpers/fetchData';
 import { getAllPrompts } from '../helpers/cleanData';
 import { MdSettings } from 'react-icons/md';
-import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 
 const count = 100;
 
@@ -24,14 +21,33 @@ const filterMap: { [key: string]: string } = {
 const Home: NextPage = () => {
 
   const [selectedFilter, setSelectedFilter] = React.useState("Popular");
-  const { data } = useQuery(selectedFilter, () => fetchFromUrl(`/r/WritingPrompts/${filterMap[selectedFilter]}/`, count));
+  const queryClient = useQueryClient();
+  const { data } = useQuery(["mainData", selectedFilter], () => fetchFromUrl(`/r/WritingPrompts/${filterMap[selectedFilter]}/`, count),
+    { select: (posts) => getAllPrompts(posts, filterMap[selectedFilter]), refetchOnWindowFocus: false });
+
+  const headerRef = React.useRef(null);
   const [postsData, setPostsData] = React.useState<IPost[]>();
 
   React.useEffect(() => {
-    if (data) {
-      setPostsData(getAllPrompts(data, filterMap[selectedFilter]));
+    if (data !== undefined) {
+      setPostsData(data);
     }
   }, [data])
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(([e]) => {
+      e.target.toggleAttribute("stuck", e.intersectionRatio < 1);
+    }, { threshold: [1], rootMargin: '-16px 0px 0px 0px' })
+    if (headerRef.current) {
+      observer.observe(headerRef.current);
+    }
+
+    return () => {
+      if (headerRef.current) {
+        observer.unobserve(headerRef.current);
+      }
+    }
+  }, [])
 
   return (
 
@@ -43,7 +59,7 @@ const Home: NextPage = () => {
       </Head>
 
       <div className={styles.mainContainer}>
-        <div className={styles.homeHeader}>
+        <div ref={headerRef} className={styles.homeHeader}>
           <div className={styles.headerNameSettings}>
             <p> Explore <span> Stories </span> </p>
             <MdSettings size={30} color="white" />
@@ -55,7 +71,7 @@ const Home: NextPage = () => {
           </div>
         </div>
         <div className={styles.postsContainer}>
-          {postsData ? postsData?.map((prompt) => {
+          {data ? data.map((prompt: IPost) => {
             return <Post key={prompt.id} title={prompt.title} author={prompt.author} id={prompt.id} permalink={prompt.permalink} score={prompt.score} stories={prompt.stories} created={prompt.created} />
           }) : <p>Loading...</p>}
         </div>

@@ -1,7 +1,7 @@
 import { Posts, CommentDetails, PostInfo, IPost } from "../interfaces/reddit";
 import { fetchFromUrl } from "./fetchData";
 
-export const getAllPrompts = (data: Posts, type: string) => {
+export const getAllPrompts = (data: Posts, type?: string) => {
     let posts = data.data.children;
 
     let prompts: IPost[] = [];
@@ -24,17 +24,18 @@ export const getAllPrompts = (data: Posts, type: string) => {
                 });
             });
             let hoursAgo = Math.abs(new Date().getHours() - new Date(created * 1000).getHours());
+            let daysAgo = Math.abs(new Date().getDay() - new Date(created * 1000).getDay());
             let minutesAgo = Math.abs(new Date().getMinutes() - new Date(created * 1000).getMinutes());
-            // console.log(title, score, "Hours: ", hoursAgo, "Minutes: ", minutesAgo)
-            prompts.push({ title, id, score, author, permalink: permalink, stories: stories, created: { hoursAgo, minutesAgo } })
+
+            prompts.push({ title, id, score, author, permalink: permalink, stories: stories, created: { hoursAgo, minutesAgo, daysAgo } })
 
         }
     });
-
-    // prompts = prompts.filter((prompt) => prompt.stories.length < 1)
-    // console.log(prompts)
     prompts = type == "hot" ? prompts.sort((a, b) => b.score - a.score) : type == "rising" ? prompts.sort((a, b) => (b.score - a.score) || (a.created.hoursAgo - b.created.hoursAgo)) : prompts.sort((a, b) => a.created.hoursAgo - b.created.hoursAgo);
     return prompts;
+    // prompts = prompts.filter((prompt) => prompt.stories.length < 1)
+    // console.log(prompts)
+
 }
 
 //       /r/WritingPrompts/comments/p86yum/wp_youve_just_defeated_the_dark_lord_as_you_were/

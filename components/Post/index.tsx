@@ -15,7 +15,7 @@ const Post = ({ title, id, score, author, permalink, stories, created }: IPost) 
                 </div>
                 <div className={styles.details}>
                     <p> {score} </p>
-                    <p> {created.hoursAgo == 0 ? `${created.minutesAgo} minutes ago` : `${created.hoursAgo} hours ago`} </p>
+                    <p> {created.daysAgo == 0 ? created.hoursAgo == 0 ? `${created.minutesAgo} minutes ago` : `${created.hoursAgo} hours ago` : `${created.daysAgo} days ago`} </p>
                 </div>
             </div>
         </Link >

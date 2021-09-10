@@ -2,11 +2,13 @@ import * as React from 'react';
 import useSWR from 'swr';
 import { storiesForPostWithId } from '../../helpers/cleanData';
 import { fetchFromUrl } from '../../helpers/fetchData';
-import { CommentDetails, IPost } from '../../interfaces/reddit';
+import { CommentDetails, IPost, Post, Posts } from '../../interfaces/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
 import styles from './commentsContainer.module.css';
 import { useRouter } from 'next/router';
+import useFixedNavbar from '../../hooks/useFixedNavbar';
+import { QueryClient, QueryKey, useQueryClient } from 'react-query';
 
 interface Props {
     post?: IPost,
@@ -14,56 +16,34 @@ interface Props {
 }
 const CommentsContainer = ({ post, postId }: Props) => {
     let { data } = useSWR(`/r/WritingPrompts/comments/${postId}`, fetchFromUrl)
+    let query = useQueryClient();
+
+    const headerRef = React.useRef(null);
     const [stories, setStories] = React.useState<CommentDetails[]>();
     const router = useRouter();
 
+    useFixedNavbar(headerRef, true);
 
     React.useEffect(() => {
         if (data) {
-            let fetchedStories = storiesForPostWithId(data);
-            setStories(fetchedStories);
+            let queryData: IPost[] | undefined = query.getQueryData("mainData", { exact: false });
+
+            if (queryData) {
+                console.log(queryData)
+            }
+
+
+            if (queryData !== undefined) {
+                // let newData = queryData.find((v) => v.id === postId);
+                // // let fetchedStories = storiesForPostWithId();
+                // setStories(newData?.stories);
+            }
         }
     }, [data])
 
-    React.useEffect(() => {
-        let pageYOffset = window.pageYOffset;
-
-        window.addEventListener("scroll", () => {
-            let currentOffset = window.pageYOffset;
-            let navBar = document.getElementById('navBar');
-            if (pageYOffset > currentOffset) {
-                if (navBar) {
-                    navBar.style.top = "0px";
-                }
-            } else {
-                if (navBar) {
-                    navBar.style.top = `-${currentOffset}px`;
-                }
-            }
-            pageYOffset = currentOffset;
-        });
-
-
-        return () => {
-            window.removeEventListener("scroll", () => {
-                let currentOffset = window.pageYOffset;
-                let navBar = document.getElementById('navBar');
-                if (pageYOffset > currentOffset) {
-                    if (navBar) {
-                        navBar.style.top = "0px";
-                    }
-                } else {
-                    if (navBar) {
-                        navBar.style.top = `-${currentOffset}px`;
-                    }
-                }
-            });
-        }
-    }, [])
-
     return (
         <div className={styles.commentsContainer}>
-            <div id="navBar" className={styles.navigationBar}>
+            <div ref={headerRef} className={styles.navigationBar}>
                 <MdKeyboardBackspace size={30} color="white" onClick={() => { router.back() }} />
             </div>
             <div className={styles.stories}>
