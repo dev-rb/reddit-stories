@@ -7,7 +7,8 @@ import styles from '../styles/Home.module.css';
 import { fetchFromUrl } from '../helpers/fetchData';
 import { getAllPrompts } from '../helpers/cleanData';
 import { MdSettings } from 'react-icons/md';
-import { useQuery, useQueryClient } from 'react-query';
+import { useDispatch } from 'react-redux';
+import { addPosts } from '../redux/slices';
 
 const count = 100;
 
@@ -21,19 +22,16 @@ const filterMap: { [key: string]: string } = {
 const Home: NextPage = () => {
 
   const [selectedFilter, setSelectedFilter] = React.useState("Popular");
-  const queryClient = useQueryClient();
-  const { data } = useQuery(["mainData", selectedFilter], () => fetchFromUrl(`/r/WritingPrompts/${filterMap[selectedFilter]}/`, count),
-    { select: (posts) => getAllPrompts(posts, filterMap[selectedFilter]), refetchOnWindowFocus: false });
+  const dispatch = useDispatch();
 
   const headerRef = React.useRef(null);
-  const [postsData, setPostsData] = React.useState<IPost[]>();
+  const [postsData, setPostsData] = React.useState<IPost[]>([]);
 
   React.useEffect(() => {
-    if (data !== undefined) {
-      setPostsData(data);
-    }
-  }, [data])
+    // dispatch(addPosts(postsData))
+  }, [])
 
+  // Intersection observer for homeHeader animation
   React.useEffect(() => {
     const observer = new IntersectionObserver(([e]) => {
       e.target.toggleAttribute("stuck", e.intersectionRatio < 1);
@@ -71,7 +69,7 @@ const Home: NextPage = () => {
           </div>
         </div>
         <div className={styles.postsContainer}>
-          {data ? data.map((prompt: IPost) => {
+          {postsData ? postsData.map((prompt: IPost) => {
             return <Post key={prompt.id} title={prompt.title} author={prompt.author} id={prompt.id} permalink={prompt.permalink} score={prompt.score} stories={prompt.stories} created={prompt.created} />
           }) : <p>Loading...</p>}
         </div>

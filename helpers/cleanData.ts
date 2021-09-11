@@ -39,7 +39,19 @@ export const getAllPrompts = (data: Posts, type?: string) => {
 }
 
 //       /r/WritingPrompts/comments/p86yum/wp_youve_just_defeated_the_dark_lord_as_you_were/
-export const storiesForPostWithId = (data: Posts[]) => {
+
+export const fetchStoriesForPostWithId = (postId: string) => {
+    const fetchedStories = fetchFromUrl(`/r/WritingPrompts/comments/${postId}/`);
+    let formattedStories: CommentDetails[] = [];
+
+    fetchedStories.then((data) => {
+        formattedStories = formatStoriesData(data);
+    })
+
+    return formattedStories;
+}
+
+export const formatStoriesData = (data: Posts[]) => {
     let stories: CommentDetails[] = [];
     let comments: PostInfo[] = data[1].data.children;
     comments.shift();
