@@ -8,26 +8,10 @@ export const getAllPrompts = (data: Posts, type?: string) => {
     posts.forEach((post) => {
         if (post.data.permalink.split('/')[5].includes('wp') && post.data.num_comments > 1) {
             let { title, id, score, author, permalink, created } = post.data;
-
-            let stories: CommentDetails[] = [];
-            fetchFromUrl(permalink).then((commentPosts: Posts[]) => {
-                let comments: PostInfo[] = commentPosts[1].data.children;
-                comments.shift();
-                // console.log(comments)
-                comments.forEach((comment) => {
-                    if (comment.data.author === "AutoModerator" && comments.length <= 2) {
-                        // console.log(comment.data.body)
-                    }
-                    let { title, body, author, ups, score, id, permalink, body_html, created } = comment.data;
-                    let newComment: CommentDetails = { body: body, author: author, body_html: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: created }
-                    stories.push(newComment);
-                });
-            });
             let hoursAgo = Math.abs(new Date().getHours() - new Date(created * 1000).getHours());
             let daysAgo = Math.abs(new Date().getDay() - new Date(created * 1000).getDay());
             let minutesAgo = Math.abs(new Date().getMinutes() - new Date(created * 1000).getMinutes());
-
-            prompts.push({ title, id, score, author, permalink: permalink, stories: stories, created: { hoursAgo, minutesAgo, daysAgo } })
+            prompts.push({ title, id, score, author, permalink: permalink, stories: [], created: { hoursAgo, minutesAgo, daysAgo } })
 
         }
     });
@@ -40,29 +24,28 @@ export const getAllPrompts = (data: Posts, type?: string) => {
 
 //       /r/WritingPrompts/comments/p86yum/wp_youve_just_defeated_the_dark_lord_as_you_were/
 
-export const fetchStoriesForPostWithId = (postId: string) => {
+export const fetchStoriesForPostWithId = async (postId: string) => {
     const fetchedStories = fetchFromUrl(`/r/WritingPrompts/comments/${postId}/`);
-    let formattedStories: CommentDetails[] = [];
 
-    fetchedStories.then((data) => {
-        formattedStories = formatStoriesData(data);
-    })
-
-    return formattedStories;
+    return formatStoriesData(await fetchedStories);
 }
 
 export const formatStoriesData = (data: Posts[]) => {
     let stories: CommentDetails[] = [];
-    let comments: PostInfo[] = data[1].data.children;
-    comments.shift();
-    // console.log(comments)
-    comments.forEach((comment) => {
-        if (comment.data.author === "AutoModerator" && comments.length <= 2) {
-            console.log(comment.data.body)
-        }
-        let { title, body, author, ups, score, id, permalink, body_html, created } = comment.data;
-        let newComment: CommentDetails = { body: body, author: author, body_html: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: created }
-        stories.push(newComment);
-    });
+    if (data.length > 1) {
+        let comments: PostInfo[] = [...data[1].data.children];
+        comments.shift();
+        // console.log(comments)
+        comments.forEach((comment) => {
+            if (comment.data.author === "AutoModerator" && comments.length <= 2) {
+                console.log(comment.data.body)
+            }
+            let { title, body, author, ups, score, id, permalink, body_html, created } = comment.data;
+            let newComment: CommentDetails = { body: body, author: author, body_html: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: created }
+            if (newComment.body !== undefined) {
+                stories.push(newComment);
+            }
+        });
+    }
     return stories;
 }

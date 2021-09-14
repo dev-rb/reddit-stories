@@ -1,10 +1,10 @@
 .commentsContainer{
-    flex: 2;
     height: fit-content;
     background: #171717;
     /* border: 2px solid rgb(39, 39, 39); */
     display: flex;
     flex-direction: column; 
+    align-items: center;
 }
 
 .navigationBar{
@@ -23,6 +23,7 @@
 }
 
 .stories{
+    max-width: 50rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;

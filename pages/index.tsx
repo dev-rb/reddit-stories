@@ -9,6 +9,7 @@ import { getAllPrompts } from '../helpers/cleanData';
 import { MdSettings } from 'react-icons/md';
 import { useDispatch } from 'react-redux';
 import { addPosts } from '../redux/slices';
+import { useGetPostsQuery } from '../redux/services';
 
 const count = 100;
 
@@ -22,14 +23,17 @@ const filterMap: { [key: string]: string } = {
 const Home: NextPage = () => {
 
   const [selectedFilter, setSelectedFilter] = React.useState("Popular");
+  const { data } = useGetPostsQuery(`${filterMap[selectedFilter]}`)
   const dispatch = useDispatch();
 
   const headerRef = React.useRef(null);
   const [postsData, setPostsData] = React.useState<IPost[]>([]);
 
   React.useEffect(() => {
-    // dispatch(addPosts(postsData))
-  }, [])
+    if (data) {
+      setPostsData(data)
+    }
+  }, [data])
 
   // Intersection observer for homeHeader animation
   React.useEffect(() => {

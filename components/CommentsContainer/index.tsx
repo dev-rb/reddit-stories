@@ -5,10 +5,12 @@ import CommentDisplay from '../Comment';
 import styles from './commentsContainer.module.css';
 import { useRouter } from 'next/router';
 import useFixedNavbar from '../../hooks/useFixedNavbar';
+import { useGetCommentsForPostQuery } from '../../redux/services';
+import { formatStoriesData } from '../../helpers/cleanData';
 
 interface Props {
     post?: IPost,
-    postId: string | string[] | undefined
+    postId: string
 }
 const CommentsContainer = ({ post, postId }: Props) => {
 
@@ -16,11 +18,16 @@ const CommentsContainer = ({ post, postId }: Props) => {
     const [stories, setStories] = React.useState<CommentDetails[]>();
     const router = useRouter();
 
+    const { data } = useGetCommentsForPostQuery(postId);
+
     useFixedNavbar(headerRef, true);
 
     React.useEffect(() => {
-
-    }, [])
+        if (data) {
+            // console.log(data)
+            setStories(data);
+        }
+    }, [data])
 
     return (
         <div className={styles.commentsContainer}>
