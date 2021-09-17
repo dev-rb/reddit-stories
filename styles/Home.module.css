@@ -19,7 +19,7 @@
 }
 
 .homeHeader[stuck] .headerNameSettings{
-  max-height: 0px;
+  flex: 0;
   opacity: 0;
 }
 
@@ -30,7 +30,8 @@
   flex-direction: row;
   justify-content: space-between;
   opacity: 1;
-  transition: max-height 0.3s ease-in-out, opacity 0.1s linear;
+  flex: 1;
+  transition: flex 0.3s ease-in-out, opacity 0.1s linear;
 }
 
 .headerNameSettings p{

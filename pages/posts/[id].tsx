@@ -7,7 +7,7 @@ const CommentsOfPostId = () => {
     const { id } = router.query;
 
     return (
-        <CommentsContainer postId={id} />
+        <CommentsContainer postId={id ? id.toString() : ''} />
     );
 }
 

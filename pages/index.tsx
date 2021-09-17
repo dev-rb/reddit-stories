@@ -26,7 +26,7 @@ const Home: NextPage = () => {
   const { data } = useGetPostsQuery(`${filterMap[selectedFilter]}`)
   const dispatch = useDispatch();
 
-  const headerRef = React.useRef(null);
+  const headerRef = React.useRef<HTMLDivElement>(null);
   const [postsData, setPostsData] = React.useState<IPost[]>([]);
 
   React.useEffect(() => {
@@ -49,6 +49,10 @@ const Home: NextPage = () => {
         observer.unobserve(headerRef.current);
       }
     }
+  }, [])
+
+  React.useEffect(() => {
+    console.log(window.navigator.onLine)
   }, [])
 
   return (
