@@ -51,10 +51,6 @@ const Home: NextPage = () => {
     }
   }, [])
 
-  React.useEffect(() => {
-    console.log(window.navigator.onLine)
-  }, [])
-
   return (
 
     <div className={styles.container}>

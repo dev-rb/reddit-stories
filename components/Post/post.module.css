@@ -1,3 +1,12 @@
+.postParent{
+    width: fit-content;
+    height: fit-content;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .postContainer{
     width: 40rem;
     min-height: auto;
@@ -11,6 +20,9 @@
     cursor: pointer;
     text-decoration: none;
     margin-top: -2px;
+    position: relative;
+    pointer-events: all;
+    z-index: 4;
 }
 
 .postContainer > p{
@@ -31,8 +43,45 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    color: #585858;
+    color: #585858; 
     font-size: 0.8rem;
+}
+
+.swipeOptions{
+    width: calc(100% + 250px);
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    position: absolute;
+    pointer-events: none;
+}
+
+.swipeOptions div{
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.swipeOptions div[visible]{
+    visibility: visible;
+}
+
+.swipeDownload{
+    width: 6rem;
+    height: 100%;
+    background: linear-gradient(to left, rgba(3, 255, 3, 0.2) 20%, #171717 100%);
+    position: relative;
+}
+
+.swipeReadLater{
+    width: 6rem;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 32, 3, 0.2) 20%, #171717 100%);;
+    position: relative;
 }
 
 .details p:nth-child(1){
