@@ -1,9 +1,18 @@
+.postParent{
+    width: fit-content;
+    height: fit-content;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
 .postContainer{
     width: 40rem;
     min-height: auto;
     background: #171717;
-    border: 2px solid rgb(61, 61, 61);
-    border-radius: 4px;
+    border: 2px solid #212121;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,13 +20,46 @@
     padding: 0.8rem;
     cursor: pointer;
     text-decoration: none;
+    margin-top: -2px;
+    position: relative;
+    pointer-events: all;
+    z-index: 4;
+    transition: transform 0.3s ease-out;
 }
 
-.postContainer > p{
+.postContainer *{
+    transition: 0.5s ease;
+}
+
+.postContainer[downloadRequest]{
+    background: linear-gradient(to right, #a36b21ce, 50%, #171717 100%);
+}
+
+.postContainer[readLaterRequest]{
+    background: linear-gradient(to left, #1e4a97ce, 50%, #171717 100%);
+}
+
+.postContainer[downloadRequest] *, .postContainer[readLaterRequest] *{
+    opacity: 0.4;
+}
+
+.postHeaderInformation > p{
     align-self: flex-start;
     margin: 0;
     font-size: 0.8rem;
     color: #585858;
+}
+
+.postHeaderInformation{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.informationBadges{
+    display: flex;
+    gap: 6px;
 }
 
 .title{
@@ -31,12 +73,72 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    color: #585858;
+    color: #585858; 
     font-size: 0.8rem;
+}
+
+.pendingRequest{
+    position: absolute;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.typeOfRequestBeingMade{
+    position: absolute;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.typeOfRequestBeingMade *{
+    opacity: 0.8;
+    z-index: 10;
+}
+
+.swipeOptions{
+    width: calc(100% + 250px);
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    position: absolute;
+    pointer-events: none;
+}
+
+.swipeOptions div{
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.swipeOptions div[visible]{
+    visibility: visible;
+}
+
+.swipeDownload{
+    width: 6rem;
+    height: 100%;
+    background: linear-gradient(to left, rgba(3, 255, 3, 0.2) 20%, #171717 100%);
+    position: relative;
+}
+
+.swipeReadLater{
+    width: 6rem;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 32, 3, 0.2) 20%, #171717 100%);;
+    position: relative;
 }
 
 .details p:nth-child(1){
     color: #F8A130;
+    font-weight: 500;
 }
 
 @media screen and (max-width: 700px) {
