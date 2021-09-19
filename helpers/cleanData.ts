@@ -34,3 +34,7 @@ export const getAllPrompts = (data: Posts) => {
     prompts = prompts.sort((a, b) => b.score - a.score);
     return prompts;
 }
+
+export const getAllCommentsForPost = (postId: string) => {
+
+}
