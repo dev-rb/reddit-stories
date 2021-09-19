@@ -46,8 +46,8 @@ const Post = ({ title, id, score, author, permalink, stories, created }: IPost) 
                     <div className={styles.postHeaderInformation}>
                         <p> u/{author} </p>
                         <div className={styles.informationBadges}>
-                            <MdFileDownload size={16} color={requests.download ? '#3079F8' : '#313131'} />
-                            <BsClockHistory size={16} color={requests.readLater ? '#3079F8' : '#313131'} />
+                            <MdFileDownload onClick={(e) => { e.stopPropagation(); updateForRequest('download') }} size={16} color={requests.download ? '#F8A130' : '#313131'} />
+                            <BsClockHistory onClick={(e) => { e.stopPropagation(); updateForRequest('readLater') }} size={16} color={requests.readLater ? '#3079F8' : '#313131'} />
                         </div>
                     </div>
                     <div className={styles.title}>

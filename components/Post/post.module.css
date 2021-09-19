@@ -27,7 +27,7 @@
     transition: transform 0.3s ease-out;
 }
 
-.postContainer *{
+.postContainer *:not(.informationBadges svg){
     transition: 0.5s ease;
 }
 
@@ -51,6 +51,7 @@
 }
 
 .postHeaderInformation{
+    position: relative;
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -58,8 +59,20 @@
 }
 
 .informationBadges{
+    position: absolute;
+    right: -50px;
     display: flex;
-    gap: 6px;
+    flex-direction: column;
+    gap: 20px;
+    margin-right: -0.45rem;
+}
+
+.informationBadges svg{
+    width: 25px;
+    height: 25px;
+    pointer-events: all;
+    cursor: pointer;
+    transition: fill 0.2s;
 }
 
 .title{
@@ -99,42 +112,6 @@
     z-index: 10;
 }
 
-.swipeOptions{
-    width: calc(100% + 250px);
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    position: absolute;
-    pointer-events: none;
-}
-
-.swipeOptions div{
-    visibility: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-}
-
-.swipeOptions div[visible]{
-    visibility: visible;
-}
-
-.swipeDownload{
-    width: 6rem;
-    height: 100%;
-    background: linear-gradient(to left, rgba(3, 255, 3, 0.2) 20%, #171717 100%);
-    position: relative;
-}
-
-.swipeReadLater{
-    width: 6rem;
-    height: 100%;
-    background: linear-gradient(to right, rgba(255, 32, 3, 0.2) 20%, #171717 100%);;
-    position: relative;
-}
 
 .details p:nth-child(1){
     color: #F8A130;
@@ -145,5 +122,21 @@
     .postContainer{
         width: 100%;
         height: auto;
+    }
+}
+
+@media screen and (hover: none) {
+    .informationBadges{
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+        margin-right: 0;
+        right: 0;
+    }
+
+    .informationBadges svg{
+        width: 16px;
+        height: 16px;
     }
 }

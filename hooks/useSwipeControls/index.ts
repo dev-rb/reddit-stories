@@ -30,7 +30,7 @@ export const useSwipeControls = (postRef: React.RefObject<HTMLDivElement>, updat
     }
 
     const onDragging = (e: React.TouchEvent<HTMLDivElement>) => {
-        setMousePos(Math.min(Math.max(-100, e.touches[0].clientX - (postWidth)), 100));
+        setMousePos((prev) => Math.min(Math.max(-100, e.touches[0].clientX - postWidth), 100));
     }
 
     const handleSwipeOptions = (download: boolean = false, readLater: boolean = false) => {
@@ -86,7 +86,7 @@ export const useSwipeControls = (postRef: React.RefObject<HTMLDivElement>, updat
         let post = postRef.current;
 
         if (post) {
-            setPostWidth((post.getBoundingClientRect().width));
+            setPostWidth((post.getBoundingClientRect().left + (post.getBoundingClientRect().width / 2)));
         }
     }, [postRef.current])
 
