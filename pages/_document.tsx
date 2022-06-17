@@ -1,12 +1,10 @@
+import { createGetInitialProps } from '@mantine/next';
 import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document'
 
 const APP_NAME = 'test'
 const APP_DESCRIPTION = 'This is an example of using next-pwa plugin'
 
 export default class extends Document {
-    static async getInitialProps(ctx: DocumentContext) {
-        return await Document.getInitialProps(ctx)
-    }
 
     render() {
         return (

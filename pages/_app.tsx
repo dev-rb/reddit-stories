@@ -2,10 +2,22 @@ import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import Head from 'next/head';
 import { Provider } from 'react-redux';
+import { getCookie, setCookies } from 'cookies-next';
 import { store } from '../redux/store';
+import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core';
+import { useState } from 'react';
+import { GetServerSidePropsContext } from 'next';
 
 
-function MyApp({ Component, pageProps }: AppProps) {
+function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
+
+  const [theme, setColorTheme] = useState<ColorScheme>(colorScheme);
+
+  const toggleColorScheme = (value?: ColorScheme) => {
+    const nextColorScheme = value || (colorScheme === 'dark' ? 'light' : 'dark');
+    setColorTheme(nextColorScheme);
+    setCookies('mantine-color-scheme', nextColorScheme, { maxAge: 60 * 60 * 24 * 30 });
+  };
 
   return (
     <>
@@ -37,10 +49,23 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name="theme-color" content="#317EFB" />
       </Head>
       <Provider store={store}>
-        <Component {...pageProps} />
+        <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
+          <MantineProvider
+            theme={{ colorScheme: theme }}
+            withGlobalStyles
+            withNormalizeCSS
+          >
+            <Component {...pageProps} />
+
+          </MantineProvider>
+        </ColorSchemeProvider>
       </Provider>
 
     </>
   );
 }
+
+MyApp.getInitialProps = ({ ctx }: { ctx: GetServerSidePropsContext }) => ({
+  colorScheme: getCookie('mantine-color-scheme', ctx) || 'light',
+});
 export default MyApp
