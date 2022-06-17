@@ -3,22 +3,23 @@ import { CommentDetails, IPost, Post, Posts } from '../../interfaces/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
 import styles from './commentsContainer.module.css';
-import { useRouter } from 'next/router';
 import useFixedNavbar from '../../hooks/useFixedNavbar';
 import { useGetCommentsForPostQuery } from '../../redux/services';
 import { formatStoriesData } from '../../helpers/cleanData';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface Props {
     post?: IPost,
     postId: string
 }
-const CommentsContainer = ({ post, postId }: Props) => {
+const CommentsContainer = ({ post }: Props) => {
 
     const headerRef = React.useRef(null);
     const [stories, setStories] = React.useState<CommentDetails[]>();
-    const router = useRouter();
+    const { postId } = useParams();
+    const navigate = useNavigate();
 
-    const { data } = useGetCommentsForPostQuery(postId);
+    const { data } = useGetCommentsForPostQuery(postId!);
 
     useFixedNavbar(headerRef, true);
 
@@ -32,7 +33,7 @@ const CommentsContainer = ({ post, postId }: Props) => {
     return (
         <div className={styles.commentsContainer}>
             <div ref={headerRef} className={styles.navigationBar}>
-                <MdKeyboardBackspace size={30} color="white" onClick={() => { router.back() }} />
+                <MdKeyboardBackspace size={30} color="white" onClick={() => { navigate(-1) }} />
             </div>
             <div className={styles.stories}>
                 {stories?.map((story) => {

@@ -3,11 +3,13 @@ import { fetchStoriesForPostWithId, formatStoriesData, getAllPrompts } from '../
 import { fetchFromUrl } from '../../helpers/fetchData';
 import { CommentDetails, IPost, Posts } from '../../interfaces/reddit';
 
+export type PostSortType = 'hot' | 'new' | 'rising';
+
 export const postsApi = createApi({
     reducerPath: 'postsApi',
     baseQuery: fetchBaseQuery({ baseUrl: 'https://www.reddit.com/' }),
     endpoints: (builder) => ({
-        getPosts: builder.query<IPost[], string>({
+        getPosts: builder.query<IPost[], PostSortType>({
             queryFn: async (type) => {
                 return { data: getAllPrompts(await fetchFromUrl(`/r/writingprompts/${type}`), type) }
             }
