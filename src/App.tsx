@@ -9,6 +9,8 @@ import { useMediaQuery } from '@mantine/hooks';
 import { BsClockHistory } from 'react-icons/bs';
 import { MdHome, MdBookmarks } from 'react-icons/md';
 import { ReactNode, useState } from 'react';
+import SavedStories from './pages/SavedStories';
+import ReadLaterStories from './pages/ReadLaterStories';
 
 function App() {
 
@@ -33,6 +35,8 @@ function App() {
               <Route path='/posts'>
                 <Route path=":postId" element={<CommentsContainer postId='' />} />
               </Route>
+              <Route path='/saved' element={<SavedStories />} />
+              <Route path='/later' element={<ReadLaterStories />} />
             </Routes>
           </BrowserRouter>
         </MantineProvider>
