@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Stack, Group, Title, Avatar, TextInput, Box, NativeSelect, ActionIcon, Text, Center } from '@mantine/core';
+import { Stack, Group, Title, Avatar, TextInput, Box, NativeSelect, ActionIcon, Text, Center, useMantineColorScheme } from '@mantine/core';
 import { MdSearch, MdArrowDropDown, MdDownload, MdHome, MdBookmarks } from 'react-icons/md';
 import Post from '../../components/Post';
 import { useMediaQuery } from '@mantine/hooks';
@@ -10,6 +10,9 @@ import { IPost } from '../../interfaces/reddit';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 
 export const Home = () => {
+
+    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     const { data, isLoading } = useGetPostsQuery('hot');
@@ -24,7 +27,7 @@ export const Home = () => {
                             <Title sx={{ fontWeight: 200 }}>Explore</Title>
                             <Title >Stories</Title>
                         </Stack>
-                        <Avatar radius={'xl'} />
+                        <Avatar radius={'xl'} onClick={() => toggleColorScheme()} />
                     </Group>
 
                     <TextInput variant='filled' size='lg' mt={40} icon={<MdSearch size={25} />} placeholder='Search Stories' sx={{ width: '100%' }} />
@@ -35,7 +38,7 @@ export const Home = () => {
                 <Stack spacing={0} sx={{ width: '100%' }}>
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
                         <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} />
-                        <ActionIcon variant='filled'>
+                        <ActionIcon variant='filled' color='gray'>
                             <MdDownload />
                         </ActionIcon>
                     </Group>
