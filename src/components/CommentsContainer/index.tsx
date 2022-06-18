@@ -56,7 +56,7 @@ const CommentsContainer = ({ post }: Props) => {
             {/* Post Details */}
 
             <Stack mt={60}>
-                <Group noWrap px='lg' sx={(theme) => ({ backgroundColor: theme.colors.gray[1] })}>
+                <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
                     <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} />
                 </Group>
                 {stories?.map((story) => {

@@ -32,7 +32,19 @@ export const Home = () => {
                     </Group>
 
                     <TextInput variant='filled' size='lg' mt={40} icon={<MdSearch size={25} />} placeholder='Search Stories' sx={{ width: '100%' }} />
-                    <Box mt={'lg'} sx={(theme) => ({ width: '100%', minHeight: '10rem', maxHeight: '14rem', borderRadius: '6px', backgroundColor: '#3079F8', boxShadow: '0px 14px 0px -8px #669EFE, 0px 24px 0px -12px #BBD4FF' })}>
+                    <Box
+                        mt={'lg'}
+                        sx={(theme) => (
+                            {
+                                width: '100%',
+                                minHeight: '10rem',
+                                maxHeight: '14rem',
+                                borderRadius: '6px',
+                                backgroundColor: '#3079F8',
+                                boxShadow: `0px 14px 0px -8px ${theme.colorScheme === 'dark' ? '#3765B4' : '#669EFE'}, 0px 24px 0px -12px ${theme.colorScheme === 'dark' ? '#2F3F5B' : '#BBD4FF'}`
+                            }
+                        )}
+                    >
                         <Text> Test </Text>
                     </Box>
                 </Stack>
