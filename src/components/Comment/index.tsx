@@ -2,11 +2,25 @@ import * as React from 'react';
 import styles from './comment.module.css';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
-import { Group, Stack, Text, Title, UnstyledButton } from '@mantine/core';
+import { createStyles, Group, Stack, Text, Title, UnstyledButton } from '@mantine/core';
 import { MdBookmark, MdModeComment } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { BsClockHistory } from 'react-icons/bs';
 import useLongPress from '../../hooks/useLongPress';
+
+const useCommentStyles = createStyles((theme, { liked }: { liked: boolean }) => ({
+    commentContainer: {
+        borderBottom: '2px solid',
+        borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
+        userSelect: 'none'
+    },
+    commentDetails: {
+        color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[5]
+    },
+    likeButton: {
+        color: liked ? theme.colors.orange[4] : theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]
+    }
+}));
 
 interface Props {
     body: string,
@@ -20,7 +34,9 @@ interface Props {
 const CommentDisplay = ({ body, body_html, author, created, id, score }: Props) => {
     const [liked, setLiked] = React.useState(false);
 
-    const commentRef = React.useRef<HTMLDivElement>(null)
+    const { classes } = useCommentStyles({ liked });
+
+    const commentRef = React.useRef<HTMLDivElement>(null);
 
     const minimizeComment = () => {
         console.log("Long press called")
@@ -47,8 +63,8 @@ const CommentDisplay = ({ body, body_html, author, created, id, score }: Props) 
     }, { delay: 1000 });
 
     return (
-        <Stack spacing={0} px='lg' {...longPressEvent} sx={(theme) => ({ borderBottom: '2px solid', borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4], userSelect: 'none' })}>
-            <Group noWrap spacing={4} align='center' sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[5] })}>
+        <Stack className={classes.commentContainer} spacing={0} px='lg' {...longPressEvent}>
+            <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
                 <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
                 <Text size='lg'>·</Text>
                 <Text size='xs'>{(new Date(created * 1000).toLocaleString('en-US'))}</Text>
@@ -58,8 +74,8 @@ const CommentDisplay = ({ body, body_html, author, created, id, score }: Props) 
 
                 <Group noWrap align='center' my='md' spacing={40}>
                     <UnstyledButton
+                        className={classes.likeButton}
                         onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); e.preventDefault(); setLiked((prev) => !prev); }}
-                        sx={(theme) => ({ color: liked ? theme.colors.orange[4] : theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6] })}
                     >
                         <Group noWrap align='center' spacing={4}>
                             {

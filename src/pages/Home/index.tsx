@@ -1,13 +1,11 @@
-import * as React from 'react';
 import { Stack, Group, Title, Avatar, TextInput, Box, NativeSelect, ActionIcon, Text, Center, useMantineColorScheme } from '@mantine/core';
-import { MdSearch, MdArrowDropDown, MdDownload, MdHome, MdBookmarks } from 'react-icons/md';
+import { MdSearch, MdArrowDropDown, MdDownload } from 'react-icons/md';
 import Post from '../../components/Post';
 import { useMediaQuery } from '@mantine/hooks';
-import { BsClockHistory } from 'react-icons/bs';
 import { useGetPostsQuery } from '../../redux/services';
 import { Loader } from '@mantine/core';
 import { IPost } from '../../interfaces/reddit';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import SortSelect, { SortType } from '../../components/SortSelect';
 
 export const Home = () => {
 
@@ -16,6 +14,9 @@ export const Home = () => {
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     const { data, isLoading } = useGetPostsQuery('hot');
+
+    const onSortChange = (newType: SortType) => {
+    }
 
     return (
         <Stack align='center' sx={{ width: '100%', height: '100vh' }}>
@@ -37,7 +38,8 @@ export const Home = () => {
                 </Stack>
                 <Stack spacing={0} sx={{ width: '100%' }}>
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
-                        <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} />
+                        <SortSelect onChange={onSortChange} />
+                        {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
                         <ActionIcon variant='filled' color='gray'>
                             <MdDownload />
                         </ActionIcon>
