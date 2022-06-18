@@ -47,7 +47,7 @@ const Post = ({ title, id, score, author, permalink, stories, created }: IPost) 
                             <BsClockHistory onClick={(e) => { e.stopPropagation(); updateForRequest('readLater') }} size={16} color={requests.readLater ? '#3079F8' : '#313131'} />
                         </Group>
                     </Group>
-                    <Text size='sm'>
+                    <Text size='sm' weight={600}>
                         {title.replace('[WP]', '').trim()}
                     </Text>
                     <Group noWrap align='center' spacing={40}>
