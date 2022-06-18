@@ -50,7 +50,7 @@ export interface Posts {
     data: Post
 }
 
-export interface Post {
+interface Post {
     children: PostInfo[]
 }
 
