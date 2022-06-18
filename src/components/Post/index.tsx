@@ -33,7 +33,7 @@ const Post = ({ title, id, score, author, permalink, stories, created }: IPost) 
 
     return (
         <Anchor variant='text' component={Link} to={`/posts/${id}`}>
-            <Box px='lg' py='sm' mt={-2} sx={(theme) => ({ borderTop: '2px solid', borderBottom: '2px solid', borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2], width: largeScreen ? '100%' : '100vw' })}>
+            <Box px='lg' py='sm' mt={-1} sx={(theme) => ({ borderTop: '1px solid', borderBottom: '1px solid', borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2], width: largeScreen ? '100%' : '100vw' })}>
                 <Stack sx={{ width: '100%' }} spacing={'md'}>
 
                     <Group align='center' position='apart'>
