@@ -75,7 +75,8 @@ const CommentDisplay = ({ body, body_html, author, created, id, score }: Props) 
                 <Group noWrap align='center' my='md' spacing={40}>
                     <UnstyledButton
                         className={classes.likeButton}
-                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); e.preventDefault(); setLiked((prev) => !prev); }}
+                        onTouchStart={(e: React.TouchEvent<HTMLButtonElement>) => { e.stopPropagation(); }}
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); e.preventDefault(); console.log("Liked!"); setLiked((prev) => !prev); }}
                     >
                         <Group noWrap align='center' spacing={4}>
                             {

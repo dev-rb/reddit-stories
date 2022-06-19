@@ -4,9 +4,9 @@ import { MdBookmark, MdFileDownload, MdModeComment } from 'react-icons/md';
 import { BsClockHistory } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { useSwipeControls } from '../../hooks/useSwipeControls';
-import { Link } from 'react-router-dom';
 import { Anchor, Box, Group, Stack, Text, Title, UnstyledButton } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
+import Link from 'next/link';
 
 const Post = ({ title, id, score, author, permalink, stories, created }: IPost) => {
     // href={`https://www.reddit.com${permalink}`}
@@ -32,7 +32,7 @@ const Post = ({ title, id, score, author, permalink, stories, created }: IPost) 
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     return (
-        <Anchor variant='text' component={Link} to={`/posts/${id}`}>
+        <Anchor variant='text' component={Link} href={`/posts/${id}`}>
             <Box px='lg' py='sm' mt={-1} sx={(theme) => ({ borderTop: '1px solid', borderBottom: '1px solid', borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2], width: largeScreen ? '100%' : '100vw' })}>
                 <Stack sx={{ width: '100%' }} spacing={'md'}>
 
