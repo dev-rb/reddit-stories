@@ -1,14 +1,10 @@
 import * as React from 'react';
-import { CommentDetails, IPost, Posts } from '../../interfaces/reddit';
+import { CommentDetails, IPost } from '../../interfaces/reddit';
 import { MdArrowDropDown, MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
-import styles from './commentsContainer.module.css';
 import useFixedNavbar from '../../hooks/useFixedNavbar';
 import { useGetCommentsForPostQuery } from '../../redux/services';
-import { formatStoriesData } from '../../helpers/cleanData';
-import { useNavigate, useParams } from 'react-router-dom';
 import { createStyles, Group, NativeSelect, Paper, Stack } from '@mantine/core';
-import Post from '../Post';
 import { useRouter } from 'next/router';
 
 const useStyles = createStyles((theme) => ({
