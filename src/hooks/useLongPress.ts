@@ -29,7 +29,7 @@ export default function useLongPress<T>(
         = {}
 ) {
     const [longPressTriggered, setLongPressTriggered] = useState(false);
-    const timeout = useRef<number>();
+    const timeout = useRef<NodeJS.Timeout>();
     const target = useRef<EventTarget>();
 
     const start = useCallback(

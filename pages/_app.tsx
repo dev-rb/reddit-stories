@@ -9,11 +9,16 @@ import { useState } from 'react';
 import { GetServerSidePropsContext } from 'next';
 import BottomNavigationBar from '../src/components/BottomNavigationBar';
 import AppLayout from '../src/components/AppLayout';
+import { useLocalStorage } from '@mantine/hooks';
 
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
 
-    const [theme, setColorTheme] = useState<ColorScheme>(colorScheme);
+    const [theme, setColorTheme] = useLocalStorage<ColorScheme>({
+        key: 'mantine-color-scheme',
+        defaultValue: 'light',
+        getInitialValueInEffect: true,
+    });
 
     const toggleColorScheme = (value?: ColorScheme) => {
         const nextColorScheme = value || (colorScheme === 'dark' ? 'light' : 'dark');
@@ -34,7 +39,7 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                 <meta name="keywords" content="Keywords" />
                 <title>Reddit Stories</title>
 
-                <link rel="manifest" href="/manifest.json" />
+                {/* <link rel="manifest" href="/manifest.json" /> */}
                 <link
                     href="/icons/favicon-16x16.png"
                     rel="icon"
@@ -70,7 +75,4 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
     );
 }
 
-MyApp.getInitialProps = ({ ctx }: { ctx: GetServerSidePropsContext }) => ({
-    colorScheme: getCookie('mantine-color-scheme', ctx) || 'light',
-});
 export default MyApp
