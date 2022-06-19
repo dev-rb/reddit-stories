@@ -13,6 +13,7 @@ import SortSelect, { SortType } from '../src/components/SortSelect';
 import { IPost } from '../src/interfaces/reddit';
 import { useGetPostsQuery } from '../src/redux/services';
 import BottomNavigationBar from '../src/components/BottomNavigationBar';
+import { trpc } from '../src/utils/trpc';
 
 function App() {
 
@@ -36,6 +37,7 @@ const Home = () => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
+  const { data: rqData } = trpc.useQuery(['hello', { text: 'client' }]);
   const { data, isLoading } = useGetPostsQuery('hot');
 
   const onSortChange = (newType: SortType) => {

@@ -8,10 +8,11 @@ export type PostSortType = 'hot' | 'new' | 'rising';
 export const postsApi = createApi({
     reducerPath: 'postsApi',
     baseQuery: fetchBaseQuery({ baseUrl: 'https://www.reddit.com/' }),
-    keepUnusedDataFor: 999999999999,
+    keepUnusedDataFor: 60 * 999,
     endpoints: (builder) => ({
         getPosts: builder.query<IPost[], PostSortType>({
             queryFn: async (type) => {
+                console.log("REFETCHING!")
                 return { data: getAllPrompts(await fetchFromUrl(`/r/writingprompts/${type}`), type) }
             }
         }),
