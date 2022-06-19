@@ -9,6 +9,7 @@ import { formatStoriesData } from '../../helpers/cleanData';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createStyles, Group, NativeSelect, Paper, Stack } from '@mantine/core';
 import Post from '../Post';
+import { useRouter } from 'next/router';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -28,12 +29,11 @@ interface Props {
     post?: IPost,
     postId: string
 }
-const CommentsContainer = ({ post }: Props) => {
+const CommentsContainer = ({ postId }: Props) => {
 
     const headerRef = React.useRef(null);
     const [stories, setStories] = React.useState<CommentDetails[]>();
-    const { postId } = useParams();
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const { data } = useGetCommentsForPostQuery(postId!);
 
@@ -51,7 +51,7 @@ const CommentsContainer = ({ post }: Props) => {
     return (
         <Stack >
             <Paper ref={headerRef} px='lg' py='xs' className={classes.header}>
-                <MdKeyboardBackspace size={30} onClick={() => { navigate(-1) }} />
+                <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
             </Paper>
             {/* Post Details */}
 

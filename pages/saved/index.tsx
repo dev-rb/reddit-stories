@@ -2,9 +2,9 @@ import * as React from 'react';
 import { Stack, Group, Title, Avatar, TextInput, Box, ActionIcon, Center, Loader, useMantineColorScheme, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { MdSearch, MdDownload } from 'react-icons/md';
-import Post from '../../components/Post';
-import SortSelect, { SortType } from '../../components/SortSelect';
-import { IPost } from '../../interfaces/reddit';
+import Post from '../../src/components/Post';
+import SortSelect, { SortType } from '../../src/components/SortSelect';
+import { IPost } from '../../src/interfaces/reddit';
 
 const SavedStories = () => {
     const { colorScheme, toggleColorScheme } = useMantineColorScheme();

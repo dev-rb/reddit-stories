@@ -1,19 +1,15 @@
-import { Stack, Group, Title, Avatar, TextInput, Box, NativeSelect, ActionIcon, Text, Center, useMantineColorScheme } from '@mantine/core';
-import { MdSearch, MdArrowDropDown, MdDownload } from 'react-icons/md';
-import Post from '../../components/Post';
+import * as React from 'react';
+import { Stack, Group, Title, Avatar, TextInput, Box, ActionIcon, Center, Loader, useMantineColorScheme, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { useGetPostsQuery } from '../../redux/services';
-import { Loader } from '@mantine/core';
-import { IPost } from '../../interfaces/reddit';
-import SortSelect, { SortType } from '../../components/SortSelect';
+import { MdSearch, MdDownload } from 'react-icons/md';
+import Post from '../../src/components/Post';
+import SortSelect, { SortType } from '../../src/components/SortSelect';
+import { IPost } from '../../src/interfaces/reddit';
 
-export const Home = () => {
-
+const ReadLaterStories = () => {
     const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
-
-    const { data, isLoading } = useGetPostsQuery('hot');
 
     const onSortChange = (newType: SortType) => {
     }
@@ -25,28 +21,12 @@ export const Home = () => {
                 <Stack p='lg' sx={{ width: '100%' }}>
                     <Group noWrap align='start' position='apart' sx={{ width: '100%' }}>
                         <Stack spacing={0}>
-                            <Title sx={{ fontWeight: 200 }}>Explore</Title>
+                            <Title sx={{ fontWeight: 200 }}>For Later</Title>
                             <Title >Stories</Title>
                         </Stack>
                         <Avatar radius={'xl'} onClick={() => toggleColorScheme()} />
                     </Group>
 
-                    <TextInput variant='filled' size='lg' mt={40} icon={<MdSearch size={25} />} placeholder='Search Stories' sx={{ width: '100%' }} />
-                    <Box
-                        mt={'lg'}
-                        sx={(theme) => (
-                            {
-                                width: '100%',
-                                minHeight: '10rem',
-                                maxHeight: '14rem',
-                                borderRadius: '6px',
-                                backgroundColor: '#3079F8',
-                                boxShadow: `0px 14px 0px -8px ${theme.colorScheme === 'dark' ? '#3765B4' : '#669EFE'}, 0px 24px 0px -12px ${theme.colorScheme === 'dark' ? '#2F3F5B' : '#BBD4FF'}`
-                            }
-                        )}
-                    >
-                        <Text> Test </Text>
-                    </Box>
                 </Stack>
                 <Stack spacing={0} sx={{ width: '100%' }}>
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
@@ -56,7 +36,7 @@ export const Home = () => {
                             <MdDownload />
                         </ActionIcon>
                     </Group>
-
+                    {/* 
                     {!data && isLoading ?
                         <Center>
                             <Loader />
@@ -64,10 +44,12 @@ export const Home = () => {
 
                         data?.map((post: IPost) => <Post key={post.id} {...post} />)
 
-                    }
+                    } */}
 
                 </Stack>
             </Stack>
         </Stack>
     );
 }
+
+export default ReadLaterStories;
