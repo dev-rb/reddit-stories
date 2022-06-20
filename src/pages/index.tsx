@@ -1,35 +1,11 @@
 import * as React from 'react';
-import { ActionIcon, Avatar, Box, Center, ColorScheme, ColorSchemeProvider, Group, Loader, MantineProvider, Stack, TextInput, Title, useMantineColorScheme, Text } from '@mantine/core';
-import { Provider } from 'react-redux';
-import { store } from '../redux/store';
+import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title, useMantineColorScheme, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { BsClockHistory } from 'react-icons/bs';
-import { MdHome, MdBookmarks, MdDownload, MdSearch } from 'react-icons/md';
-import { ReactNode, useState } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
+import { MdDownload, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
 import SortSelect, { SortType } from '../components/SortSelect';
 import { IPost } from '../interfaces/reddit';
 import { useGetPostsQuery } from '../redux/services';
-import BottomNavigationBar from '../components/BottomNavigationBar';
-import { trpc } from '../utils/trpc';
-
-function App() {
-
-  const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
-  const toggleColorScheme = (value?: ColorScheme) =>
-    setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
-
-  return (
-
-    <Home />
-
-
-  )
-}
-
-export default App
 
 const Home = () => {
 
@@ -96,3 +72,5 @@ const Home = () => {
     </Stack>
   );
 }
+
+export default Home;
