@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import * as React from 'react';
-import CommentsContainer from '../../src/components/CommentsContainer';
+import CommentsContainer from '../../components/CommentsContainer';
 
 const CommentsOfPostId = () => {
     const router = useRouter()

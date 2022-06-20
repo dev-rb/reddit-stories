@@ -20,16 +20,19 @@
     "noEmit": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
     "paths": {
       "/@/*": [
-        "./src/*",
-        "./pages/*"
+        "src/*",
+        "src/pages/*"
       ]
     },
   },
   "include": [
     "./src",
-    "pages"
+    "src/pages",
+    "**/*.ts",
+    "**/*.tsx",
   ],
   "exclude": [
     "node_modules"

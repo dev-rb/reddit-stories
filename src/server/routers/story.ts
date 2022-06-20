@@ -4,22 +4,22 @@ import { z } from 'zod';
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
-const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
+const defaultStorySelect = Prisma.validator<Prisma.StorySelect>()({
     id: true,
     title: true,
     score: true,
     author: true,
-    created: true,
     permalink: true,
-    stories: true,
-    userPostSaved: true
+    body: true,
+    bodyHtml: true,
+    created: true
 });
 
-export const postRouter = createRouter()
+export const storiesRouter = createRouter()
     .query("all", {
         async resolve() {
-            return await prisma.post.findMany({
-                select: defaultPostSelect,
+            return await prisma.story.findMany({
+                select: defaultStorySelect,
             })
         }
     })
@@ -30,39 +30,39 @@ export const postRouter = createRouter()
         async resolve({ input }) {
             const { id } = input;
 
-            const post = await prisma.post.findUnique({
+            const story = await prisma.story.findUnique({
                 where: {
                     id: id
                 },
-                select: defaultPostSelect
+                select: defaultStorySelect
             });
 
-            if (!post) {
+            if (!story) {
                 throw new TRPCError({
                     code: 'NOT_FOUND',
-                    message: `No post with id '${id}'`,
+                    message: `No story with id '${id}'`,
                 });
             }
-            return post;
+            return story;
         }
     })
     .mutation("like", {
         input: z.object({
             userId: z.string().uuid(),
-            postId: z.string(),
+            storyId: z.string(),
             liked: z.boolean()
         }),
         async resolve({ input, ctx }) {
-            const { postId, liked, userId } = input;
-            const post = prisma.post.update({
-                where: { id: postId },
+            const { storyId, liked, userId } = input;
+            const story = prisma.story.update({
+                where: { id: storyId },
                 data: {
-                    userPostSaved: {
+                    userStorySaved: {
                         update: {
                             where: {
-                                userId_postId: {
-                                    userId,
-                                    postId
+                                userId_storyId: {
+                                    storyId,
+                                    userId
                                 }
                             },
                             data: {
@@ -71,29 +71,29 @@ export const postRouter = createRouter()
                         }
                     }
                 },
-                select: defaultPostSelect
+                select: defaultStorySelect
             });
 
-            return post;
+            return story;
         }
     })
     .mutation("favorite", {
         input: z.object({
             userId: z.string().uuid(),
-            postId: z.string(),
+            storyId: z.string(),
             favorited: z.boolean()
         }),
         async resolve({ input, ctx }) {
-            const { postId, favorited, userId } = input;
-            const post = prisma.post.update({
-                where: { id: postId },
+            const { storyId, favorited, userId } = input;
+            const story = prisma.story.update({
+                where: { id: storyId },
                 data: {
-                    userPostSaved: {
+                    userStorySaved: {
                         update: {
                             where: {
-                                userId_postId: {
+                                userId_storyId: {
                                     userId,
-                                    postId
+                                    storyId
                                 }
                             },
                             data: {
@@ -102,29 +102,29 @@ export const postRouter = createRouter()
                         }
                     }
                 },
-                select: defaultPostSelect
+                select: defaultStorySelect
             });
 
-            return post;
+            return story;
         }
     })
     .mutation("readLater", {
         input: z.object({
             userId: z.string().uuid(),
-            postId: z.string(),
+            storyId: z.string(),
             readLater: z.boolean()
         }),
         async resolve({ input, ctx }) {
-            const { postId, readLater, userId } = input;
-            const post = prisma.post.update({
-                where: { id: postId },
+            const { storyId, readLater, userId } = input;
+            const story = prisma.story.update({
+                where: { id: storyId },
                 data: {
-                    userPostSaved: {
+                    userStorySaved: {
                         update: {
                             where: {
-                                userId_postId: {
+                                userId_storyId: {
                                     userId,
-                                    postId
+                                    storyId
                                 }
                             },
                             data: {
@@ -133,9 +133,9 @@ export const postRouter = createRouter()
                         }
                     }
                 },
-                select: defaultPostSelect
+                select: defaultStorySelect
             });
 
-            return post;
+            return story;
         }
     })

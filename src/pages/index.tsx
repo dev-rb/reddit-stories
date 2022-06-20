@@ -1,19 +1,19 @@
 import * as React from 'react';
 import { ActionIcon, Avatar, Box, Center, ColorScheme, ColorSchemeProvider, Group, Loader, MantineProvider, Stack, TextInput, Title, useMantineColorScheme, Text } from '@mantine/core';
 import { Provider } from 'react-redux';
-import { store } from '../src/redux/store';
+import { store } from '../redux/store';
 import { useMediaQuery } from '@mantine/hooks';
 import { BsClockHistory } from 'react-icons/bs';
 import { MdHome, MdBookmarks, MdDownload, MdSearch } from 'react-icons/md';
 import { ReactNode, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Post from '../src/components/Post';
-import SortSelect, { SortType } from '../src/components/SortSelect';
-import { IPost } from '../src/interfaces/reddit';
-import { useGetPostsQuery } from '../src/redux/services';
-import BottomNavigationBar from '../src/components/BottomNavigationBar';
-import { trpc } from '../src/utils/trpc';
+import Post from '../components/Post';
+import SortSelect, { SortType } from '../components/SortSelect';
+import { IPost } from '../interfaces/reddit';
+import { useGetPostsQuery } from '../redux/services';
+import BottomNavigationBar from '../components/BottomNavigationBar';
+import { trpc } from '../utils/trpc';
 
 function App() {
 
@@ -37,7 +37,7 @@ const Home = () => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
-  const { data: rqData } = trpc.useQuery(['hello', { text: 'client' }]);
+  // const { data: rqData } = trpc.useQuery(['hello', { text: 'client' }]);
   const { data, isLoading } = useGetPostsQuery('hot');
 
   const onSortChange = (newType: SortType) => {

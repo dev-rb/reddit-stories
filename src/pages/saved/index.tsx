@@ -2,11 +2,11 @@ import * as React from 'react';
 import { Stack, Group, Title, Avatar, TextInput, Box, ActionIcon, Center, Loader, useMantineColorScheme, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { MdSearch, MdDownload } from 'react-icons/md';
-import Post from '../../src/components/Post';
-import SortSelect, { SortType } from '../../src/components/SortSelect';
-import { IPost } from '../../src/interfaces/reddit';
+import Post from '../../components/Post';
+import SortSelect, { SortType } from '../../components/SortSelect';
+import { IPost } from '../../interfaces/reddit';
 
-const ReadLaterStories = () => {
+const SavedStories = () => {
     const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
@@ -21,7 +21,7 @@ const ReadLaterStories = () => {
                 <Stack p='lg' sx={{ width: '100%' }}>
                     <Group noWrap align='start' position='apart' sx={{ width: '100%' }}>
                         <Stack spacing={0}>
-                            <Title sx={{ fontWeight: 200 }}>For Later</Title>
+                            <Title sx={{ fontWeight: 200 }}>Saved</Title>
                             <Title >Stories</Title>
                         </Stack>
                         <Avatar radius={'xl'} onClick={() => toggleColorScheme()} />
@@ -52,4 +52,4 @@ const ReadLaterStories = () => {
     );
 }
 
-export default ReadLaterStories;
+export default SavedStories;

@@ -39,7 +39,7 @@ const CommentsContainer = ({ postId }: Props) => {
 
     React.useEffect(() => {
         if (data) {
-            // console.log(data)
+            console.log(data)
             setStories(data);
         }
     }, [data])

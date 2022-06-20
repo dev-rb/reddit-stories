@@ -1,14 +1,14 @@
-import '../src/styles/globals.css'
+import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import Head from 'next/head';
 import { Provider } from 'react-redux';
 import { setCookies } from 'cookies-next';
-import { store } from '../src/redux/store';
+import { store } from '../redux/store';
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core';
-import AppLayout from '../src/components/AppLayout';
+import AppLayout from '../components/AppLayout';
 import { useLocalStorage } from '@mantine/hooks';
 import { withTRPC } from '@trpc/next';
-import { AppRouter } from './api/trpc/[trpc]';
+import { AppRouter } from '../server/routers';
 
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
