@@ -2,8 +2,6 @@
 #Dev container
 /.devcontainer/mysqldata/
 
-.github
-
 # dependencies
 /node_modules
 /.pnp
