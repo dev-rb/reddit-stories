@@ -16,6 +16,28 @@ const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
 });
 
 export const postRouter = createRouter()
+    .mutation('create', {
+        input: z.object({
+            id: z.string(),
+            title: z.string(),
+            author: z.string(),
+
+        }),
+        async resolve({ input }) {
+            const { author, id, title } = input;
+            console.log("Mutate called")
+            return prisma.post.create({
+                data: {
+                    author,
+                    id,
+                    title,
+                    created: new Date(Date.now()),
+                    permalink: 'https://google.com',
+                    score: 120
+                }
+            })
+        }
+    })
     .query("all", {
         async resolve() {
             return await prisma.post.findMany({

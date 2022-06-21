@@ -6,6 +6,8 @@ import Post from '../components/Post';
 import SortSelect, { SortType } from '../components/SortSelect';
 import { IPost } from '../interfaces/reddit';
 import { useGetPostsQuery } from '../redux/services';
+import { trpc } from '../utils/trpc';
+import { nanoid } from '@reduxjs/toolkit';
 
 const Home = () => {
 
@@ -13,11 +15,19 @@ const Home = () => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
-  // const { data: rqData } = trpc.useQuery(['hello', { text: 'client' }]);
+  const { data: rqData, mutate } = trpc.useMutation(['post.create']);
   const { data, isLoading } = useGetPostsQuery('hot');
 
   const onSortChange = (newType: SortType) => {
   }
+
+  React.useEffect(() => {
+
+  }, [])
+
+  React.useEffect(() => {
+    console.log(rqData);
+  }, [rqData])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>
@@ -53,7 +63,7 @@ const Home = () => {
           <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
             <SortSelect onChange={onSortChange} />
             {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
-            <ActionIcon variant='filled' color='gray'>
+            <ActionIcon variant='filled' color='gray' onClick={() => { console.log("clicked"); mutate({ author: "rahul", id: nanoid(), title: 'Test database write' }); }}>
               <MdDownload />
             </ActionIcon>
           </Group>
