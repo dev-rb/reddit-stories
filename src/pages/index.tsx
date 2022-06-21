@@ -22,7 +22,7 @@ const Home = () => {
   }
 
   React.useEffect(() => {
-    console.log(rqData)
+    console.log(rqData);
   }, [rqData])
 
   return (
