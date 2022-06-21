@@ -8,14 +8,14 @@ export const getAllPrompts = (data: Posts, type?: string) => {
     posts.forEach((post) => {
         if (post.data.permalink.split('/')[5].includes('wp') && post.data.num_comments > 1) {
             let { title, id, score, author, permalink, created } = post.data;
-            let hoursAgo = Math.abs(new Date().getHours() - new Date(created * 1000).getHours());
-            let daysAgo = Math.abs(new Date().getDay() - new Date(created * 1000).getDay());
-            let minutesAgo = Math.abs(new Date().getMinutes() - new Date(created * 1000).getMinutes());
-            prompts.push({ title, id, score, author, permalink: permalink, stories: [], created: { hoursAgo, minutesAgo, daysAgo } })
+            // let hoursAgo = Math.abs(new Date().getHours() - new Date(created * 1000).getHours());
+            // let daysAgo = Math.abs(new Date().getDay() - new Date(created * 1000).getDay());
+            // let minutesAgo = Math.abs(new Date().getMinutes() - new Date(created * 1000).getMinutes());
+            prompts.push({ title, id, score, author, permalink: permalink, stories: [], created: new Date(created * 1000).toString() })
 
         }
     });
-    prompts = type == "hot" ? prompts.sort((a, b) => b.score - a.score) : type == "rising" ? prompts.sort((a, b) => (b.score - a.score) || (a.created.hoursAgo - b.created.hoursAgo)) : prompts.sort((a, b) => a.created.hoursAgo - b.created.hoursAgo);
+    // prompts = type == "hot" ? prompts.sort((a, b) => b.score - a.score) : type == "rising" ? prompts.sort((a, b) => (b.score - a.score) || (a.created.hoursAgo - b.created.hoursAgo)) : prompts.sort((a, b) => a.created.hoursAgo - b.created.hoursAgo);
     return prompts;
     // prompts = prompts.filter((prompt) => prompt.stories.length < 1)
     // console.log(prompts)
@@ -41,7 +41,7 @@ export const formatStoriesData = (data: Posts[]) => {
                 console.log(comment.data.body)
             }
             let { title, body, author, ups, score, id, permalink, body_html, created } = comment.data;
-            let newComment: CommentDetails = { body: body, author: author, body_html: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: created }
+            let newComment: CommentDetails = { body: body, author: author, bodyHtml: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: new Date(created * 1000).toString() }
             if (newComment.body !== undefined) {
                 stories.push(newComment);
             }

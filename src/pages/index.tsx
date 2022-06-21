@@ -4,7 +4,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
 import SortSelect, { SortType } from '../components/SortSelect';
-import { IPost } from '../interfaces/reddit';
+import { CommentDetails, IPost } from '../interfaces/reddit';
 import { useGetPostsQuery } from '../redux/services';
 import { trpc } from '../utils/trpc';
 import { nanoid } from '@reduxjs/toolkit';
@@ -15,18 +15,14 @@ const Home = () => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
-  const { data: rqData, mutate } = trpc.useMutation(['post.create']);
-  const { data, isLoading } = useGetPostsQuery('hot');
+  const { data: rqData, isLoading } = trpc.useQuery(['post.all']);
+  // const { data, isLoading } = useGetPostsQuery('hot');
 
   const onSortChange = (newType: SortType) => {
   }
 
   React.useEffect(() => {
-
-  }, [])
-
-  React.useEffect(() => {
-    console.log(rqData);
+    console.log(rqData)
   }, [rqData])
 
   return (
@@ -63,17 +59,17 @@ const Home = () => {
           <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
             <SortSelect onChange={onSortChange} />
             {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
-            <ActionIcon variant='filled' color='gray' onClick={() => { console.log("clicked"); mutate({ author: "rahul", id: nanoid(), title: 'Test database write' }); }}>
+            <ActionIcon variant='filled' color='gray' onClick={() => { }}>
               <MdDownload />
             </ActionIcon>
           </Group>
 
-          {!data && isLoading ?
+          {!rqData && isLoading ?
             <Center>
               <Loader />
             </Center> :
 
-            data?.map((post: IPost) => <Post key={post.id} {...post} />)
+            rqData?.map((post) => <Post key={post.id} {...post} created={post.created.toString()} stories={post.stories as unknown as CommentDetails[]} />)
 
           }
 

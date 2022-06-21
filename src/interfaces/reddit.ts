@@ -38,7 +38,7 @@
 export interface IPost {
     title: string,
     id: string,
-    created: { hoursAgo: number, minutesAgo: number, daysAgo: number },
+    created: string,
     score: number,
     author: string,
     permalink: string,
@@ -93,11 +93,11 @@ export interface RedditComment {
 export interface CommentDetails {
     title: string,
     body: string,
-    body_html: string
+    bodyHtml: string
     permalink: string,
     score: number,
     ups: number,
     author: string,
     id: string,
-    created: number
+    created: string
 }

@@ -7,6 +7,10 @@ import { useSwipeControls } from '../../hooks/useSwipeControls';
 import { Anchor, Box, Group, Stack, Text, Title, UnstyledButton } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import Link from 'next/link';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime)
 
 const Post = ({ title, id, score, author, permalink, stories, created }: IPost) => {
     // href={`https://www.reddit.com${permalink}`}
@@ -40,7 +44,7 @@ const Post = ({ title, id, score, author, permalink, stories, created }: IPost) 
                         <Group noWrap spacing={4} align='center' sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[5] })}>
                             <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
                             <Text size='lg'>·</Text>
-                            <Text size='xs'>{created.daysAgo == 0 ? created.hoursAgo == 0 ? `${created.minutesAgo} minutes ago` : `${created.hoursAgo} hours ago` : `${created.daysAgo} days ago`}</Text>
+                            <Text size='xs'>{dayjs(created).fromNow()}</Text>
                         </Group>
                         <Group noWrap spacing={10}>
                             <MdFileDownload onClick={(e) => { e.stopPropagation(); updateForRequest('download') }} size={16} color={requests.download ? '#F8A130' : '#313131'} />
