@@ -8,6 +8,7 @@ import { CommentDetails, IPost } from '../interfaces/reddit';
 import { useGetPostsQuery } from '../redux/services';
 import { trpc } from '../utils/trpc';
 import { nanoid } from '@reduxjs/toolkit';
+import { fetchCommentsForPost, fetchSubredditPosts } from '../utils/redditApi';
 
 const Home = () => {
 
@@ -28,9 +29,11 @@ const Home = () => {
 
   React.useEffect(() => {
     // console.log("Admin: ", adminData, "Is Loading: ", adminLoading)
-    console.log(rqData);
-    console.log("Test")
-  }, [rqData])
+    // console.log(rqData);
+    // console.log("Test")
+
+    fetchCommentsForPost('/r/writingprompts', 'vgiyyu');
+  }, [])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>

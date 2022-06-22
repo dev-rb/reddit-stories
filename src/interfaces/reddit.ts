@@ -35,6 +35,8 @@
 //     num_crossposts: number;
 // }
 
+export type RedditSortType = 'hot' | 'new' | 'top';
+
 export interface IPost {
     title: string,
     id: string,
@@ -85,6 +87,10 @@ export interface PostDetails {
     num_crossposts: number;
 }
 
+export interface RedditCommentRoot {
+    children: RedditComment[]
+}
+
 export interface RedditComment {
     kind: string,
     data: CommentDetails
@@ -99,5 +105,5 @@ export interface CommentDetails {
     ups: number,
     author: string,
     id: string,
-    created: string
+    created: number
 }

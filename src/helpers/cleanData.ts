@@ -30,22 +30,22 @@ export const fetchStoriesForPostWithId = async (postId: string) => {
     return fetchedStories
 }
 
-export const formatStoriesData = (data: Posts[]) => {
-    let stories: CommentDetails[] = [];
-    if (data.length > 1) {
-        let comments: PostInfo[] = [...data[1].data.children];
-        comments.shift();
-        // console.log(comments)
-        comments.forEach((comment) => {
-            if (comment.data.author === "AutoModerator" && comments.length <= 2) {
-                console.log(comment.data.body)
-            }
-            let { title, body, author, ups, score, id, permalink, body_html, created } = comment.data;
-            let newComment: CommentDetails = { body: body, author: author, bodyHtml: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: new Date(created * 1000).toString() }
-            if (newComment.body !== undefined) {
-                stories.push(newComment);
-            }
-        });
-    }
-    return stories;
-}
+// export const formatStoriesData = (data: Posts[]) => {
+//     let stories: CommentDetails[] = [];
+//     if (data.length > 1) {
+//         let comments: PostInfo[] = [...data[1].data.children];
+//         comments.shift();
+//         // console.log(comments)
+//         comments.forEach((comment) => {
+//             if (comment.data.author === "AutoModerator" && comments.length <= 2) {
+//                 console.log(comment.data.body)
+//             }
+//             let { title, body, author, ups, score, id, permalink, body_html, created } = comment.data;
+//             let newComment: CommentDetails = { body: body, author: author, bodyHtml: body_html, id: id, permalink: permalink, score: score, title: title, ups: ups, created: new Date(created * 1000).toString() }
+//             if (newComment.body !== undefined) {
+//                 stories.push(newComment);
+//             }
+//         });
+//     }
+//     return stories;
+// }

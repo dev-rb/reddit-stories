@@ -8,7 +8,6 @@ ARG USER_GID=$USER_UID
 
 ADD https://github.com/planetscale/cli/releases/download/v0.100.0/pscale_0.100.0_linux_amd64.tar.gz .
 RUN [ "tar", "zxvf", "pscale_0.100.0_linux_amd64.tar.gz", "-C", "/usr/bin" ]
-
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \ 
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
