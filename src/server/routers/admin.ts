@@ -7,24 +7,26 @@ import { fetchFromUrl } from "../../helpers/fetchData";
 import { getAllPrompts, fetchStoriesForPostWithId } from "../../helpers/cleanData";
 import { IPost, PostInfo, Posts } from "../../interfaces/reddit";
 
+const promptTags = ['wp', 'cw', 'eu', 'pm', 'pi', 'sp', 'tt', 'rf'];
+
 export const adminRouter = createRouter()
     .query("refetch", {
         async resolve() {
-            console.log("Admin Router Called Test");
+            // console.log("Admin Router Called Test");
             const data: Posts = await (await fetchFromUrl(`/r/writingprompts/hot`))
             let posts = data.data.children;
-            // console.log("Get All prompts called", posts)
+            console.log("Inital Posts: ", posts.length)
             let prompts: Post[] = [];
             posts.forEach((post) => {
-                if (post.data.permalink.split('/')[5].includes('wp') && post.data.num_comments > 1) {
+                // console.log(post.data.permalink.split('/')[5].substring(0, 2))
+                const postTag = post.data.permalink.split('/')[5].substring(0, 2);
+                if (promptTags.includes(postTag) && post.data.num_comments > 0) {
                     let { title, id, score, author, permalink, created } = post.data;
-                    // let hoursAgo = Math.abs(new Date().getHours() - new Date(created * 1000).getHours());
-                    // let daysAgo = Math.abs(new Date().getDay() - new Date(created * 1000).getDay());
-                    // let minutesAgo = Math.abs(new Date().getMinutes() - new Date(created * 1000).getMinutes());
                     prompts.push({ title, id, score, author, permalink: permalink, created: new Date(created * 1000) })
                 }
             });
-            console.log("Adding Prompts to DB")
+            console.log("After Processing Posts: ", prompts.length)
+            // console.log("Adding Prompts to DB")
             await prisma.post.createMany({
                 data: [...prompts],
                 skipDuplicates: true
