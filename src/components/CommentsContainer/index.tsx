@@ -6,6 +6,8 @@ import useFixedNavbar from '../../hooks/useFixedNavbar';
 import { useGetCommentsForPostQuery } from '../../redux/services';
 import { createStyles, Group, NativeSelect, Paper, Stack } from '@mantine/core';
 import { useRouter } from 'next/router';
+import { trpc } from '../../utils/trpc';
+import { Story } from '@prisma/client';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -28,10 +30,12 @@ interface Props {
 const CommentsContainer = ({ postId }: Props) => {
 
     const headerRef = React.useRef(null);
-    const [stories, setStories] = React.useState<CommentDetails[]>();
+    const [stories, setStories] = React.useState<Story[]>();
     const router = useRouter();
 
-    const { data } = useGetCommentsForPostQuery(postId!);
+    const { data } = trpc.useQuery(['story.all', { postId }])
+
+    // const { data } = useGetCommentsForPostQuery(postId!);
 
     const { classes } = useStyles();
 
@@ -40,7 +44,7 @@ const CommentsContainer = ({ postId }: Props) => {
     React.useEffect(() => {
         if (data) {
             console.log(data)
-            setStories(data);
+            // setStories(data);
         }
     }, [data])
 
@@ -55,8 +59,8 @@ const CommentsContainer = ({ postId }: Props) => {
                 <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
                     <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} />
                 </Group>
-                {stories?.map((story) => {
-                    return <CommentDisplay key={story.id} body={story.body} body_html={story.body_html} author={story.author} created={story.created} id={story.id} score={story.score} />
+                {data?.map((story) => {
+                    return <CommentDisplay key={story.id} body={story.body} body_html={story.bodyHtml} author={story.author} created={story.created} id={story.id} score={story.score} />
                 })}
             </Stack>
         </Stack>

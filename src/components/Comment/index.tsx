@@ -27,7 +27,7 @@ interface Props {
     body_html: string,
     author: string,
     id: string,
-    created: number,
+    created: Date,
     score: number
 }
 
@@ -67,7 +67,7 @@ const CommentDisplay = ({ body, body_html, author, created, id, score }: Props) 
             <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
                 <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
                 <Text size='lg'>·</Text>
-                <Text size='xs'>{(new Date(created * 1000).toLocaleString('en-US'))}</Text>
+                <Text size='xs'>{(created.toLocaleString('en-US'))}</Text>
             </Group>
             <Stack ref={commentRef} spacing={0}>
                 <Text size='sm'> {HtmlReactParser(sanitize(body_html, { transformTags: { 'a': 'p' } }))} </Text>

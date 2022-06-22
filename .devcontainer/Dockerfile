@@ -2,6 +2,10 @@
 ARG VARIANT=16-bullseye
 FROM mcr.microsoft.com/vscode/devcontainers/typescript-node:0-${VARIANT}
 
+ARG USERNAME=node
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
 ADD https://github.com/planetscale/cli/releases/download/v0.100.0/pscale_0.100.0_linux_amd64.tar.gz .
 RUN [ "tar", "zxvf", "pscale_0.100.0_linux_amd64.tar.gz", "-C", "/usr/bin" ]
 
@@ -15,3 +19,9 @@ RUN [ "tar", "zxvf", "pscale_0.100.0_linux_amd64.tar.gz", "-C", "/usr/bin" ]
 
 # [Optional] Uncomment if you want to install more global node packages
 # RUN su node -c "npm install -g <your-package-list -here>"
+
+
+# RUN groupadd --gid $USER_GID $USERNAME \
+#     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+
+USER $USERNAME

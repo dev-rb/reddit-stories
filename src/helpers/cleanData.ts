@@ -3,7 +3,7 @@ import { fetchFromUrl } from "./fetchData";
 
 export const getAllPrompts = (data: Posts, type?: string) => {
     let posts = data.data.children;
-
+    console.log("Get All prompts called")
     let prompts: IPost[] = [];
     posts.forEach((post) => {
         if (post.data.permalink.split('/')[5].includes('wp') && post.data.num_comments > 1) {
@@ -25,9 +25,9 @@ export const getAllPrompts = (data: Posts, type?: string) => {
 //       /r/WritingPrompts/comments/p86yum/wp_youve_just_defeated_the_dark_lord_as_you_were/
 
 export const fetchStoriesForPostWithId = async (postId: string) => {
-    const fetchedStories = fetchFromUrl(`/r/WritingPrompts/comments/${postId}/`);
+    const fetchedStories = await fetchFromUrl(`/r/WritingPrompts/comments/${postId}/`);
 
-    return formatStoriesData(await fetchedStories);
+    return fetchedStories
 }
 
 export const formatStoriesData = (data: Posts[]) => {

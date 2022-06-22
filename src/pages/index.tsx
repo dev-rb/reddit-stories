@@ -15,6 +15,10 @@ const Home = () => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
+  const { data: adminData, isLoading: adminLoading } = trpc.useQuery(['admin.refetch'], {
+    refetchInterval: 999999,
+    refetchIntervalInBackground: false
+  })
   const { data: rqData, isLoading } = trpc.useQuery(['post.all']);
   // const { data, isLoading } = useGetPostsQuery('hot');
 
@@ -22,8 +26,10 @@ const Home = () => {
   }
 
   React.useEffect(() => {
+    console.log("Admin: ", adminData, "Is Loading: ", adminLoading)
     console.log(rqData);
-  }, [rqData])
+    console.log("Test")
+  }, [rqData, adminData])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>

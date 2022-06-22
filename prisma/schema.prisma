@@ -8,7 +8,7 @@ generator client {
 
 datasource db {
   provider             = "mysql"
-  url                  = env("DATABASE_URL")
+  url                  = env("DEV_DATABASE_URL")
   referentialIntegrity = "prisma"
 }
 
@@ -34,7 +34,7 @@ model UserPostSaved {
 
 model Post {
   id            String          @id
-  title         String
+  title         String          @db.LongText
   created       DateTime
   score         Int
   author        String
@@ -57,9 +57,8 @@ model UserStorySaved {
 
 model Story {
   id             String           @id
-  title          String
-  body           String
-  bodyHtml       String
+  body           String           @db.LongText
+  bodyHtml       String           @db.LongText
   permalink      String
   score          Int
   author         String

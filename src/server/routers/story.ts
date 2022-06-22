@@ -6,19 +6,25 @@ import { TRPCError } from "@trpc/server";
 
 const defaultStorySelect = Prisma.validator<Prisma.StorySelect>()({
     id: true,
-    title: true,
     score: true,
     author: true,
     permalink: true,
     body: true,
     bodyHtml: true,
-    created: true
+    created: true,
 });
 
 export const storiesRouter = createRouter()
     .query("all", {
-        async resolve() {
+        input: z.object({
+            postId: z.string()
+        }),
+        async resolve({ input }) {
+            const { postId } = input;
             return await prisma.story.findMany({
+                where: {
+                    postId: postId
+                },
                 select: defaultStorySelect,
             })
         }

@@ -10,14 +10,17 @@ services:
         # Append -bullseye or -buster to pin to an OS version.
         # Use -bullseye variants on local arm64/Apple Silicon.
         VARIANT: 16-bullseye
+    env_file: devcontainer.env
     volumes:
       - ..:/workspace:cached
+      - /workspace/node_modules
+      - /workspace/.next
     command: sleep infinity
     network_mode: service:db
     depends_on:
       - db
     environment:
-       - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_USEPOLLING=true
   db:
     image: mysql:latest
     command: mysqld --default-authentication-plugin=mysql_native_password
