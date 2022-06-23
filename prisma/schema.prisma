@@ -66,6 +66,22 @@ model Story {
   Post           Post?            @relation(fields: [postId], references: [id])
   postId         String?
   userStorySaved UserStorySaved[]
+  replies        Reply[]
 
   @@index([postId])
+}
+
+model Reply {
+  id            String   @id
+  body          String   @db.LongText
+  bodyHtml      String   @db.LongText
+  author        String
+  score         Int
+  created       DateTime
+  parentComment Story?   @relation(fields: [storyId], references: [id])
+  storyId       String?
+
+  replies Reply[] @relation("replies")
+  Reply   Reply?  @relation(name: "replies", fields: [replyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replyId String?
 }

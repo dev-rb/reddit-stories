@@ -8,8 +8,6 @@ import { getAllPrompts, fetchStoriesForPostWithId } from "../../helpers/cleanDat
 import { IPost, PostInfo, Posts } from "../../interfaces/reddit";
 import { fetchCommentsForPost, fetchSubredditPosts } from "../../utils/redditApi";
 
-const promptTags = ['wp', 'cw', 'eu', 'pm', 'pi', 'sp', 'tt', 'rf'];
-
 export const adminRouter = createRouter()
     .query("refetch", {
         async resolve() {

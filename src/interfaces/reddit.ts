@@ -87,23 +87,23 @@ export interface PostDetails {
     num_crossposts: number;
 }
 
-export interface RedditCommentRoot {
-    children: RedditComment[]
+export interface RedditComment {
+    children: { data: CommentDetails }[]
 }
 
-export interface RedditComment {
+export interface RedditCommentRoot {
     kind: string,
-    data: CommentDetails
+    data: RedditComment
 }
 
 export interface CommentDetails {
     title: string,
     body: string,
-    bodyHtml: string
+    body_html: string
     permalink: string,
     score: number,
     ups: number,
     author: string,
     id: string,
-    created: number
+    created_utc: number
 }
