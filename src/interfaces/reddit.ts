@@ -105,5 +105,6 @@ export interface CommentDetails {
     ups: number,
     author: string,
     id: string,
-    created_utc: number
+    created_utc: number,
+    replies: RedditCommentRoot
 }

@@ -1,4 +1,4 @@
-import { Post, Story } from '@prisma/client';
+import { Post, Story, Reply } from '@prisma/client';
 import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
 
 interface RedditFetchOptions {
@@ -55,18 +55,68 @@ const extractPostDetails = (postInfo: PostInfo) => {
 export const fetchCommentsForPost = async (subreddit: string, postId: string) => {
     let data: RedditCommentRoot[] = await (await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)).json()
     // console.log(data)
-    let stories: Story[] = [];
+    let stories: (Story & { replies: Reply[] })[] = [];
     data[1].data.children.forEach((val) => {
-        if (val.data.author !== "AutoModerator" && data[1].data.children.length > 2) {
+        if (val.data.author !== "AutoModerator") {
             stories.push(extractCommentDetails(val.data, postId));
         }
     })
+    // const replies = getRepliesForComment(commentInfo, commentInfo.author, commentInfo.id, null, []);
+    // console.log(replies);
     // console.log(stories)
     return stories;
 }
 
 const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     const { author, created_utc, id, permalink, score, title, body, body_html } = commentInfo;
+    const story: Story & { replies: Reply[] } = {
+        author,
+        created: new Date(created_utc * 1000),
+        id,
+        permalink,
+        score,
+        body,
+        postId,
+        bodyHtml: body_html,
+        replies: getRepliesForComment(commentInfo, commentInfo.author, commentInfo.id, null, []) ?? []
+    };
+    return story;
+}
 
-    return { author, created: new Date(created_utc * 1000), id, permalink, score, title, body, postId, bodyHtml: body_html } as Story;
+/**
+ * 
+ * @param commentInfo      the info for the comment/reply
+ * @param commentAuthor    the author of the original comment/story so we can process replies that are only from the author to capture different parts of the story
+ * @param parentCommentId  id for the main comment/story that these replies are a part of
+ * @param parentReplyId    if a reply is nested, we want to keep track of what reply it is nested inside of so we take its parents id
+ * @param replies          array for accumulated nested replies
+ * @returns                accumulated replies after we've gone through all of them
+ */
+const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string, parentCommentId: string, parentReplyId: string | null, replies: Reply[]) => {
+
+    // If there are no replies, return and continue looking through the rest of the replies
+    if (commentInfo.replies === undefined || commentInfo.replies.data === undefined || commentInfo.replies.data.children.length === 0) {
+        return
+    }
+    // console.log(commentInfo);
+    // Loop through all the replies for this comment
+    commentInfo.replies.data.children.forEach((val) => {
+        const { author, body, body_html, created_utc, id, replies: repliesForReply, permalink, score, title } = val.data;
+
+        // Uncomment to only get this reply if it's from the author of the story
+        // if (author === commentAuthor) {
+        const reply: Reply = {
+            author, body, bodyHtml: body_html, created: new Date(created_utc * 1000), id, score,
+            storyId: parentCommentId,
+            replyId: parentReplyId
+        };
+        // Add this reply to the list of accumulated relies
+        replies.push(reply);
+        // Recursively call this function again on the current reply we are on to check for if it has replies as well. 
+        // We go through all nested replies
+        getRepliesForComment(val.data, commentAuthor, parentCommentId, id, replies);
+        // }
+    })
+
+    return replies;
 }

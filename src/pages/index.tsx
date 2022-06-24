@@ -32,7 +32,7 @@ const Home = () => {
     // console.log(rqData);
     // console.log("Test")
 
-    // fetchCommentsForPost('/r/writingprompts', 'vgiyyu');
+    // fetchCommentsForPost('/r/writingprompts', 'vik5jg').then((stories) => console.log(stories));
   }, [])
 
   return (
