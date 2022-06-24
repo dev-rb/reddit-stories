@@ -32,10 +32,16 @@ export const adminRouter = createRouter()
                             id: storyDetails.id
                         }
                     })
-                    await prisma.reply.createMany({
-                        data: [...replies],
-                        skipDuplicates: true
-                    })
+                    for (const reply of replies) {
+                        await prisma.reply.upsert({
+                            create: { ...reply },
+                            update: { ...reply },
+                            where: {
+                                id: reply.id
+                            }
+                        })
+                    }
+
                 }
 
 
