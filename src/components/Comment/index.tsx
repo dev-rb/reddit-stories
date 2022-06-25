@@ -7,6 +7,7 @@ import { MdBookmark, MdModeComment } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { BsClockHistory } from 'react-icons/bs';
 import useLongPress from '../../hooks/useLongPress';
+import { Reply, Story } from '@prisma/client';
 
 const useCommentStyles = createStyles((theme, { liked }: { liked: boolean }) => ({
     commentContainer: {
@@ -31,7 +32,7 @@ interface Props {
     score: number
 }
 
-const CommentDisplay = ({ body, body_html, author, created, id, score }: Props) => {
+const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies }: Story & { replies: Reply[] }) => {
     const [liked, setLiked] = React.useState(false);
 
     const { classes } = useCommentStyles({ liked });
@@ -63,41 +64,62 @@ const CommentDisplay = ({ body, body_html, author, created, id, score }: Props) 
     }, { delay: 1000 });
 
     return (
-        <Stack className={classes.commentContainer} spacing={0} px='lg' {...longPressEvent}>
-            <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
-                <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
-                <Text size='lg'>·</Text>
-                <Text size='xs'>{(created.toLocaleString('en-US'))}</Text>
-            </Group>
-            <Stack ref={commentRef} spacing={0}>
-                <Text size='sm'> {HtmlReactParser(sanitize(body_html, { transformTags: { 'a': 'p' } }))} </Text>
-
-                <Group noWrap align='center' my='md' spacing={40}>
-                    <UnstyledButton
-                        className={classes.likeButton}
-                        onTouchStart={(e: React.TouchEvent<HTMLButtonElement>) => { e.stopPropagation(); }}
-                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); e.preventDefault(); console.log("Liked!"); setLiked((prev) => !prev); }}
-                    >
-                        <Group noWrap align='center' spacing={4}>
-                            {
-                                liked ?
-                                    <HiHeart size={20} /> :
-                                    <HiOutlineHeart size={20} />
-                            }
-                            <Text weight={500}>{score}</Text>
-                        </Group>
-                    </UnstyledButton>
-
-                    <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6] })}>
-                        <MdBookmark size={20} />
-                    </UnstyledButton>
-                    <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6] })}>
-                        <BsClockHistory size={20} />
-                    </UnstyledButton>
+        <>
+            <Stack className={classes.commentContainer} spacing={0} px='lg' {...longPressEvent}>
+                <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
+                    <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
+                    <Text size='lg'>·</Text>
+                    <Text size='xs'>{(created.toLocaleString('en-US'))}</Text>
                 </Group>
-            </Stack>
+                <Stack ref={commentRef} spacing={0}>
+                    <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
 
-        </Stack>
+                    <Group noWrap align='center' my='md' spacing={40}>
+                        <UnstyledButton
+                            className={classes.likeButton}
+                            onTouchStart={(e: React.TouchEvent<HTMLButtonElement>) => { e.stopPropagation(); }}
+                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); e.preventDefault(); console.log("Liked!"); setLiked((prev) => !prev); }}
+                        >
+                            <Group noWrap align='center' spacing={4}>
+                                {
+                                    liked ?
+                                        <HiHeart size={20} /> :
+                                        <HiOutlineHeart size={20} />
+                                }
+                                <Text weight={500}>{score}</Text>
+                            </Group>
+                        </UnstyledButton>
+
+                        <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6] })}>
+                            <MdBookmark size={20} />
+                        </UnstyledButton>
+                        <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6] })}>
+                            <BsClockHistory size={20} />
+                        </UnstyledButton>
+                    </Group>
+                </Stack>
+
+            </Stack>
+            <Stack>
+                {replies.map((reply, index) => {
+                    let depthCount = 0;
+                    if (depthCount > 2) {
+                        return
+                    }
+                    return (
+                        <div>
+                            <p> {reply.bodyHtml} </p>
+                            <div>
+                                <p> {reply.bodyHtml} </p>
+                                <div>
+                                    <p> {reply.bodyHtml} </p>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                })}
+            </Stack>
+        </>
     );
 }
 

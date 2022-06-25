@@ -78,7 +78,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
         body,
         postId,
         bodyHtml: body_html,
-        updatedAt: new Date(),
+        updatedAt: undefined!,
         replies: getRepliesForComment(commentInfo, commentInfo.author, commentInfo.id, null, []) ?? []
     };
     return story;
@@ -108,8 +108,7 @@ const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string
         // if (author === commentAuthor) {
         const reply: Reply = {
             author, body, bodyHtml: body_html, created: new Date(created_utc * 1000), id, score,
-            updatedAt: new Date(),
-
+            updatedAt: undefined!,
             storyId: parentCommentId,
             replyId: parentReplyId
         };

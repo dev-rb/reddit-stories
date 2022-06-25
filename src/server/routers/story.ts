@@ -25,7 +25,11 @@ export const storiesRouter = createRouter()
                 where: {
                     postId: postId
                 },
-                select: defaultStorySelect,
+                select: {
+                    ...defaultStorySelect,
+                    replies: true
+                },
+
             })
         }
     })
@@ -40,7 +44,10 @@ export const storiesRouter = createRouter()
                 where: {
                     id: id
                 },
-                select: defaultStorySelect
+                select: {
+                    ...defaultStorySelect,
+                    replies: true
+                },
             });
 
             if (!story) {

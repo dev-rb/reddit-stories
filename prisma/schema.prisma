@@ -36,7 +36,7 @@ model Post {
   id            String          @id
   title         String          @db.LongText
   created       DateTime
-  updatedAt     DateTime        @updatedAt
+  updatedAt     DateTime?       @updatedAt
   score         Int
   author        String
   permalink     String
@@ -64,7 +64,7 @@ model Story {
   score          Int
   author         String
   created        DateTime
-  updatedAt      DateTime         @updatedAt
+  updatedAt      DateTime?        @updatedAt
   Post           Post?            @relation(fields: [postId], references: [id])
   postId         String?
   userStorySaved UserStorySaved[]
@@ -74,14 +74,14 @@ model Story {
 }
 
 model Reply {
-  id            String   @id
-  body          String   @db.LongText
-  bodyHtml      String   @db.LongText
+  id            String    @id
+  body          String    @db.LongText
+  bodyHtml      String    @db.LongText
   author        String
   score         Int
   created       DateTime
-  updatedAt     DateTime @updatedAt
-  parentComment Story?   @relation(fields: [storyId], references: [id])
+  updatedAt     DateTime? @updatedAt
+  parentComment Story?    @relation(fields: [storyId], references: [id])
   storyId       String?
 
   replies Reply[] @relation("replies")

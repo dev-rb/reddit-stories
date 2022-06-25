@@ -53,6 +53,19 @@ export const postRouter = createRouter()
                 }
             });
 
+            // const test = await prisma.$queryRaw<Post[]>`
+            // tmp_table_size=2G
+            // max_heap_table_size=2G 
+            // with recursive replies_tree (id, replyId) AS (
+            //     SELECT replyId, body FROM Reply
+            //     WHERE replyId is not NULL
+            //     UNION ALL
+            //     SELECT b.replyId, b.body FROM Reply b
+            //     INNER JOIN replies_tree A ON (b.replyId=A.id)
+            // )
+            // SELECT * FROM replies_tree
+            // `
+
             const result = posts.map((post) => {
                 return {
                     ...post,
