@@ -8,7 +8,10 @@ import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { BsClockHistory } from 'react-icons/bs';
 import useLongPress from '../../hooks/useLongPress';
 import { Reply, Story } from '@prisma/client';
+import dayjs from 'dayjs';
+import RelativeTime from 'dayjs/plugin/relativeTime';
 
+dayjs.extend(RelativeTime);
 const useCommentStyles = createStyles((theme, { liked }: { liked: boolean }) => ({
     commentContainer: {
         borderBottom: '2px solid',
@@ -23,13 +26,8 @@ const useCommentStyles = createStyles((theme, { liked }: { liked: boolean }) => 
     }
 }));
 
-interface Props {
-    body: string,
-    body_html: string,
-    author: string,
-    id: string,
-    created: Date,
-    score: number
+interface ExtendedReply extends Reply {
+    replies: ExtendedReply[]
 }
 
 const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies }: Story & { replies: Reply[] }) => {
@@ -63,13 +61,52 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies }:
         onClick: expandComment
     }, { delay: 1000 });
 
+    const recursiveFind = (start: ExtendedReply, findId: string, lookingForOriginId: string): ExtendedReply | undefined => {
+        if (start.id === findId) {
+            return start;
+        } else {
+            for (let i = 0; i < start.replies.length; i++) {
+                let val = start.replies[i];
+                const found: ExtendedReply | undefined = recursiveFind(val, findId, lookingForOriginId);;
+                if (found !== undefined) {
+                    return found
+                }
+            }
+        }
+        return;
+    }
+
+    const getReplies = () => {
+        let nestedReplies: ExtendedReply[] = [];
+        replies.forEach((reply) => {
+            if (reply.replyId === null) {
+                const newReply: ExtendedReply = { ...reply, replies: [] }
+                nestedReplies.push(newReply);
+            } else if (reply.replyId !== null) {
+                const newReply: ExtendedReply = { ...reply, replies: [] }
+                nestedReplies.forEach((val) => {
+                    let foundDeep = recursiveFind(val, newReply.replyId!, newReply.id);
+                    if (foundDeep) {
+                        foundDeep.replies.push(newReply);
+                    }
+                })
+            }
+        });
+
+        console.log(nestedReplies);
+    }
+
+    React.useEffect(() => {
+        getReplies()
+    }, [replies])
+
     return (
         <>
             <Stack className={classes.commentContainer} spacing={0} px='lg' {...longPressEvent}>
                 <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
                     <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
                     <Text size='lg'>·</Text>
-                    <Text size='xs'>{(created.toLocaleString('en-US'))}</Text>
+                    <Text size='xs'>{(dayjs(created).fromNow())}</Text>
                 </Group>
                 <Stack ref={commentRef} spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
@@ -100,25 +137,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies }:
                 </Stack>
 
             </Stack>
-            <Stack>
-                {replies.map((reply, index) => {
-                    let depthCount = 0;
-                    if (depthCount > 2) {
-                        return
-                    }
-                    return (
-                        <div>
-                            <p> {reply.bodyHtml} </p>
-                            <div>
-                                <p> {reply.bodyHtml} </p>
-                                <div>
-                                    <p> {reply.bodyHtml} </p>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                })}
-            </Stack>
+
         </>
     );
 }
