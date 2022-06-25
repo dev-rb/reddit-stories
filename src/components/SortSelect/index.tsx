@@ -71,7 +71,7 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
 
     return (
         <>
-            <NativeSelect variant='filled' data={['Popular', 'Top', 'Rising', 'New']} value={activeType.toString()} rightSection={<MdArrowDropDown />} onChange={selectOnChange} onMouseDown={selectSortType} />
+            <NativeSelect variant='filled' data={['Popular', 'Top', 'Rising', 'New']} value={activeType.toString()} rightSection={<MdArrowDropDown />} onChange={selectOnChange} onMouseDown={selectSortType} styles={{ rightSection: { pointerEvents: 'none' } }} />
             <Drawer
                 className={classes.bottomSheet}
                 opened={bottomSheetOpen}

@@ -1,7 +1,7 @@
 import { createRouter } from ".";
 import { prisma } from "../prisma";
 import { z } from 'zod';
-import { Prisma } from "@prisma/client";
+import { Post, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
@@ -36,6 +36,27 @@ export const postRouter = createRouter()
                     score: 120
                 }
             })
+        }
+    })
+    .query('hot', {
+        async resolve() {
+            const hotAlgo = '(((SIGN(score)) * LOG10(GREATEST(1, ABS(score)))) + ((UNIX_TIMESTAMP(created) - 1134028003)/45000))'
+            const result = await prisma.$queryRaw<Post[]>`SELECT *, (((SIGN(score)) * LOG10(GREATEST(1, ABS(score)))) + ((UNIX_TIMESTAMP(created) - 1134028003)/45000)) AS hotness FROM Post ORDER BY hotness DESC`
+
+            // console.log(result);
+            return result;
+        }
+    })
+    .query('top', {
+        async resolve() {
+
+
+        }
+    })
+    .query('new', {
+        async resolve() {
+
+
         }
     })
     .query("all", {
