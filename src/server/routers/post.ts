@@ -41,7 +41,24 @@ export const postRouter = createRouter()
     .query('hot', {
         async resolve() {
             const hotAlgo = '(((SIGN(score)) * LOG10(GREATEST(1, ABS(score)))) + ((UNIX_TIMESTAMP(created) - 1134028003)/45000))'
-            const result = await prisma.$queryRaw<Post[]>`SELECT *, (((SIGN(score)) * LOG10(GREATEST(1, ABS(score)))) + ((UNIX_TIMESTAMP(created) - 1134028003)/45000)) AS hotness FROM Post ORDER BY hotness DESC`
+            // const result = await prisma.$queryRaw<Post[]>`SELECT p.*, (((SIGN(p.score)) * LOG10(GREATEST(1, ABS(p.score)))) + ((UNIX_TIMESTAMP(p.created) - 1134028003)/45000)) AS hotness FROM Post p ORDER BY hotness DESC JOIN Story st ON p.id = st.postId`
+            // const test = await prisma.$queryRaw`SELECT * FROM Post LEFT JOIN Story ON (Post.id=Story.postId) GROUP BY Post.id, Story.id`
+            const posts = await prisma.post.findMany({
+                include: {
+                    stories: {
+                        include: {
+                            replies: true
+                        }
+                    }
+                }
+            });
+
+            const result = posts.map((post) => {
+                return {
+                    ...post,
+                    hotness: (Math.sign(post.score) * Math.log10(Math.max(1, Math.abs(post.score))) + (((post.created.getTime() / 1000) - 1134028003) / 45000))
+                }
+            }).sort((a, b) => b.hotness - a.hotness);
 
             // console.log(result);
             return result;
@@ -49,13 +66,35 @@ export const postRouter = createRouter()
     })
     .query('top', {
         async resolve() {
-
+            return await prisma.post.findMany({
+                orderBy: {
+                    score: 'desc'
+                },
+                include: {
+                    stories: {
+                        include: {
+                            replies: true
+                        }
+                    }
+                }
+            })
 
         }
     })
     .query('new', {
         async resolve() {
-
+            return await prisma.post.findMany({
+                orderBy: {
+                    created: 'desc'
+                },
+                include: {
+                    stories: {
+                        include: {
+                            replies: true
+                        }
+                    }
+                }
+            })
 
         }
     })

@@ -15,7 +15,7 @@ export const fetchSubredditPosts = async (subreddit: string, options: RedditFetc
         const [newData, hotData, topData] = await Promise.all([
             (await fetch(`https://www.reddit.com${subreddit}/${'new'}.json?limit=${options.count ?? 100}&raw_json=1`)).json(),
             (await fetch(`https://www.reddit.com${subreddit}/${'hot'}.json?limit=${options.count ?? 100}&raw_json=1`)).json(),
-            (await fetch(`https://www.reddit.com${subreddit}/${'top'}.json?limit=${options.count ?? 100}&raw_json=1`)).json()
+            (await fetch(`https://www.reddit.com${subreddit}/${'top'}.json?limit=${options.count ?? 100}&raw_json=1&t=day`)).json()
         ]);
 
         const allData = [...newData.data.children, ...hotData.data.children, ...topData.data.children];
@@ -78,6 +78,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
         body,
         postId,
         bodyHtml: body_html,
+        updatedAt: new Date(),
         replies: getRepliesForComment(commentInfo, commentInfo.author, commentInfo.id, null, []) ?? []
     };
     return story;
@@ -107,6 +108,8 @@ const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string
         // if (author === commentAuthor) {
         const reply: Reply = {
             author, body, bodyHtml: body_html, created: new Date(created_utc * 1000), id, score,
+            updatedAt: new Date(),
+
             storyId: parentCommentId,
             replyId: parentReplyId
         };

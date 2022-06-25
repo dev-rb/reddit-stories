@@ -4,11 +4,8 @@ import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
 import SortSelect, { SortType } from '../components/SortSelect';
-import { CommentDetails, IPost } from '../interfaces/reddit';
-import { useGetPostsQuery } from '../redux/services';
+import { CommentDetails } from '../interfaces/reddit';
 import { trpc } from '../utils/trpc';
-import { nanoid } from '@reduxjs/toolkit';
-import { fetchCommentsForPost, fetchSubredditPosts } from '../utils/redditApi';
 
 const Home = () => {
 
@@ -21,7 +18,7 @@ const Home = () => {
   //   refetchIntervalInBackground: false,
   //   staleTime: 99999999
   // })
-  const { data: rqData, isLoading } = trpc.useQuery(['post.all']);
+  const { data: rqData, isLoading } = trpc.useQuery(['post.hot']);
   // const { data, isLoading } = useGetPostsQuery('hot');
 
   const onSortChange = (newType: SortType) => {
