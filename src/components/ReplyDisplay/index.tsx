@@ -43,7 +43,7 @@ interface ExtendedReply extends Reply {
     replies: ExtendedReply[],
 }
 
-const ReplyDisplay = ({ body, bodyHtml, author, created, id, score, replies, replyIndex }: ExtendedReply & { replyIndex: number }) => {
+const ReplyDisplay = ({ body, bodyHtml, author, created, id, score, replies, replyIndex, postAuthor }: ExtendedReply & { replyIndex: number, postAuthor: string }) => {
     const [liked, setLiked] = React.useState(false);
 
     const { classes } = useCommentStyles({ liked, replyIndex });
@@ -53,6 +53,10 @@ const ReplyDisplay = ({ body, bodyHtml, author, created, id, score, replies, rep
             <Stack id={"parent-reply"} className={classes.commentContainer} spacing={0} px='lg' py='xs'>
                 <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
                     <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
+                    {postAuthor === author &&
+                        <Text size='xs' color='blue'>OP</Text>
+                    }
+
                     <Text size='lg'>·</Text>
                     <Text size='xs'>{(dayjs(created).fromNow())}</Text>
                 </Group>
@@ -91,7 +95,7 @@ const ReplyDisplay = ({ body, bodyHtml, author, created, id, score, replies, rep
                     {replies.map((reply, index) => {
 
                         return (
-                            <ReplyDisplay key={reply.id} {...reply} replyIndex={replyIndex + 1} />
+                            <ReplyDisplay key={reply.id} {...reply} replyIndex={replyIndex + 1} postAuthor={postAuthor} />
                         )
                     })}
                 </Stack>

@@ -10,7 +10,7 @@ const useStyles = createStyles((theme) => ({
     }
 }));
 
-export type SortType = 'Popular' | 'Top' | 'Rising' | 'New';
+export type SortType = 'Popular' | 'Top' | 'New';
 
 const sortOptions: { type: SortType, icon: React.ReactNode }[] = [
     {
@@ -21,10 +21,7 @@ const sortOptions: { type: SortType, icon: React.ReactNode }[] = [
         type: 'Top',
         icon: <BsTrophy size={20} />,
     },
-    {
-        type: 'Rising',
-        icon: <MdTrendingUp size={20} />,
-    },
+
     {
         type: 'New',
         icon: <MdNewReleases size={20} />,
@@ -46,10 +43,11 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
     const { classes } = useStyles();
 
     const selectSortType = (e: React.MouseEvent<HTMLSelectElement>) => {
-        if (!largeScreen) {
+        if (largeScreen) {
             e.preventDefault();
+        } else {
+            setBottomSheetOpen(true);
         }
-        setBottomSheetOpen(true);
     }
 
     const updateSortType = (newType: SortType) => {
@@ -71,7 +69,7 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
 
     return (
         <>
-            <NativeSelect variant='filled' data={['Popular', 'Top', 'Rising', 'New']} value={activeType.toString()} rightSection={<MdArrowDropDown />} onChange={selectOnChange} onMouseDown={selectSortType} styles={{ rightSection: { pointerEvents: 'none' } }} />
+            <NativeSelect variant='filled' data={['Popular', 'Top', 'New']} value={activeType.toString()} rightSection={<MdArrowDropDown />} onChange={selectOnChange} onClick={selectSortType} styles={{ rightSection: { pointerEvents: 'none' } }} />
             <Drawer
                 className={classes.bottomSheet}
                 opened={bottomSheetOpen}

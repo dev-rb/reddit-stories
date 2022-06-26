@@ -20,7 +20,7 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
     });
 
     const toggleColorScheme = (value?: ColorScheme) => {
-        const nextColorScheme = value || (colorScheme === 'dark' ? 'light' : 'dark');
+        const nextColorScheme = value || (theme === 'dark' ? 'light' : 'dark');
         setColorTheme(nextColorScheme);
         setCookies('mantine-color-scheme', nextColorScheme, { maxAge: 60 * 60 * 24 * 30 });
     };

@@ -44,7 +44,7 @@ interface ExtendedReply extends Reply {
     replies: ExtendedReply[]
 }
 
-const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, permalink, postId }: Story & { replies: Reply[] }) => {
+const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, permalink, postId, postAuthor }: Story & { replies: Reply[], postAuthor: string }) => {
     const [liked, setLiked] = React.useState(false);
 
     const { classes } = useCommentStyles({ liked });
@@ -115,6 +115,9 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
             <Stack className={classes.commentContainer} spacing={0} px='lg' {...longPressEvent}>
                 <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
                     <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
+                    {postAuthor === author &&
+                        <Text size='xs' color='blue'>OP</Text>
+                    }
                     <Text size='lg'>·</Text>
                     <Text size='xs'>{(dayjs(created).fromNow())}</Text>
                 </Group>
@@ -148,7 +151,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
 
             </Stack>
             <Stack className={classes.repliesContainer} spacing={0}>
-                {getReplies().map((reply, index) => <ReplyDisplay key={reply.id} {...reply} replyIndex={0} />)}
+                {getReplies().map((reply, index) => <ReplyDisplay key={reply.id} {...reply} replyIndex={0} postAuthor={postAuthor} />)}
             </Stack>
         </Stack>
     );

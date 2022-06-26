@@ -10,6 +10,7 @@ import { trpc } from '../../utils/trpc';
 import { Story } from '@prisma/client';
 import Post from '../Post';
 import { useMediaQuery } from '@mantine/hooks';
+import SortSelect from '../SortSelect';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -53,15 +54,8 @@ const CommentsContainer = ({ postId }: Props) => {
 
     useFixedNavbar(headerRef, true);
 
-    React.useEffect(() => {
-        if (data) {
-            console.log(data)
-            // setStories(data);
-        }
-    }, [data])
-
     return (
-        <Stack align='center' >
+        <Stack align='center'>
             <Stack spacing={0} sx={(theme) => ({ width: largeScreen ? '40vw' : '100%', borderLeft: largeScreen ? '2px solid' : 'unset', borderRight: largeScreen ? '2px solid' : 'unset', borderColor: theme.colors.dark[4] })}>
                 <Paper ref={headerRef} px='lg' py='xs' className={classes.header}>
                     <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
@@ -73,11 +67,13 @@ const CommentsContainer = ({ postId }: Props) => {
                     </Box>
                 }
                 <Stack spacing={0}>
+
                     <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
-                        <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} />
+                        <SortSelect />
+                        {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
                     </Group>
                     {data?.map((story) => {
-                        return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} />
+                        return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} postAuthor={postData!.author} />
                     })}
                 </Stack>
             </Stack>

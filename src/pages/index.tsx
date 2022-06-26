@@ -42,7 +42,7 @@ const Home = () => {
               <Title sx={{ fontWeight: 200 }}>Explore</Title>
               <Title >Stories</Title>
             </Stack>
-            <Avatar radius={'xl'} onClick={() => toggleColorScheme()} />
+            <Avatar radius={'xl'} onClick={() => { toggleColorScheme(); }} />
           </Group>
 
           <TextInput variant='filled' size='lg' mt={40} icon={<MdSearch size={25} />} placeholder='Search Stories' sx={{ width: '100%' }} />
