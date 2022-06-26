@@ -1,29 +1,34 @@
-import * as React from 'react';
-import styles from './comment.module.css';
+import React from 'react';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
 import { createStyles, Group, Stack, Text, Title, UnstyledButton } from '@mantine/core';
 import { MdBookmark, MdModeComment } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { BsClockHistory } from 'react-icons/bs';
-import useLongPress from '../../hooks/useLongPress';
 import { Reply, Story } from '@prisma/client';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
-import ReplyDisplay from '../ReplyDisplay'
 
 dayjs.extend(RelativeTime);
-const useCommentStyles = createStyles((theme, { liked }: { liked: boolean }) => ({
+const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: boolean, replyIndex: number }) => ({
     rootContainer: {
-        [`:nth-of-type(1)`]: {
-            marginLeft: 80,
-            borderLeft: '2px solid red'
-        }
+        // border: '1px solid green',
+        position: 'relative',
+        marginLeft: 20,
+        // ':before': {
+        //     content: "''",
+        //     position: 'absolute',
+        //     left: 0,
+        //     height: '80%',
+        //     borderLeft: '2px solid',
+        //     borderColor: theme.colors.dark[2]
+        // }
     },
     commentContainer: {
-        borderBottom: '2px solid',
+        // borderBottom: '2px solid',
+        border: '2px solid',
         borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
-        userSelect: 'none'
+        userSelect: 'none',
     },
     commentDetails: {
         color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[5]
@@ -32,92 +37,31 @@ const useCommentStyles = createStyles((theme, { liked }: { liked: boolean }) => 
         color: liked ? theme.colors.orange[4] : theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]
     },
     repliesContainer: {
-        [`:nth-of-type(0)`]: {
-            marginLeft: 80,
-            borderLeft: '2px solid red'
-        }
+        // [`:nth-of-type(${replyIndex + 1}n)`]: {
+        //     marginLeft: 40 + (replyIndex * 2),
+        //     borderLeft: '2px solid blue'
+        // }
     }
 }));
 
 interface ExtendedReply extends Reply {
-    replies: ExtendedReply[]
+    replies: ExtendedReply[],
 }
 
-const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, permalink, postId }: Story & { replies: Reply[] }) => {
+const ReplyDisplay = ({ body, bodyHtml, author, created, id, score, replies, replyIndex }: ExtendedReply & { replyIndex: number }) => {
     const [liked, setLiked] = React.useState(false);
 
-    const { classes } = useCommentStyles({ liked });
-
-    const commentRef = React.useRef<HTMLDivElement>(null);
-
-    const minimizeComment = () => {
-        console.log("Long press called")
-        const comment = commentRef.current;
-
-        if (comment) {
-            comment.style.height = '10px';
-            comment.style.overflow = 'hidden'
-        }
-    }
-
-    const expandComment = () => {
-        const comment = commentRef.current;
-
-        if (comment) {
-            comment.style.height = '100%';
-            comment.style.overflow = 'unset'
-        }
-    }
-
-    const longPressEvent = useLongPress<HTMLDivElement>({
-        onLongPress: minimizeComment,
-        onClick: expandComment
-    }, { delay: 1000 });
-
-    const recursiveFind = (start: ExtendedReply, findId: string, lookingForOriginId: string): ExtendedReply | undefined => {
-        if (start.id === findId) {
-            return start;
-        } else {
-            for (let i = 0; i < start.replies.length; i++) {
-                let val = start.replies[i];
-                const found: ExtendedReply | undefined = recursiveFind(val, findId, lookingForOriginId);;
-                if (found !== undefined) {
-                    return found
-                }
-            }
-        }
-        return;
-    }
-
-    const getReplies = () => {
-        let nestedReplies: ExtendedReply[] = [];
-        replies.forEach((reply) => {
-            if (reply.replyId === null) {
-                const newReply: ExtendedReply = { ...reply, replies: [] }
-                nestedReplies.push(newReply);
-            } else if (reply.replyId !== null) {
-                const newReply: ExtendedReply = { ...reply, replies: [] }
-                nestedReplies.forEach((val) => {
-                    let foundDeep = recursiveFind(val, newReply.replyId!, newReply.id);
-                    if (foundDeep) {
-                        foundDeep.replies.push(newReply);
-                    }
-                })
-            }
-        });
-
-        return nestedReplies;
-    }
+    const { classes } = useCommentStyles({ liked, replyIndex });
 
     return (
         <Stack className={classes.rootContainer} spacing={0}>
-            <Stack className={classes.commentContainer} spacing={0} px='lg' {...longPressEvent}>
+            <Stack id={replyIndex.toString()} className={classes.commentContainer} spacing={0} px='lg' >
                 <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
                     <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
                     <Text size='lg'>·</Text>
                     <Text size='xs'>{(dayjs(created).fromNow())}</Text>
                 </Group>
-                <Stack ref={commentRef} spacing={0}>
+                <Stack spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
 
                     <Group noWrap align='center' my='md' spacing={40}>
@@ -147,10 +91,14 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
 
             </Stack>
             <Stack className={classes.repliesContainer} spacing={0}>
-                {getReplies().map((reply, index) => <ReplyDisplay key={reply.id} {...reply} replyIndex={index} />)}
+                {replies.map((reply, index) => {
+                    return (
+                        <ReplyDisplay key={reply.id} {...reply} replyIndex={replyIndex + index} />
+                    )
+                })}
             </Stack>
         </Stack>
-    );
+    )
 }
 
-export default CommentDisplay;
+export default ReplyDisplay;
