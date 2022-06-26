@@ -4,10 +4,11 @@ import { MdArrowDropDown, MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
 import useFixedNavbar from '../../hooks/useFixedNavbar';
 import { useGetCommentsForPostQuery } from '../../redux/services';
-import { createStyles, Group, NativeSelect, Paper, Stack } from '@mantine/core';
+import { createStyles, Group, NativeSelect, Paper, Stack, Box } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import { Story } from '@prisma/client';
+import Post from '../Post';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -33,7 +34,8 @@ const CommentsContainer = ({ postId }: Props) => {
     const [stories, setStories] = React.useState<Story[]>();
     const router = useRouter();
 
-    const { data } = trpc.useQuery(['story.all', { postId }])
+    const { data } = trpc.useQuery(['story.all', { postId }]);
+    const { data: postData } = trpc.useQuery(['post.byId', { id: postId }]);
 
     // const { data } = useGetCommentsForPostQuery(postId!);
 
@@ -49,13 +51,17 @@ const CommentsContainer = ({ postId }: Props) => {
     }, [data])
 
     return (
-        <Stack >
+        <Stack spacing={0}>
             <Paper ref={headerRef} px='lg' py='xs' className={classes.header}>
                 <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
             </Paper>
             {/* Post Details */}
-
-            <Stack mt={60}>
+            {postData &&
+                <Box mt={60}>
+                    <Post totalStories={postData!.stories.length} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} />
+                </Box>
+            }
+            <Stack>
                 <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
                     <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} />
                 </Group>

@@ -9,10 +9,11 @@ import { useMediaQuery } from '@mantine/hooks';
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { Post } from '@prisma/client';
 
 dayjs.extend(relativeTime)
 
-const Post = ({ title, id, score, author, permalink, stories, created }: IPost) => {
+const Post = ({ title, id, score, author, permalink, totalStories, created }: Post & { totalStories: number }) => {
     // href={`https://www.reddit.com${permalink}`}
 
     const [liked, setLiked] = React.useState(false);
@@ -71,7 +72,7 @@ const Post = ({ title, id, score, author, permalink, stories, created }: IPost) 
                         <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
                             <Group noWrap align='center' spacing={4}>
                                 <MdModeComment size={20} />
-                                <Text weight={500}>{stories.length}</Text>
+                                <Text weight={500}>{totalStories}</Text>
                             </Group>
                         </UnstyledButton>
                         <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>

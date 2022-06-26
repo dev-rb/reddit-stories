@@ -76,7 +76,7 @@ const Home = () => {
               <Loader />
             </Center> :
 
-            rqData?.map((post) => <Post key={post.id} {...post} created={post.created.toString()} stories={post.stories as unknown as CommentDetails[]} />)
+            rqData?.map((post) => <Post key={post.id} {...post} created={post.created} totalStories={post.stories.length} />)
 
           }
 
