@@ -9,10 +9,11 @@ import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import { Story } from '@prisma/client';
 import Post from '../Post';
+import { useMediaQuery } from '@mantine/hooks';
 
 const useStyles = createStyles((theme) => ({
     header: {
-        width: '100vw',
+        width: '100%',
         borderBottom: '2px solid',
         borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
         color: theme.colorScheme === 'dark' ? 'white' : theme.colors.dark,
@@ -20,7 +21,14 @@ const useStyles = createStyles((theme) => ({
         top: 0,
         left: 0,
         zIndex: 15,
-        transition: '0.5s ease-out'
+        transition: '0.5s ease-out',
+
+        ['@media screen and (min-width: 900px)']: {
+            width: '40vw',
+            left: '50%',
+            right: '50%',
+            transform: 'translateX(-50%)'
+        }
     }
 }));
 
@@ -29,6 +37,8 @@ interface Props {
     postId: string
 }
 const CommentsContainer = ({ postId }: Props) => {
+
+    const largeScreen = useMediaQuery('(min-width: 900px)');
 
     const headerRef = React.useRef(null);
     const [stories, setStories] = React.useState<Story[]>();
@@ -51,23 +61,25 @@ const CommentsContainer = ({ postId }: Props) => {
     }, [data])
 
     return (
-        <Stack spacing={0}>
-            <Paper ref={headerRef} px='lg' py='xs' className={classes.header}>
-                <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
-            </Paper>
-            {/* Post Details */}
-            {postData &&
-                <Box mt={60}>
-                    <Post totalStories={postData!.stories.length} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} />
-                </Box>
-            }
-            <Stack>
-                <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
-                    <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} />
-                </Group>
-                {data?.map((story) => {
-                    return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} />
-                })}
+        <Stack align='center' >
+            <Stack spacing={0} sx={(theme) => ({ width: largeScreen ? '40vw' : '100%', borderLeft: largeScreen ? '2px solid' : 'unset', borderRight: largeScreen ? '2px solid' : 'unset', borderColor: theme.colors.dark[4] })}>
+                <Paper ref={headerRef} px='lg' py='xs' className={classes.header}>
+                    <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
+                </Paper>
+                {/* Post Details */}
+                {postData &&
+                    <Box mt={60}>
+                        <Post totalStories={postData!.stories.length} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} />
+                    </Box>
+                }
+                <Stack spacing={0}>
+                    <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
+                        <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} />
+                    </Group>
+                    {data?.map((story) => {
+                        return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} />
+                    })}
+                </Stack>
             </Stack>
         </Stack>
     );

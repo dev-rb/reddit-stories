@@ -15,9 +15,10 @@ const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: bo
     rootContainer: {
         position: 'relative',
         marginLeft: 8,
-        ' > #parent-reply:first-child': {
+        ' > #parent-reply:first-of-type': {
             borderLeft: `2px solid ${theme.colors.blue[5]}`
         },
+        borderLeft: `1px solid ${theme.colors.dark[4]}`
     },
     commentContainer: {
         borderBottom: `2px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]}`,

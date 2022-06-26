@@ -22,6 +22,7 @@ const useCommentStyles = createStyles((theme, { liked }: { liked: boolean }) => 
     },
     commentContainer: {
         borderBottom: '2px solid',
+        borderTop: '2px solid',
         borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
         userSelect: 'none'
     },
