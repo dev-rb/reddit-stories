@@ -1,8 +1,10 @@
 import { createRouter } from ".";
 import { prisma } from "../prisma";
 import { z } from 'zod';
-import { Prisma } from "@prisma/client";
+import { Prisma, Story } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { getReplies } from "src/utils/redditApi";
+import { ExtendedReply } from "src/interfaces/reddit";
 
 const defaultStorySelect = Prisma.validator<Prisma.StorySelect>()({
     id: true,
@@ -21,16 +23,24 @@ export const storiesRouter = createRouter()
         }),
         async resolve({ input }) {
             const { postId } = input;
-            return await prisma.story.findMany({
+            const result = await prisma.story.findMany({
                 where: {
                     postId: postId
                 },
                 select: {
                     ...defaultStorySelect,
-                    replies: true
+                    replies: true,
+                    updatedAt: true,
+                    postId: true
                 },
 
+            });
+            let newResult = result.map((val) => {
+                let { replies, ...story } = val;
+                let newStory: Story & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
+                return newStory;
             })
+            return newResult;
         }
     })
     .query("byId", {

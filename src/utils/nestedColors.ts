@@ -1,5 +1,5 @@
-import { DefaultMantineColor } from '@mantine/core'
 export const nestedColors: string[] = [
+    'blue',
     'green',
     'red',
     'orange',

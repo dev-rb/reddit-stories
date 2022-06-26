@@ -73,7 +73,7 @@ const CommentsContainer = ({ postId }: Props) => {
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
                     </Group>
                     {data?.map((story) => {
-                        return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} postAuthor={postData!.author} />
+                        return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} postAuthor={postData!.author} replyIndex={0} />
                     })}
                 </Stack>
             </Stack>

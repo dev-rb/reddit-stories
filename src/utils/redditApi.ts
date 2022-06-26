@@ -1,5 +1,5 @@
 import { Post, Story, Reply } from '@prisma/client';
-import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
+import { CommentDetails, ExtendedReply, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
 
 interface RedditFetchOptions {
     sortType?: RedditSortType,
@@ -121,4 +121,39 @@ const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string
     })
 
     return replies;
+}
+
+const recursiveFind = (start: ExtendedReply, findId: string, lookingForOriginId: string): ExtendedReply | undefined => {
+    if (start.id === findId) {
+        return start;
+    } else {
+        for (let i = 0; i < start.replies.length; i++) {
+            let val = start.replies[i];
+            const found: ExtendedReply | undefined = recursiveFind(val, findId, lookingForOriginId);;
+            if (found !== undefined) {
+                return found
+            }
+        }
+    }
+    return;
+}
+
+export const getReplies = (replies: Reply[]) => {
+    let nestedReplies: ExtendedReply[] = [];
+    replies.forEach((reply) => {
+        if (reply.replyId === null) {
+            const newReply: ExtendedReply = { ...reply, replies: [] }
+            nestedReplies.push(newReply);
+        } else if (reply.replyId !== null) {
+            const newReply: ExtendedReply = { ...reply, replies: [] }
+            nestedReplies.forEach((val) => {
+                let foundDeep = recursiveFind(val, newReply.replyId!, newReply.id);
+                if (foundDeep) {
+                    foundDeep.replies.push(newReply);
+                }
+            })
+        }
+    });
+
+    return nestedReplies;
 }

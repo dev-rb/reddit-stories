@@ -1,39 +1,4 @@
-// export interface Reddit {
-//     kind: string;
-//     data: Data;
-// }
-// export interface Data {
-//     after: string;
-//     children?: (ChildrenEntity)[] | null;
-//     before?: null;
-// }
-// export interface ChildrenEntity {
-//     kind: string;
-//     data: Data1;
-// }
-// export interface Data1 {
-//     subreddit: string;
-//     title: string;
-//     downs: number;
-//     name: string;
-//     ups: number;
-//     score: number;
-//     edited: number | boolean;
-//     created: number;
-//     archived: boolean;
-//     is_crosspostable: boolean;
-//     over_18: boolean;
-//     spoiler: boolean;
-//     locked: boolean;
-//     subreddit_id: string;
-//     id: string;
-//     author: string;
-//     num_comments: number;
-//     permalink: string;
-//     url: string;
-//     created_utc: number;
-//     num_crossposts: number;
-// }
+import { Reply } from '@prisma/client';
 
 export type RedditSortType = 'hot' | 'new' | 'top';
 
@@ -107,4 +72,8 @@ export interface CommentDetails {
     id: string,
     created_utc: number,
     replies: RedditCommentRoot
+}
+
+export interface ExtendedReply extends Reply {
+    replies: ExtendedReply[]
 }
