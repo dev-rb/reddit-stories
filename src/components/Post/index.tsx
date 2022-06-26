@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { IPost } from '../../interfaces/reddit';
 import { MdBookmark, MdFileDownload, MdModeComment } from 'react-icons/md';
 import { BsClockHistory } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
@@ -14,7 +13,6 @@ import { Post } from '@prisma/client';
 dayjs.extend(relativeTime)
 
 const Post = ({ title, id, score, author, permalink, totalStories, created }: Post & { totalStories: number }) => {
-    // href={`https://www.reddit.com${permalink}`}
 
     const [liked, setLiked] = React.useState(false);
 

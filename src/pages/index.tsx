@@ -4,7 +4,6 @@ import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
 import SortSelect, { SortType } from '../components/SortSelect';
-import { CommentDetails } from '../interfaces/reddit';
 import { trpc } from '../utils/trpc';
 
 const Home = () => {
@@ -13,24 +12,10 @@ const Home = () => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
-  // const { data: adminData, isLoading: adminLoading } = trpc.useQuery(['admin.refetch'], {
-  //   refetchInterval: 999999,
-  //   refetchIntervalInBackground: false,
-  //   staleTime: 99999999
-  // })
   const { data: rqData, isLoading } = trpc.useQuery(['post.hot']);
-  // const { data, isLoading } = useGetPostsQuery('hot');
 
   const onSortChange = (newType: SortType) => {
   }
-
-  React.useEffect(() => {
-    // console.log("Admin: ", adminData, "Is Loading: ", adminLoading)
-    // console.log(rqData);
-    // console.log("Test")
-
-    // fetchCommentsForPost('/r/writingprompts', 'vik5jg').then((stories) => console.log(stories));
-  }, [])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>

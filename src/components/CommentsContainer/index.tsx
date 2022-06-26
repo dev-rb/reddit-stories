@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { CommentDetails, IPost } from '../../interfaces/reddit';
-import { MdArrowDropDown, MdKeyboardBackspace } from 'react-icons/md';
+import { IPost } from '../../interfaces/reddit';
+import { MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
 import useFixedNavbar from '../../hooks/useFixedNavbar';
-import { useGetCommentsForPostQuery } from '../../redux/services';
-import { createStyles, Group, NativeSelect, Paper, Stack, Box } from '@mantine/core';
+import { createStyles, Group, Paper, Stack, Box } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import { Story } from '@prisma/client';

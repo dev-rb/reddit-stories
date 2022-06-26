@@ -17,9 +17,6 @@ const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: bo
     rootContainer: {
         position: 'relative',
         marginLeft: replyIndex > 0 ? 8 : 0,
-        ' > #parent-reply:nth-of-type(2)': {
-            borderLeft: `2px solid ${theme.colors.blue[5]}`
-        },
         borderLeft: replyIndex > 0 ? `1px solid ${theme.colors.dark[4]}` : 'unset'
     },
     commentContainer: {
