@@ -2,8 +2,12 @@ export const nestedColors: string[] = [
     'blue',
     'green',
     'red',
+    'grape',
     'orange',
     'pink',
+    'teal',
     'yellow',
-    'violet'
+    'cyan',
+    'lime',
+    'violet',
 ]

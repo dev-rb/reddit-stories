@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { fetchStoriesForPostWithId, formatStoriesData, getAllPrompts } from '../../helpers/cleanData';
+// import { fetchStoriesForPostWithId, formatStoriesData, getAllPrompts } from '../../helpers/cleanData';
 import { fetchFromUrl } from '../../helpers/fetchData';
 import { CommentDetails, IPost, Posts } from '../../interfaces/reddit';
 
@@ -10,18 +10,18 @@ export const postsApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://www.reddit.com/' }),
     keepUnusedDataFor: 60 * 999,
     endpoints: (builder) => ({
-        getPosts: builder.query<IPost[], PostSortType>({
-            queryFn: async (type) => {
-                console.log("REFETCHING!")
-                return { data: getAllPrompts(await fetchFromUrl(`/r/writingprompts/${type}`), type) }
-            }
-        }),
-        getCommentsForPost: builder.query<CommentDetails[], string>({
-            queryFn: async (id) => {
-                return { data: await fetchStoriesForPostWithId(id) }
-            }
-        })
+        // getPosts: builder.query<IPost[], PostSortType>({
+        //     queryFn: async (type) => {
+        //         console.log("REFETCHING!")
+        //         return { data: getAllPrompts(await fetchFromUrl(`/r/writingprompts/${type}`), type) }
+        //     }
+        // }),
+        // getCommentsForPost: builder.query<CommentDetails[], string>({
+        //     queryFn: async (id) => {
+        //         return { data: await fetchStoriesForPostWithId(id) }
+        //     }
+        // })
     })
 });
 
-export const { useGetPostsQuery, useGetCommentsForPostQuery } = postsApi;
+// export const { useGetPostsQuery, useGetCommentsForPostQuery } = postsApi;

@@ -16,7 +16,7 @@ dayjs.extend(RelativeTime);
 const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: boolean, replyIndex: number }) => ({
     rootContainer: {
         position: 'relative',
-        marginLeft: replyIndex > 0 ? 8 : 0,
+        marginLeft: replyIndex > 0 && replyIndex < 12 ? 8 : 0,
         borderLeft: replyIndex > 0 ? `1px solid ${theme.colors.dark[4]}` : 'unset'
     },
     commentContainer: {

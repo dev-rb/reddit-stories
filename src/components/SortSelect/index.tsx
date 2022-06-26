@@ -11,6 +11,13 @@ const useStyles = createStyles((theme) => ({
 }));
 
 export type SortType = 'Popular' | 'Top' | 'New';
+type RedditSortTypeConversion = 'hot' | 'top' | 'new'
+
+export const sortTypeMap: { [key in SortType]: RedditSortTypeConversion } = {
+    New: 'new',
+    Popular: 'hot',
+    Top: 'top'
+}
 
 const sortOptions: { type: SortType, icon: React.ReactNode }[] = [
     {

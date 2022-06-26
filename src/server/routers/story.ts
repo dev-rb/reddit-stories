@@ -62,6 +62,7 @@ export const storiesRouter = createRouter()
 
             if (!story) {
                 throw new TRPCError({
+                    cause: undefined,
                     code: 'NOT_FOUND',
                     message: `No story with id '${id}'`,
                 });

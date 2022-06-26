@@ -3,7 +3,7 @@ import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title
 import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
-import SortSelect, { SortType } from '../components/SortSelect';
+import SortSelect, { SortType, sortTypeMap } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
 
 const Home = () => {
@@ -12,9 +12,13 @@ const Home = () => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
-  const { data: rqData, isLoading } = trpc.useQuery(['post.hot']);
+  const [sortType, setSortType] = React.useState<SortType>('Popular');
+
+  const { data: rqData, isLoading, refetch } = trpc.useQuery(['post.sort', { sortType: sortTypeMap[sortType] }]);
 
   const onSortChange = (newType: SortType) => {
+    console.log("New Type: ", newType)
+    setSortType(newType);
   }
 
   return (
