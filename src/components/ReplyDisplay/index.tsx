@@ -6,28 +6,23 @@ import { MdBookmark, MdModeComment } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { BsClockHistory } from 'react-icons/bs';
 import { Reply, Story } from '@prisma/client';
+import { nestedColors } from '../../utils/nestedColors';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(RelativeTime);
 const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: boolean, replyIndex: number }) => ({
     rootContainer: {
-        // border: '1px solid green',
         position: 'relative',
-        marginLeft: 20,
-        // ':before': {
-        //     content: "''",
-        //     position: 'absolute',
-        //     left: 0,
-        //     height: '80%',
-        //     borderLeft: '2px solid',
-        //     borderColor: theme.colors.dark[2]
-        // }
+        marginLeft: 8,
+        ' > #parent-reply:first-child': {
+            borderLeft: `2px solid ${theme.colors.blue[5]}`
+        },
     },
     commentContainer: {
-        // borderBottom: '2px solid',
-        border: '2px solid',
-        borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
+        borderBottom: `2px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]}`,
+        // border: '2px solid',
+        // borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
         userSelect: 'none',
     },
     commentDetails: {
@@ -37,10 +32,9 @@ const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: bo
         color: liked ? theme.colors.orange[4] : theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]
     },
     repliesContainer: {
-        // [`:nth-of-type(${replyIndex + 1}n)`]: {
-        //     marginLeft: 40 + (replyIndex * 2),
-        //     borderLeft: '2px solid blue'
-        // }
+        [`#root-container > div:is(#parent-reply)`]: {
+            borderLeft: `2px solid ${theme.colors[nestedColors[replyIndex] ?? 'indigo'][5]} !important`
+        }
     }
 }));
 
@@ -54,8 +48,8 @@ const ReplyDisplay = ({ body, bodyHtml, author, created, id, score, replies, rep
     const { classes } = useCommentStyles({ liked, replyIndex });
 
     return (
-        <Stack className={classes.rootContainer} spacing={0}>
-            <Stack id={replyIndex.toString()} className={classes.commentContainer} spacing={0} px='lg' >
+        <Stack id={'root-container'} className={classes.rootContainer} spacing={0}>
+            <Stack id={"parent-reply"} className={classes.commentContainer} spacing={0} px='lg' py='xs'>
                 <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
                     <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
                     <Text size='lg'>·</Text>
@@ -64,7 +58,7 @@ const ReplyDisplay = ({ body, bodyHtml, author, created, id, score, replies, rep
                 <Stack spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
 
-                    <Group noWrap align='center' my='md' spacing={40}>
+                    <Group noWrap align='center' spacing={40}>
                         <UnstyledButton
                             className={classes.likeButton}
                             onTouchStart={(e: React.TouchEvent<HTMLButtonElement>) => { e.stopPropagation(); }}
@@ -90,13 +84,17 @@ const ReplyDisplay = ({ body, bodyHtml, author, created, id, score, replies, rep
                 </Stack>
 
             </Stack>
-            <Stack className={classes.repliesContainer} spacing={0}>
-                {replies.map((reply, index) => {
-                    return (
-                        <ReplyDisplay key={reply.id} {...reply} replyIndex={replyIndex + index} />
-                    )
-                })}
-            </Stack>
+            {replies.length > 0 &&
+
+                <Stack id={"replies-container"} className={classes.repliesContainer} spacing={0}>
+                    {replies.map((reply, index) => {
+
+                        return (
+                            <ReplyDisplay key={reply.id} {...reply} replyIndex={replyIndex + 1} />
+                        )
+                    })}
+                </Stack>
+            }
         </Stack>
     )
 }

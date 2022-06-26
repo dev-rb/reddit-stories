@@ -147,7 +147,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
 
             </Stack>
             <Stack className={classes.repliesContainer} spacing={0}>
-                {getReplies().map((reply, index) => <ReplyDisplay key={reply.id} {...reply} replyIndex={index} />)}
+                {getReplies().map((reply, index) => <ReplyDisplay key={reply.id} {...reply} replyIndex={0} />)}
             </Stack>
         </Stack>
     );
