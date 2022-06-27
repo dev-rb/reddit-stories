@@ -71,6 +71,7 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
     const selectOnChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         if (onChange) {
             onChange(e.target.value as SortType);
+            updateSortType(e.target.value as SortType);
         }
     }
 

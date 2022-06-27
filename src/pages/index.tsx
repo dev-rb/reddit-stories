@@ -5,6 +5,10 @@ import { MdDownload, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
 import SortSelect, { SortType, sortTypeMap } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
+import ListVirtualizer from '../components/ListVirtualizer';
+
+type typeTest = (index: number, size: number) => void
+export const PostsContext = React.createContext<{ setSize: typeTest }>({ setSize: () => { } });
 
 const Home = () => {
 
@@ -14,10 +18,9 @@ const Home = () => {
 
   const [sortType, setSortType] = React.useState<SortType>('Popular');
 
-  const { data: rqData, isLoading, refetch } = trpc.useQuery(['post.sort', { sortType: sortTypeMap[sortType] }]);
+  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortTypeMap[sortType] }]);
 
   const onSortChange = (newType: SortType) => {
-    console.log("New Type: ", newType)
     setSortType(newType);
   }
 
@@ -60,13 +63,11 @@ const Home = () => {
             </ActionIcon>
           </Group>
 
-          {!rqData && isLoading ?
+          {!rqData && (isLoading || isFetching || isRefetching) ?
             <Center>
               <Loader />
             </Center> :
-
-            rqData?.map((post) => <Post key={post.id} {...post} created={post.created} totalStories={post.stories.length} />)
-
+            <ListVirtualizer data={rqData!} />
           }
 
         </Stack>

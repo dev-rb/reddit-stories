@@ -9,14 +9,17 @@ import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Post } from '@prisma/client';
+import { PostsContext } from 'src/pages';
 
 dayjs.extend(relativeTime)
 
-const Post = ({ title, id, score, author, permalink, totalStories, created }: Post & { totalStories: number }) => {
+const Post = ({ title, id, score, author, permalink, totalStories, created, index }: Post & { totalStories: number, index: number }) => {
 
     const [liked, setLiked] = React.useState(false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
+
+    const { setSize } = React.useContext(PostsContext);
 
     const [requests, setRequests] = React.useState({ download: false, readLater: false, pending: false });
 
@@ -34,9 +37,15 @@ const Post = ({ title, id, score, author, permalink, totalStories, created }: Po
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
+    React.useEffect(() => {
+        if (postRef.current) {
+            setSize(index, postRef.current.getBoundingClientRect().height)
+        }
+    }, [])
+
     return (
         <Anchor variant='text' component={Link} href={`/posts/${id}`}>
-            <Box px='lg' py='sm' mt={-1} sx={(theme) => ({ borderTop: '1px solid', borderBottom: '1px solid', borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2], width: largeScreen ? '100%' : '100vw' })}>
+            <Box ref={postRef} px='lg' py='sm' mt={-1} sx={(theme) => ({ borderTop: '1px solid', borderBottom: '1px solid', borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2], width: largeScreen ? '100%' : '100vw' })}>
                 <Stack sx={{ width: '100%' }} spacing={'md'}>
 
                     <Group align='center' position='apart'>
