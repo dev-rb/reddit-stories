@@ -10,7 +10,9 @@ const useStyles = createStyles((theme) => ({
     }
 }));
 
+export type TopSorts = 'day' | 'week' | 'month' | 'year' | 'all'
 export type SortType = 'Popular' | 'Top' | 'New';
+export type TopTimeSortType = 'Today' | 'This Week' | 'This Month' | 'This Year' | 'All Time';
 type RedditSortTypeConversion = 'hot' | 'top' | 'new'
 
 export const sortTypeMap: { [key in SortType]: RedditSortTypeConversion } = {
@@ -44,10 +46,31 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
     const [bottomSheetOpen, setBottomSheetOpen] = React.useState(false);
 
     const [activeType, setActiveType] = React.useState<SortType>('Popular');
+    const [activeTopSortType, setActiveTopSortType] = React.useState<TopTimeSortType>('Today');
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     const { classes } = useStyles();
+
+    const selectTopTimeSort = (e: React.MouseEvent<HTMLSelectElement>) => {
+        if (largeScreen) {
+            e.preventDefault();
+        } else {
+            setBottomSheetOpen(true);
+        }
+    }
+    console.log('Top'.toLowerCase() + '?t=day')
+    const updateTopTimeSort = (newType: TopTimeSortType) => {
+        if (newType === activeTopSortType) {
+            return;
+        }
+
+        setActiveTopSortType(newType);
+
+        if (onChange) {
+            // onChange('Top'.toString().toLowerCase() + '?t=day')
+        }
+    }
 
     const selectSortType = (e: React.MouseEvent<HTMLSelectElement>) => {
         if (largeScreen) {
@@ -77,7 +100,13 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
 
     return (
         <>
-            <NativeSelect variant='filled' data={['Popular', 'Top', 'New']} value={activeType.toString()} rightSection={<MdArrowDropDown />} onChange={selectOnChange} onClick={selectSortType} styles={{ rightSection: { pointerEvents: 'none' } }} />
+            <Group noWrap>
+                <NativeSelect variant='filled' data={['Popular', 'Top', 'New']} value={activeType.toString()} rightSection={<MdArrowDropDown />} onChange={selectOnChange} onClick={selectSortType} styles={{ rightSection: { pointerEvents: 'none' } }} />
+                {activeType === 'Top' &&
+                    <NativeSelect variant='filled' data={['Today', 'This Week', 'This Month', 'This Year', 'All Time']} value={activeType.toString()} rightSection={<MdArrowDropDown />} styles={{ rightSection: { pointerEvents: 'none' } }} />
+
+                }
+            </Group>
             <Drawer
                 className={classes.bottomSheet}
                 opened={bottomSheetOpen}
