@@ -67,8 +67,8 @@ const Home = () => {
             <Center>
               <Loader />
             </Center> :
-            // <ListVirtualizer data={rqData!} />
-            null
+            <ListVirtualizer data={rqData!} />
+            // null
           }
 
         </Stack>

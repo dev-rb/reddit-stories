@@ -2,7 +2,7 @@ import { Post, Story, Reply } from '@prisma/client';
 import { CommentDetails, ExtendedReply, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
 
 interface RedditFetchOptions {
-    sortType?: RedditSortType,
+    sortType?: string,
     fetchAll?: boolean,
     count?: number
 }
@@ -22,7 +22,9 @@ export const fetchSubredditPosts = async (subreddit: string, options: RedditFetc
         // console.log(newData, hotData, topData)
         data = removeUnwantedPosts(removeDuplicates(allData));
     } else {
-        data = await (await fetch(`https://www.reddit.com${subreddit}/${options.sortType?.toString()}.json?limit=${options.count ?? 100}&raw_json=1`)).json()
+        const singleData = await (await fetch(`https://www.reddit.com${subreddit}/${options.sortType?.toString()}.json?limit=${options.count ?? 100}&raw_json=1`)).json();
+        console.log("Test", singleData)
+        data = singleData;
     }
 
     return data.map((val) => extractPostDetails(val));

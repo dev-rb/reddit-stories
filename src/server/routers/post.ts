@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Post, Prisma, Reply, Story } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import dayjs from "dayjs";
+import { fetchSubredditPosts } from "src/utils/redditApi";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     id: true,
@@ -44,66 +45,18 @@ export const postRouter = createRouter()
             sortType: z.string()
         }).nullish(),
         async resolve({ input }) {
-            let posts: (Post & {
-                stories: (Story & {
-                    replies: Reply[];
-                })[];
-            })[] = []
-            if (input === undefined || input === null || input.sortType === 'hot') {
-                posts = await prisma.post.findMany({
-                    include: {
-                        stories: {
-                            include: {
-                                replies: true
-                            }
-                        }
-                    }
-                });
-                posts = posts.map((post) => {
-                    return {
-                        ...post,
-                        hotness: (Math.sign(post.score) * Math.log10(Math.max(1, Math.abs(post.score))) + (((post.created.getTime() / 1000) - 1134028003) / 45000))
-                    }
-                }).sort((a, b) => b.hotness - a.hotness);
-            } else if (input.sortType === 'top') {
-                posts = await prisma.post.findMany({
-                    where: {
-                        created: {
-                            lt: new Date(dayjs(Date.now()).subtract(24, 'hours').toString())
-                        }
-                    },
-                    orderBy: {
-                        score: 'desc',
-                    },
-                    include: {
-                        stories: {
-                            include: {
-                                replies: true
-                            }
-                        }
-                    }
-                })
-            } else if (input.sortType === 'new') {
-                posts = await prisma.post.findMany({
-                    orderBy: {
-                        created: 'desc'
-                    },
-                    include: {
-                        stories: {
-                            include: {
-                                replies: true
-                            }
-                        }
-                    }
-                })
+            console.log("Sort called: ", input);
+            if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
+                let prompts: Post[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType });
+                return prompts;
+
             } else {
                 throw new TRPCError({
                     code: 'BAD_REQUEST',
-                    message: `"${input.sortType}" sort type not supported`
+                    message: `"${input?.sortType}" sort type not supported`
                 })
             }
-
-            return posts;
+            return [];
         }
     })
     .query('hot', {
