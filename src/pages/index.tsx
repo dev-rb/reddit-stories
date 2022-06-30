@@ -16,11 +16,11 @@ const Home = () => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
-  const [sortType, setSortType] = React.useState<SortType>('Popular');
+  const [sortType, setSortType] = React.useState<string>('hot');
 
-  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortTypeMap[sortType] }]);
+  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType }]);
 
-  const onSortChange = (newType: SortType) => {
+  const onSortChange = (newType: string) => {
     setSortType(newType);
   }
 
@@ -67,7 +67,8 @@ const Home = () => {
             <Center>
               <Loader />
             </Center> :
-            <ListVirtualizer data={rqData!} />
+            // <ListVirtualizer data={rqData!} />
+            null
           }
 
         </Stack>

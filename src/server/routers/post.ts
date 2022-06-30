@@ -41,7 +41,7 @@ export const postRouter = createRouter()
     })
     .query('sort', {
         input: z.object({
-            sortType: z.enum(['hot', 'top', 'new'])
+            sortType: z.string()
         }).nullish(),
         async resolve({ input }) {
             let posts: (Post & {

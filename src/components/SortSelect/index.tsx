@@ -10,10 +10,22 @@ const useStyles = createStyles((theme) => ({
     }
 }));
 
+type TopTimeSort = 'Today' | 'This Week' | 'This Month' | 'This Year' | 'All Time';
 export type TopSorts = 'day' | 'week' | 'month' | 'year' | 'all'
 export type SortType = 'Popular' | 'Top' | 'New';
-export type TopTimeSortType = 'Today' | 'This Week' | 'This Month' | 'This Year' | 'All Time';
 type RedditSortTypeConversion = 'hot' | 'top' | 'new'
+
+export const getSortQuery = (sortType: string, topSort?: string) => {
+    if (sortType === 'Top') {
+        if (topSort) {
+            return `top?t=${topSortTypeMap[topSort as TopTimeSort].toString()}`
+        } else {
+            return `top?t=day`
+        }
+    }
+
+    return sortTypeMap[sortType as SortType].toString();
+}
 
 export const sortTypeMap: { [key in SortType]: RedditSortTypeConversion } = {
     New: 'new',
@@ -21,32 +33,64 @@ export const sortTypeMap: { [key in SortType]: RedditSortTypeConversion } = {
     Top: 'top'
 }
 
-const sortOptions: { type: SortType, icon: React.ReactNode }[] = [
+const topSortTypeMap: { [key in TopTimeSort]: TopSorts } = {
+    Today: 'day',
+    "This Week": 'week',
+    "This Month": 'month',
+    "This Year": 'year',
+    "All Time": 'all',
+}
+
+const topSortOptions: { value: string, icon: React.ReactNode }[] = [
     {
-        type: 'Popular',
+        value: 'Today',
+        icon: null,
+    },
+    {
+        value: 'This Week',
+        icon: null,
+    },
+    {
+        value: 'This Month',
+        icon: null,
+    },
+    {
+        value: 'This Year',
+        icon: null,
+    },
+    {
+        value: 'All Time',
+        icon: null,
+    }
+];
+
+const sortOptions: { value: string, icon: React.ReactNode }[] = [
+    {
+        value: 'Popular',
         icon: <MdWhatshot size={20} />,
     },
     {
-        type: 'Top',
+        value: 'Top',
         icon: <BsTrophy size={20} />,
     },
 
     {
-        type: 'New',
+        value: 'New',
         icon: <MdNewReleases size={20} />,
     }
 ];
 
 interface SortSelectProps {
-    onChange?: (newValue: SortType) => void
+    onChange?: (newValue: string) => void
 }
 
 const SortSelect = ({ onChange }: SortSelectProps) => {
 
     const [bottomSheetOpen, setBottomSheetOpen] = React.useState(false);
 
-    const [activeType, setActiveType] = React.useState<SortType>('Popular');
-    const [activeTopSortType, setActiveTopSortType] = React.useState<TopTimeSortType>('Today');
+    const [activeType, setActiveType] = React.useState<string>('Popular');
+    const [activeTopSortType, setActiveTopSortType] = React.useState<string>('Today');
+    const [showTopOptions, setShowTopOptions] = React.useState(false);
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
@@ -57,20 +101,10 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
             e.preventDefault();
         } else {
             setBottomSheetOpen(true);
+            setShowTopOptions(true);
         }
     }
-    console.log('Top'.toLowerCase() + '?t=day')
-    const updateTopTimeSort = (newType: TopTimeSortType) => {
-        if (newType === activeTopSortType) {
-            return;
-        }
 
-        setActiveTopSortType(newType);
-
-        if (onChange) {
-            // onChange('Top'.toString().toLowerCase() + '?t=day')
-        }
-    }
 
     const selectSortType = (e: React.MouseEvent<HTMLSelectElement>) => {
         if (largeScreen) {
@@ -80,44 +114,61 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
         }
     }
 
-    const updateSortType = (newType: SortType) => {
+    const onSortChange = (newType: string) => {
         if (newType === activeType) {
             return;
         }
-
+        if (newType === 'Top') {
+            setShowTopOptions(true);
+        } else {
+            setActiveTopSortType('Today')
+        }
         setActiveType(newType);
+
         if (onChange) {
-            onChange(newType);
+            onChange(getSortQuery(newType))
         }
     }
 
-    const selectOnChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const onTopSortChange = (newType: string) => {
+        if (newType === activeTopSortType) {
+            return;
+        }
+        setActiveTopSortType(newType);
+
         if (onChange) {
-            onChange(e.target.value as SortType);
-            updateSortType(e.target.value as SortType);
+            onChange(getSortQuery(activeType, newType))
         }
     }
+
+    React.useEffect(() => {
+        console.log("Sort: ", activeType, "Top Sort: ", activeTopSortType)
+    }, [activeType, activeTopSortType])
 
     return (
         <>
             <Group noWrap>
-                <NativeSelect variant='filled' data={['Popular', 'Top', 'New']} value={activeType.toString()} rightSection={<MdArrowDropDown />} onChange={selectOnChange} onClick={selectSortType} styles={{ rightSection: { pointerEvents: 'none' } }} />
+                <NativeSelect variant='filled' data={['Popular', 'Top', 'New']} value={activeType} rightSection={<MdArrowDropDown />} onChange={(e) => { onSortChange(e.target.value) }} onClick={selectSortType} styles={{ rightSection: { pointerEvents: 'none' } }} />
                 {activeType === 'Top' &&
-                    <NativeSelect variant='filled' data={['Today', 'This Week', 'This Month', 'This Year', 'All Time']} value={activeType.toString()} rightSection={<MdArrowDropDown />} styles={{ rightSection: { pointerEvents: 'none' } }} />
-
+                    <NativeSelect variant='filled' data={['Today', 'This Week', 'This Month', 'This Year', 'All Time']} value={activeTopSortType} onChange={(e) => { onTopSortChange(e.target.value) }} onClick={selectTopTimeSort} rightSection={<MdArrowDropDown />} styles={{ rightSection: { pointerEvents: 'none' } }} />
                 }
             </Group>
             <Drawer
                 className={classes.bottomSheet}
                 opened={bottomSheetOpen}
-                onClose={() => setBottomSheetOpen(false)}
+                onClose={() => { setBottomSheetOpen(false); setShowTopOptions(false) }}
                 position='bottom'
                 padding={'lg'}
                 title='Sort Posts By'
                 styles={(theme) => ({ 'drawer': { backgroundColor: theme.colors.dark[6], color: theme.colors.dark[2] } })}
             >
-                <Stack>
-                    {sortOptions.map((val) => <SelectOption key={val.type.toString()} {...val} updateSortType={updateSortType} active={val.type === activeType} />)}
+                <Stack spacing={showTopOptions ? 0 : 'lg'} justify={showTopOptions ? 'space-between' : 'unset'} sx={{ height: '80%' }}>
+                    {
+                        showTopOptions ?
+                            topSortOptions.map((val) => <SelectOption key={val.value} {...val} updateSortType={onTopSortChange} active={val.value === activeTopSortType} />)
+                            :
+                            sortOptions.map((val) => <SelectOption key={val.value} {...val} updateSortType={onSortChange} active={val.value === activeType} />)
+                    }
                 </Stack>
             </Drawer>
         </>
@@ -142,25 +193,25 @@ const useSelectOptionStyles = createStyles((theme, { active }: { active: boolean
 }));
 
 interface SelectOptionProps {
-    type: SortType,
+    value: string,
     icon: React.ReactNode,
-    updateSortType: (newType: SortType) => void,
+    updateSortType: (newType: string) => void,
     active?: boolean
 }
 
-const SelectOption = ({ type, icon, updateSortType, active = false }: SelectOptionProps) => {
+const SelectOption = ({ value, icon, updateSortType, active = false }: SelectOptionProps) => {
 
     const { classes } = useSelectOptionStyles({ active });
 
     return (
         <UnstyledButton
             className={classes.option}
-            onClick={() => updateSortType(type)}
+            onClick={() => updateSortType(value)}
         >
             <Group noWrap position='apart'>
                 <Group>
                     {icon}
-                    {type.toString()}
+                    {value}
                 </Group>
                 {active && <MdCheck className={classes.activeCheck} size={20} />}
             </Group>
