@@ -3,6 +3,7 @@ import { CommentDetails, ExtendedReply, IPost, PostDetails, PostInfo, Posts, Red
 
 interface RedditFetchOptions {
     sortType?: string,
+    timeSort?: string | null,
     fetchAll?: boolean,
     count?: number
 }
@@ -22,9 +23,9 @@ export const fetchSubredditPosts = async (subreddit: string, options: RedditFetc
         // console.log(newData, hotData, topData)
         data = removeUnwantedPosts(removeDuplicates(allData));
     } else {
-        const singleData = await (await fetch(`https://www.reddit.com${subreddit}/${options.sortType?.toString()}.json?limit=${options.count ?? 100}&raw_json=1`)).json();
-        console.log("Test", singleData)
-        data = singleData;
+        const singleData: Posts = await (await fetch(`https://www.reddit.com${subreddit}/${options.sortType?.toString()}.json?${options.timeSort ? 't=' + options.timeSort + '&' : ''}limit=${options.count ?? 100}&raw_json=1`)).json();
+        console.log("sort: ", options.sortType, "Data: ", singleData)
+        data = removeUnwantedPosts(removeDuplicates(singleData.data.children));
     }
 
     return data.map((val) => extractPostDetails(val));
@@ -49,12 +50,13 @@ const removeDuplicates = (arr: PostInfo[]) => {
 // }
 
 const extractPostDetails = (postInfo: PostInfo) => {
-    const { author, created_utc, id, permalink, score, title } = postInfo.data;
+    const { author, created_utc, id, permalink, score, title, num_comments } = postInfo.data;
 
-    return { author, created: new Date(created_utc * 1000), id, permalink, score, title } as Post;
+    return { author, created: new Date(created_utc * 1000), id, permalink, score, title, totalStories: num_comments } as Post & { totalStories: number };
 }
 
 export const fetchCommentsForPost = async (subreddit: string, postId: string) => {
+
     let data: RedditCommentRoot[] = await (await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)).json()
     // console.log(data)
     let stories: (Story & { replies: Reply[] })[] = [];

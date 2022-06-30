@@ -3,7 +3,7 @@ import { prisma } from "../prisma";
 import { z } from 'zod';
 import { Prisma, Story } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import { getReplies } from "src/utils/redditApi";
+import { fetchCommentsForPost, getReplies } from "src/utils/redditApi";
 import { ExtendedReply } from "src/interfaces/reddit";
 
 const defaultStorySelect = Prisma.validator<Prisma.StorySelect>()({
@@ -40,6 +40,38 @@ export const storiesRouter = createRouter()
                 let newStory: Story & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
                 return newStory;
             })
+            return newResult;
+        }
+    })
+    .query("forPost", {
+        input: z.object({
+            id: z.string()
+        }),
+        async resolve({ input }) {
+            const { id } = input;
+            const stories = await fetchCommentsForPost('/r/writingprompts', id);
+            let newResult = stories.map((val) => {
+                let { replies, ...story } = val;
+                let newStory: Story & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
+                return newStory;
+            })
+            // const story = await prisma.story.findUnique({
+            //     where: {
+            //         id: id
+            //     },
+            //     select: {
+            //         ...defaultStorySelect,
+            //         replies: true
+            //     },
+            // });
+
+            if (!newResult) {
+                throw new TRPCError({
+                    cause: undefined,
+                    code: 'NOT_FOUND',
+                    message: `No story with id '${id}'`,
+                });
+            }
             return newResult;
         }
     })

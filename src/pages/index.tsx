@@ -3,7 +3,7 @@ import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title
 import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
-import SortSelect, { SortType, sortTypeMap } from '../components/SortSelect';
+import SortSelect, { TopSorts, sortTypeMap, RedditSortTypeConversion } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
 import ListVirtualizer from '../components/ListVirtualizer';
 
@@ -17,11 +17,15 @@ const Home = () => {
   const largeScreen = useMediaQuery('(min-width: 900px)');
 
   const [sortType, setSortType] = React.useState<string>('hot');
+  const [timeSort, setTimeSort] = React.useState('day');
 
-  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType }]);
+  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }]);
 
-  const onSortChange = (newType: string) => {
+  const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
+    if (timeSort) {
+      setTimeSort(timeSort)
+    }
   }
 
   return (

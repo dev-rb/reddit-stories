@@ -13,14 +13,14 @@ const useStyles = createStyles((theme) => ({
 type TopTimeSort = 'Today' | 'This Week' | 'This Month' | 'This Year' | 'All Time';
 export type TopSorts = 'day' | 'week' | 'month' | 'year' | 'all'
 export type SortType = 'Popular' | 'Top' | 'New';
-type RedditSortTypeConversion = 'hot' | 'top' | 'new'
+export type RedditSortTypeConversion = 'hot' | 'top' | 'new'
 
 export const getSortQuery = (sortType: string, topSort?: string) => {
     if (sortType === 'Top') {
         if (topSort) {
-            return `top?t=${topSortTypeMap[topSort as TopTimeSort].toString()}`
+            return `top/?t=${topSortTypeMap[topSort as TopTimeSort].toString()}`
         } else {
-            return `top?t=day`
+            return `top/?t=day`
         }
     }
 
@@ -81,7 +81,7 @@ const sortOptions: { value: string, icon: React.ReactNode }[] = [
 ];
 
 interface SortSelectProps {
-    onChange?: (newValue: string) => void
+    onChange?: (newValue: string, timeSort?: string) => void
 }
 
 const SortSelect = ({ onChange }: SortSelectProps) => {
@@ -126,7 +126,7 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
         setActiveType(newType);
 
         if (onChange) {
-            onChange(getSortQuery(newType))
+            onChange(sortTypeMap[newType as SortType].toString())
         }
     }
 
@@ -137,7 +137,7 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
         setActiveTopSortType(newType);
 
         if (onChange) {
-            onChange(getSortQuery(activeType, newType))
+            onChange(sortTypeMap[activeType as SortType].toString(), topSortTypeMap[newType as TopTimeSort].toString())
         }
     }
 

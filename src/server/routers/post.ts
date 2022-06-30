@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Post, Prisma, Reply, Story } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import dayjs from "dayjs";
-import { fetchSubredditPosts } from "src/utils/redditApi";
+import { fetchCommentsForPost, fetchSubredditPosts } from "src/utils/redditApi";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     id: true,
@@ -42,12 +42,29 @@ export const postRouter = createRouter()
     })
     .query('sort', {
         input: z.object({
-            sortType: z.string()
+            sortType: z.enum(['hot', 'top', 'new']),
+            timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish()
         }).nullish(),
         async resolve({ input }) {
             console.log("Sort called: ", input);
             if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
-                let prompts: Post[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType });
+                let prompts: (Post & { totalStories: number })[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort });
+                // let postsAndStories: (Post & {
+                //     stories: (Story & {
+                //         replies: Reply[];
+                //     })[];
+                // })[] = [];
+                // for (const post of prompts) {
+                //     let newPost: (Post & {
+                //         stories: (Story & {
+                //             replies: Reply[];
+                //         })[]
+                //     }) = { ...post, stories: [] }
+                //     newPost.stories = [...await fetchCommentsForPost('/r/writingprompts', post.id)];
+                //     postsAndStories.push(newPost)
+                // }
+
+                // console.log(postsAndStories)
                 return prompts;
 
             } else {

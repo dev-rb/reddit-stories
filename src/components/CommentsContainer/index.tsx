@@ -44,8 +44,8 @@ const CommentsContainer = ({ postId }: Props) => {
     const [stories, setStories] = React.useState<Story[]>();
     const router = useRouter();
 
-    const { data } = trpc.useQuery(['story.all', { postId }]);
-    const { data: postData } = trpc.useQuery(['post.byId', { id: postId }]);
+    const { data } = trpc.useQuery(['story.forPost', { id: postId }]);
+    // const { data: postData } = trpc.useQuery(['post.byId', { id: postId }]);
 
     // const { data } = useGetCommentsForPostQuery(postId!);
 
@@ -60,11 +60,11 @@ const CommentsContainer = ({ postId }: Props) => {
                     <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
                 </Paper>
                 {/* Post Details */}
-                {postData &&
+                {/* {postData &&
                     <Box mt={60}>
-                        <Post totalStories={postData!.stories.length} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} />
+                        <Post totalStories={0} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} />
                     </Box>
-                }
+                } */}
                 <Stack spacing={0}>
 
                     <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
@@ -72,7 +72,7 @@ const CommentsContainer = ({ postId }: Props) => {
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
                     </Group>
                     {data?.map((story) => {
-                        return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} postAuthor={postData!.author} replyIndex={0} />
+                        return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} postAuthor={'postData!.author'} replyIndex={0} />
                     })}
                 </Stack>
             </Stack>
