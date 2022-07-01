@@ -4,6 +4,9 @@
 
 .github
 
+#Database
+mysqldata
+
 # dependencies
 /node_modules
 /.pnp
