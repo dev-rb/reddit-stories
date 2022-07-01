@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Post, Prisma, Reply, Story } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import dayjs from "dayjs";
-import { fetchCommentsForPost, fetchSubredditPosts, getReplies } from "src/utils/redditApi";
+import { fetchCommentsForPost, fetchSubredditPosts, getReplies, getTotalCommentsForPost } from "src/utils/redditApi";
 import { Prompt, PromptAndStoriesWithReplies, PromptAndStories } from "src/interfaces/db";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
@@ -49,32 +49,9 @@ export const postRouter = createRouter()
         async resolve({ input }) {
             console.log("Sort called: ", input);
             if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
-                let prompts: Post[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort });
-                let postsAndStories: PromptAndStoriesWithReplies[] = [];
+                let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort });
                 for (const post of prompts) {
-                    let newPost: PromptAndStoriesWithReplies = { ...post, stories: [] }
-                    const comments = await fetchCommentsForPost('/r/writingprompts', post.id)
-
-                    for (const story of comments) {
-                        const { replies, ...storyDetails } = story;
-                        prisma.story.upsert({
-                            create: { ...storyDetails },
-                            update: { ...storyDetails },
-                            where: {
-                                id: post.id
-                            }
-                        });
-
-                        for (const reply of story.replies) {
-                            prisma.reply.upsert({
-                                create: { ...reply },
-                                update: { ...reply },
-                                where: {
-                                    id: post.id
-                                }
-                            });
-                        }
-                    }
+                    post.totalStories = await getTotalCommentsForPost('/r/writingprompts', post.id);
                     prisma.post.upsert({
                         create: { ...post },
                         update: { ...post },
@@ -82,12 +59,9 @@ export const postRouter = createRouter()
                             id: post.id
                         }
                     })
-                    newPost.stories = comments.map((val) => ({ ...val, replies: getReplies(val.replies) }));
-
-                    postsAndStories.push(newPost)
                 }
                 // console.log(postsAndStories)
-                return postsAndStories;
+                return prompts;
             } else {
                 throw new TRPCError({
                     code: 'BAD_REQUEST',

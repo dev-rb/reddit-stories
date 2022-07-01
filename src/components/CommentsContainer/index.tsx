@@ -51,13 +51,13 @@ const CommentsContainer = ({ postId }: Props) => {
     const { data } = trpc.useQuery(['story.forPost', { id: postId }]);
     const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
         initialData: () => {
-            console.log(queryClient.getQueryData('post.sort'))
+            // console.log(queryClient.getQueryData('post.sort'))
             return (queryClient.getQueryData('post.sort') as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)
         }
     });
     // console.log((queryClient.getQueryData('post.sort') as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId))
     // const { data } = useGetCommentsForPostQuery(postId!);
-
+    console.log(data?.length)
     const { classes } = useStyles();
 
     useFixedNavbar(headerRef, true);

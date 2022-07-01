@@ -1,6 +1,6 @@
 import { Post, Story, Reply } from '@prisma/client';
 import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
-import { ExtendedReply } from '../interfaces/db';
+import { ExtendedReply, Prompt } from '../interfaces/db';
 
 interface RedditFetchOptions {
     sortType?: string,
@@ -52,7 +52,13 @@ const removeDuplicates = (arr: PostInfo[]) => {
 const extractPostDetails = (postInfo: PostInfo) => {
     const { author, created_utc, id, permalink, score, title, num_comments } = postInfo.data;
 
-    return { author, created: new Date(created_utc * 1000), id, permalink, score, title } as Post;
+    return { author, created: new Date(created_utc * 1000), id, permalink, score, title, totalStories: 0 } as Prompt;
+}
+
+export const getTotalCommentsForPost = async (subreddit: string, postId: string) => {
+    let data: RedditCommentRoot[] = await (await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)).json()
+    return data[1].data.children.length
+
 }
 
 export const fetchCommentsForPost = async (subreddit: string, postId: string) => {

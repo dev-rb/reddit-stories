@@ -56,7 +56,7 @@ const ListVirtualizer = ({ data }: ListVirtualizerProps) => {
                             transform: `translateY(${virtualItem.start}px)`,
                         }}
                     >
-                        <Post key={data[virtualItem.index].id} {...data[virtualItem.index]} created={data[virtualItem.index].created} totalStories={data[virtualItem.index].stories.length} index={index} />
+                        <Post key={data[virtualItem.index].id} {...data[virtualItem.index]} created={data[virtualItem.index].created} totalStories={data[virtualItem.index].totalStories} index={index} />
 
                     </div>
                 ))}
