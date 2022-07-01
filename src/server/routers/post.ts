@@ -93,6 +93,7 @@ export const postRouter = createRouter()
                 where: {
                     id: id
                 },
+                rejectOnNotFound: true,
                 include: {
                     stories: true
                 }
