@@ -10,6 +10,8 @@ import { Story } from '@prisma/client';
 import Post from '../Post';
 import { useMediaQuery } from '@mantine/hooks';
 import SortSelect from '../SortSelect';
+import { useQueryClient } from 'react-query';
+import { PromptAndStoriesWithReplies, Prompt } from 'src/interfaces/db';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -44,9 +46,16 @@ const CommentsContainer = ({ postId }: Props) => {
     const [stories, setStories] = React.useState<Story[]>();
     const router = useRouter();
 
-    const { data } = trpc.useQuery(['story.forPost', { id: postId }]);
-    // const { data: postData } = trpc.useQuery(['post.byId', { id: postId }]);
+    const queryClient = useQueryClient();
 
+    const { data } = trpc.useQuery(['story.forPost', { id: postId }]);
+    const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
+        initialData: () => {
+            console.log(queryClient.getQueryData('post.sort'))
+            return (queryClient.getQueryData('post.sort') as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)
+        }
+    });
+    // console.log((queryClient.getQueryData('post.sort') as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId))
     // const { data } = useGetCommentsForPostQuery(postId!);
 
     const { classes } = useStyles();
@@ -60,11 +69,11 @@ const CommentsContainer = ({ postId }: Props) => {
                     <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
                 </Paper>
                 {/* Post Details */}
-                {/* {postData &&
+                {(postData && data) &&
                     <Box mt={60}>
-                        <Post totalStories={0} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} />
+                        <Post totalStories={data.length} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} index={0} />
                     </Box>
-                } */}
+                }
                 <Stack spacing={0}>
 
                     <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>

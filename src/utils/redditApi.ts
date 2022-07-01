@@ -1,5 +1,6 @@
 import { Post, Story, Reply } from '@prisma/client';
-import { CommentDetails, ExtendedReply, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
+import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
+import { ExtendedReply } from '../interfaces/db';
 
 interface RedditFetchOptions {
     sortType?: string,
@@ -24,7 +25,6 @@ export const fetchSubredditPosts = async (subreddit: string, options: RedditFetc
         data = removeUnwantedPosts(removeDuplicates(allData));
     } else {
         const singleData: Posts = await (await fetch(`https://www.reddit.com${subreddit}/${options.sortType?.toString()}.json?${options.timeSort ? 't=' + options.timeSort + '&' : ''}limit=${options.count ?? 100}&raw_json=1`)).json();
-        console.log("sort: ", options.sortType, "Data: ", singleData)
         data = removeUnwantedPosts(removeDuplicates(singleData.data.children));
     }
 
@@ -52,7 +52,7 @@ const removeDuplicates = (arr: PostInfo[]) => {
 const extractPostDetails = (postInfo: PostInfo) => {
     const { author, created_utc, id, permalink, score, title, num_comments } = postInfo.data;
 
-    return { author, created: new Date(created_utc * 1000), id, permalink, score, title, totalStories: num_comments } as Post & { totalStories: number };
+    return { author, created: new Date(created_utc * 1000), id, permalink, score, title } as Post;
 }
 
 export const fetchCommentsForPost = async (subreddit: string, postId: string) => {

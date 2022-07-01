@@ -6,6 +6,8 @@ import Post from '../components/Post';
 import SortSelect, { TopSorts, sortTypeMap, RedditSortTypeConversion } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
 import ListVirtualizer from '../components/ListVirtualizer';
+import { useQueryClient } from 'react-query';
+import { PromptAndStoriesWithReplies } from 'src/interfaces/db';
 
 type typeTest = (index: number, size: number) => void
 export const PostsContext = React.createContext<{ setSize: typeTest }>({ setSize: () => { } });
@@ -19,7 +21,11 @@ const Home = () => {
   const [sortType, setSortType] = React.useState<string>('hot');
   const [timeSort, setTimeSort] = React.useState('day');
 
-  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }]);
+  const queryClient = useQueryClient();
+
+  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }], {
+    onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData('post.sort', () => data)
+  });
 
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);

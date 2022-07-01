@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Prisma, Story } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchCommentsForPost, getReplies } from "src/utils/redditApi";
-import { ExtendedReply } from "src/interfaces/reddit";
+import { ExtendedReply } from "src/interfaces/db";
 
 const defaultStorySelect = Prisma.validator<Prisma.StorySelect>()({
     id: true,

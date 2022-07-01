@@ -73,7 +73,3 @@ export interface CommentDetails {
     created_utc: number,
     replies: RedditCommentRoot
 }
-
-export interface ExtendedReply extends Reply {
-    replies: ExtendedReply[]
-}
