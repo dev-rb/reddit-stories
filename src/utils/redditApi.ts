@@ -57,8 +57,8 @@ const extractPostDetails = (postInfo: PostInfo) => {
 
 export const getTotalCommentsForPost = async (subreddit: string, postId: string) => {
     let data: RedditCommentRoot[] = await (await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)).json()
-    return data[1].data.children.length
-
+    return data[1].data.children.length - (+data[1].data.children.some((val) => val.data.author === 'AutoModerator'));
+    //- (+data[1].data.children.some((val) => val.data.author === 'AutoModerator'));
 }
 
 export const fetchCommentsForPost = async (subreddit: string, postId: string) => {
