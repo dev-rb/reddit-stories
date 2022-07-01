@@ -3,7 +3,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode } from "react";
-import { BsClockHistory } from "react-icons/bs";
+import { BsChevronDoubleUp, BsClockHistory } from "react-icons/bs";
 import { MdHome, MdBookmarks } from "react-icons/md";
 
 interface NavLinkProps {

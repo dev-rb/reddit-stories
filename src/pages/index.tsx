@@ -8,9 +8,7 @@ import { trpc } from '../utils/trpc';
 import ListVirtualizer from '../components/ListVirtualizer';
 import { useQueryClient } from 'react-query';
 import { PromptAndStoriesWithReplies } from 'src/interfaces/db';
-
-type typeTest = (index: number, size: number) => void
-export const PostsContext = React.createContext<{ setSize: typeTest }>({ setSize: () => { } });
+import ScrollToTopButton from 'src/components/ScrollToTop';
 
 const Home = () => {
 
@@ -36,7 +34,7 @@ const Home = () => {
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>
-
+      <ScrollToTopButton />
       <Stack align='center' spacing={0} sx={{ width: largeScreen ? '40vw' : '100%' }}>
         <Stack p='lg' sx={{ width: '100%' }}>
           <Group noWrap align='start' position='apart' sx={{ width: '100%' }}>

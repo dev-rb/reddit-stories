@@ -9,7 +9,6 @@ import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Post } from '@prisma/client';
-import { PostsContext } from 'src/pages';
 
 dayjs.extend(relativeTime)
 
@@ -19,7 +18,6 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
-    const { setSize } = React.useContext(PostsContext);
 
     const [requests, setRequests] = React.useState({ download: false, readLater: false, pending: false });
 
@@ -36,12 +34,6 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
     const { onDragPost, onDragging, onDragStop, downloadRequest, readLaterRequest } = useSwipeControls(postRef, updateForRequest);
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
-
-    React.useEffect(() => {
-        if (postRef.current) {
-            setSize(index, postRef.current.getBoundingClientRect().height)
-        }
-    }, [])
 
     return (
         <Anchor variant='text' component={Link} href={`/posts/${id}`}>

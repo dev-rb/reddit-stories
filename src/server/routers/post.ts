@@ -50,32 +50,26 @@ export const postRouter = createRouter()
             console.log("Sort called: ", input);
             if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort });
-                try {
-                    let totalComments = []
-                    for (const post of prompts) {
-                        totalComments.push(getTotalCommentsForPost('/r/writingprompts', post.id));
-                    }
-                    await Promise.all(totalComments).then((totals) => {
-                        for (let i = 0; i < prompts.length; i++) {
-                            prompts[i] = { ...prompts[i], totalStories: totals[i] }
+                let totalComments = []
+                await prisma.post.createMany({
+                    data: [...prompts.map(({ totalStories, ...rest }) => rest)],
+                    skipDuplicates: true
+                })
 
-                        }
-                    });
+                for (const post of prompts) {
+                    totalComments.push(getTotalCommentsForPost('/r/writingprompts', post.id));
                 }
-                finally {
-                    for (const prompt of prompts) {
-                        prisma.post.upsert({
-                            create: { ...prompt },
-                            update: { ...prompt },
-                            where: {
-                                id: prompt.id
-                            }
-                        })
+                await Promise.all(totalComments).then((totals) => {
+                    for (let i = 0; i < prompts.length; i++) {
+                        prompts[i] = { ...prompts[i], totalStories: totals[i] }
+
                     }
-                }
+                });
+
+                return prompts;
+
 
                 // console.log(postsAndStories)
-                return prompts;
             } else {
                 throw new TRPCError({
                     code: 'BAD_REQUEST',
