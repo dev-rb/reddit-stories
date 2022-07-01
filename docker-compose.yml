@@ -8,7 +8,6 @@ services:
     restart: always
     ports:
       - 3306:3306
-    network_mode: 'host'
     volumes:
       - ./mysqldata:/var/lib/mysql
     environment:

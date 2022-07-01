@@ -9,8 +9,8 @@ import useLongPress from '../../hooks/useLongPress';
 import { Story } from '@prisma/client';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
-import { ExtendedReply } from 'src/interfaces/reddit';
 import { nestedColors } from 'src/utils/nestedColors';
+import { ExtendedReply } from 'src/interfaces/db';
 
 dayjs.extend(RelativeTime);
 const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: boolean, replyIndex: number }) => ({
@@ -49,7 +49,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
         const comment = commentRef.current;
 
         if (comment) {
-            comment.style.height = '10px';
+            comment.style.height = '40px';
             comment.style.overflow = 'hidden'
         }
     }
@@ -69,8 +69,8 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
     }, { delay: 1000 });
 
     return (
-        <Stack id={'root-container'} className={classes.rootContainer} spacing={0}>
-            <Stack id={"parent-reply"} className={classes.commentContainer} spacing={0} px='lg' py='xs' {...longPressEvent}>
+        <Stack ref={commentRef} id={'root-container'} className={classes.rootContainer} spacing={0} {...longPressEvent}>
+            <Stack id={"parent-reply"} className={classes.commentContainer} spacing={0} px='lg' py='xs'>
                 <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
                     <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
                     {postAuthor === author &&
@@ -79,7 +79,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
                     <Text size='lg'>·</Text>
                     <Text size='xs'>{(dayjs(created).fromNow())}</Text>
                 </Group>
-                <Stack ref={commentRef} spacing={0}>
+                <Stack spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
 
                     <Group noWrap align='center' spacing={40}>

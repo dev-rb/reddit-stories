@@ -50,23 +50,29 @@ export const postRouter = createRouter()
             console.log("Sort called: ", input);
             if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort });
-                let totalComments = []
-                for (const post of prompts) {
-                    totalComments.push(getTotalCommentsForPost('/r/writingprompts', post.id));
+                try {
+                    let totalComments = []
+                    for (const post of prompts) {
+                        totalComments.push(getTotalCommentsForPost('/r/writingprompts', post.id));
+                    }
+                    await Promise.all(totalComments).then((totals) => {
+                        for (let i = 0; i < prompts.length; i++) {
+                            prompts[i] = { ...prompts[i], totalStories: totals[i] }
+
+                        }
+                    });
                 }
-                await Promise.all(totalComments).then((totals) => {
-                    for (let i = 0; i < prompts.length; i++) {
-                        prompts[i] = { ...prompts[i], totalStories: totals[i] }
+                finally {
+                    for (const prompt of prompts) {
                         prisma.post.upsert({
-                            create: { ...prompts[i] },
-                            update: { ...prompts[i] },
+                            create: { ...prompt },
+                            update: { ...prompt },
                             where: {
-                                id: prompts[i].id
+                                id: prompt.id
                             }
                         })
                     }
-                });
-
+                }
 
                 // console.log(postsAndStories)
                 return prompts;

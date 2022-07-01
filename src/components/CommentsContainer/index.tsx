@@ -48,8 +48,13 @@ const CommentsContainer = ({ postId }: Props) => {
 
     const queryClient = useQueryClient();
 
-    const { data } = trpc.useQuery(['story.forPost', { id: postId }]);
+    const { data } = trpc.useQuery(['story.forPost', { id: postId }], {
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false
+    });
     const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
         initialData: () => {
             // console.log(queryClient.getQueryData('post.sort'))
             return (queryClient.getQueryData('post.sort') as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)

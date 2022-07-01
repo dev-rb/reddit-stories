@@ -11,7 +11,7 @@ const ReadLaterStories = () => {
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
-    const onSortChange = (newType: SortType) => {
+    const onSortChange = (newValue: string) => {
     }
 
     return (
