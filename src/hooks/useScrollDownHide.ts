@@ -1,6 +1,13 @@
 import * as React from 'react';
 
-const useScrollDownHide = (ref: React.RefObject<HTMLDivElement | HTMLButtonElement>, animateOut?: boolean) => {
+interface Options {
+    ref: React.RefObject<HTMLElement>,
+    exit?: (element: HTMLElement) => void,
+    enter?: (element: HTMLElement) => void,
+    animateOut?: boolean
+}
+
+const useScrollDownHide = ({ ref, animateOut, exit, enter }: Options) => {
 
     React.useEffect(() => {
         let pageYOffset = window.pageYOffset;
@@ -9,11 +16,19 @@ const useScrollDownHide = (ref: React.RefObject<HTMLDivElement | HTMLButtonEleme
             let currentOffset = window.pageYOffset;
             if (pageYOffset > currentOffset) {
                 if (element && animateOut) {
-                    element.removeAttribute('style')
+                    if (enter) {
+                        enter(element);
+                    } else {
+                        element.removeAttribute('style')
+                    }
                 }
             } else {
                 if (element && animateOut) {
-                    element.style.display = 'none'
+                    if (exit) {
+                        exit(element);
+                    } else {
+                        element.style.display = 'none'
+                    }
                 }
             }
             pageYOffset = currentOffset;
@@ -24,11 +39,19 @@ const useScrollDownHide = (ref: React.RefObject<HTMLDivElement | HTMLButtonEleme
                 let currentOffset = window.pageYOffset;
                 if (pageYOffset > currentOffset) {
                     if (element && animateOut) {
-                        element.removeAttribute('style')
+                        if (enter) {
+                            enter(element);
+                        } else {
+                            element.removeAttribute('style')
+                        }
                     }
                 } else {
                     if (element && animateOut) {
-                        element.style.display = 'none'
+                        if (exit) {
+                            exit(element);
+                        } else {
+                            element.style.display = 'none'
+                        }
                     }
                 }
             });
