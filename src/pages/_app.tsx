@@ -8,10 +8,51 @@ import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core
 import AppLayout from '../components/AppLayout';
 import { useLocalStorage } from '@mantine/hooks';
 import { withTRPC } from '@trpc/next';
+import { useState } from 'react';
 import { AppRouter } from '../server/routers';
+import { trpc } from 'src/utils/trpc';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { persistQueryClient, PersistedClient, Persistor } from 'react-query/persistQueryClient-experimental'
+import { get, set, del } from "idb-keyval";
 
+const newQueryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+            refetchIntervalInBackground: false
+        }
+    }
+})
+function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
+    return {
+        persistClient: async (client: PersistedClient) => {
+            set(idbValidKey, client);
+        },
+        restoreClient: async () => {
+            return await get<PersistedClient>(idbValidKey);
+        },
+        removeClient: async () => {
+            await del(idbValidKey);
+        },
+    } as Persistor;
+}
+persistQueryClient({
+    queryClient: newQueryClient,
+    persistor: createIDBPersister(),
+})
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
+
+    const [queryClient] = useState(newQueryClient);
+    const [trpcClient] = useState(() =>
+        trpc.createClient({
+            url: process.env.VERCEL_URL
+                ? `https://${process.env.VERCEL_URL}/api/trpc`
+                : 'http://localhost:3000/api/trpc',
+        }
+
+        ))
 
     const [theme, setColorTheme] = useLocalStorage<ColorScheme>({
         key: 'mantine-color-scheme',
@@ -54,46 +95,28 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                 <link rel="apple-touch-icon" href="/logo.png"></link>
                 <meta name="theme-color" content="#317EFB" />
             </Head>
-            <Provider store={store}>
-                <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
-                    <MantineProvider
-                        theme={{ colorScheme: theme }}
-                        withGlobalStyles
-                        withNormalizeCSS
-                    >
-                        <AppLayout>
-                            <Component {...pageProps} />
+            <trpc.Provider client={trpcClient} queryClient={queryClient}>
+                <QueryClientProvider client={queryClient}>
+                    <Provider store={store}>
+                        <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
+                            <MantineProvider
+                                theme={{ colorScheme: theme }}
+                                withGlobalStyles
+                                withNormalizeCSS
+                            >
+                                <AppLayout>
+                                    <Component {...pageProps} />
 
-                        </AppLayout>
+                                </AppLayout>
 
-                    </MantineProvider>
-                </ColorSchemeProvider>
-            </Provider>
+                            </MantineProvider>
+                        </ColorSchemeProvider>
+                    </Provider>
+                </QueryClientProvider>
+            </trpc.Provider>
 
         </>
     );
 }
 
-export default withTRPC<AppRouter>({
-    config({ ctx }) {
-        /**
-         * If you want to use SSR, you need to use the server's full URL
-         * @link https://trpc.io/docs/ssr
-         */
-        const url = process.env.VERCEL_URL
-            ? `https://${process.env.VERCEL_URL}/api/trpc`
-            : 'http://localhost:3000/api/trpc';
-
-        return {
-            url,
-            /**
-             * @link https://react-query.tanstack.com/reference/QueryClient
-             */
-            // queryClientConfig: { defaultOptions: { queries: { staleTime: 60 } } },
-        };
-    },
-    /**
-     * @link https://trpc.io/docs/ssr
-     */
-    ssr: false,
-})(MyApp);
+export default MyApp;
