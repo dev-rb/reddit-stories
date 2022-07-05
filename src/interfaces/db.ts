@@ -6,7 +6,10 @@ export interface ExtendedReply extends Reply {
 
 export type Replies = { replies: ExtendedReply[] }
 
-export type StoriesAndReplies = { stories: (Story & Replies)[] }
+export type StoryAndReplies = Story & { replies: Reply[] }
+export type StoryAndExtendedReplies = Story & { replies: ExtendedReply[] }
+
+export type StoriesAndReplies = { stories: StoryAndReplies[] }
 
 export interface Prompt extends Post {
     totalStories: number
@@ -15,3 +18,5 @@ export interface Prompt extends Post {
 export type PromptAndStories = Prompt & Story;
 
 export type PromptAndStoriesWithReplies = (Prompt & StoriesAndReplies)
+
+export type PromptAndStoriesWithExtendedReplies = (Prompt & { stories: StoryAndExtendedReplies[] })

@@ -6,9 +6,20 @@ import Post from '../components/Post';
 import SortSelect, { TopSorts, sortTypeMap, RedditSortTypeConversion } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
 import ListVirtualizer from '../components/ListVirtualizer';
-import { useQueryClient } from 'react-query';
-import { PromptAndStoriesWithReplies } from 'src/interfaces/db';
+import { useQueries, useQueryClient } from 'react-query';
+import { ExtendedReply, PromptAndStoriesWithReplies } from 'src/interfaces/db';
 import ScrollToTopButton from 'src/components/ScrollToTop';
+import { Story } from '@prisma/client';
+
+const allQueries = [
+  'hot',
+  'new',
+  { 'top': 'day' },
+  { 'top': 'week' },
+  { 'top': 'month' },
+  { 'top': 'year' },
+  { 'top': 'all' },
+]
 
 const Home = () => {
 
@@ -21,9 +32,26 @@ const Home = () => {
 
   const queryClient = useQueryClient();
 
+  const trpcContext = trpc.useContext();
+
   const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }], {
     onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData('post.sort', () => data)
   });
+
+  // const testData = useQueries(rqData ? [...rqData!.map((val) => {
+  //   return {
+  //     queryKey: ['story.forPost', val.id],
+  //     queryFn: () => trpcContext.client.query('story.forPost', { id: val.id })
+  //   };
+  // })] : []).map((val) => {
+
+  //   return { ...val.data }
+  // })
+
+  // const { } = trpc.useQuery(['story.forPosts', [...rqData!.map((val) => ({ id: val.id }))]], {
+  //   enabled: !!rqData
+  // })
+
 
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
@@ -31,6 +59,19 @@ const Home = () => {
       setTimeSort(timeSort)
     }
   }
+
+  const getStories = async () => {
+    const stories: (Story & { replies: ExtendedReply[]; })[][] = []
+    rqData?.map((val) => trpcContext.client.query('story.forPost', { id: val.id }).then((data) => stories.push(data)))
+
+    return stories;
+  }
+
+  React.useEffect(() => {
+    if (rqData) {
+      console.log("Stories: ", rqData)
+    }
+  }, [rqData])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>

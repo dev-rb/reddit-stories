@@ -43,11 +43,56 @@ export const storiesRouter = createRouter()
             return newResult;
         }
     })
+    .query("forPosts", {
+        input: z.array(z.object({
+            id: z.string()
+        })),
+        async resolve({ input }) {
+
+            const inputLength = input.length;
+
+            let allResults: (Story & {
+                replies: ExtendedReply[];
+            })[] = []
+
+            for (let i = 0; i < inputLength; i++) {
+                const stories = await fetchCommentsForPost('/r/writingprompts', input[i].id);
+                const newResult = stories.map((val) => {
+                    let { replies, ...story } = val;
+                    let newStory: Story & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
+                    return newStory;
+                });
+
+                allResults.concat(newResult);
+            }
+
+
+            // const story = await prisma.story.findUnique({
+            //     where: {
+            //         id: id
+            //     },
+            //     select: {
+            //         ...defaultStorySelect,
+            //         replies: true
+            //     },
+            // });
+
+            if (!allResults) {
+                throw new TRPCError({
+                    cause: undefined,
+                    code: 'NOT_FOUND',
+                    message: `No stories found'`,
+                });
+            }
+            return allResults;
+        }
+    })
     .query("forPost", {
         input: z.object({
             id: z.string()
         }),
         async resolve({ input }) {
+            console.log("Story For Post called")
             const { id } = input;
             const stories = await fetchCommentsForPost('/r/writingprompts', id);
             let newResult = stories.map((val) => {

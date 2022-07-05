@@ -1,6 +1,6 @@
 import { Post, Story, Reply } from '@prisma/client';
 import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
-import { ExtendedReply, Prompt } from '../interfaces/db';
+import { ExtendedReply, Prompt, StoryAndReplies } from '../interfaces/db';
 
 interface RedditFetchOptions {
     sortType?: string,
@@ -52,7 +52,7 @@ const removeDuplicates = (arr: PostInfo[]) => {
 const extractPostDetails = (postInfo: PostInfo) => {
     const { author, created_utc, id, permalink, score, title, num_comments } = postInfo.data;
 
-    return { author, created: new Date(created_utc * 1000), id, permalink, score, title, totalStories: 0 } as Prompt;
+    return { author, created: new Date(created_utc * 1000), id, permalink, score, title } as Prompt;
 }
 
 export const getTotalCommentsForPost = async (subreddit: string, postId: string) => {
@@ -66,11 +66,15 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
     let data: RedditCommentRoot[] = await (await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)).json()
     // console.log(data)
     let stories: (Story & { replies: Reply[] })[] = [];
-    data[1].data.children.forEach((val) => {
+    const commentDetails = data[1].data.children;
+    const commentDetailsLength = commentDetails.length;
+
+    for (let i = 0; i < commentDetailsLength; i++) {
+        let val = commentDetails[i];
         if (val.data.author !== "AutoModerator") {
             stories.push(extractCommentDetails(val.data, postId));
         }
-    })
+    }
     // const replies = getRepliesForComment(commentInfo, commentInfo.author, commentInfo.id, null, []);
     // console.log(replies);
     // console.log(stories)
@@ -79,7 +83,7 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
 
 const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     const { author, created_utc, id, permalink, score, title, body, body_html } = commentInfo;
-    const story: Story & { replies: Reply[] } = {
+    const story: StoryAndReplies = {
         author,
         created: new Date(created_utc * 1000),
         id,
@@ -111,7 +115,11 @@ const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string
     }
     // console.log(commentInfo);
     // Loop through all the replies for this comment
-    commentInfo.replies.data.children.forEach((val) => {
+    const commentDetails = commentInfo.replies.data.children;
+    const commentDetailsLength = commentDetails.length;
+
+    for (let i = 0; i < commentDetailsLength; i++) {
+        const val = commentDetails[i];
         const { author, body, body_html, created_utc, id, replies: repliesForReply, permalink, score, title } = val.data;
 
         // Uncomment to only get this reply if it's from the author of the story
@@ -128,7 +136,7 @@ const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string
         // We go through all nested replies
         getRepliesForComment(val.data, commentAuthor, parentCommentId, id, replies);
         // }
-    })
+    }
 
     return replies;
 }
