@@ -44,7 +44,7 @@ const Home = () => {
   const trpcContext = trpc.useContext();
 
   const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }], {
-    onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData('post.sort', () => data)
+    onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData(['post.sort'], () => data)
   });
 
   const onSortChange = (newType: string, timeSort?: string) => {
@@ -58,15 +58,13 @@ const Home = () => {
     rqData?.forEach((val) => {
       trpcContext.prefetchQuery(['story.forPost', { id: val.id }]);
     })
-    // update(`prompts-stories`, (old) => old.concat(queryClient.getQueryData(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }])));
-    // console.log(queryClient.getQueryData('post.sort'))
   }
 
-  React.useEffect(() => {
-    if (rqData) {
-      console.log("Stories: ", rqData)
-    }
-  }, [rqData])
+  // React.useEffect(() => {
+  //   if (rqData) {
+  //     console.log("Stories: ", rqData)
+  //   }
+  // }, [rqData])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>

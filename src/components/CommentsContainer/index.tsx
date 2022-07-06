@@ -3,7 +3,7 @@ import { IPost } from '../../interfaces/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
 import useFixedNavbar from '../../hooks/useFixedNavbar';
-import { createStyles, Group, Paper, Stack, Box } from '@mantine/core';
+import { createStyles, Group, Paper, Stack, Box, Title, Center } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import { Story } from '@prisma/client';
@@ -49,20 +49,16 @@ const CommentsContainer = ({ postId }: Props) => {
     const queryClient = useQueryClient();
 
     const { data } = trpc.useQuery(['story.forPost', { id: postId }], {
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false
-    });
-    const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
         initialData: () => {
-            // console.log(queryClient.getQueryData('post.sort'))
-            return (queryClient.getQueryData('post.sort') as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)
+            console.log("Inital Data for post stories called")
+            return (queryClient.getQueryData(['post.sort']) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)?.stories
         }
     });
-    // console.log((queryClient.getQueryData('post.sort') as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId))
-    // const { data } = useGetCommentsForPostQuery(postId!);
-    console.log(data?.length)
+    const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
+        initialData: () => {
+            return (queryClient.getQueryData(['post.sort']) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)
+        }
+    });
     const { classes } = useStyles();
 
     useFixedNavbar(headerRef, true);
@@ -79,15 +75,22 @@ const CommentsContainer = ({ postId }: Props) => {
                         <Post totalStories={data.length} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} index={0} />
                     </Box>
                 }
-                <Stack spacing={0}>
+                <Stack spacing={0} pb={40}>
 
                     <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
                         <SortSelect />
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
                     </Group>
-                    {data?.map((story) => {
-                        return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} postAuthor={'postData!.author'} replyIndex={0} />
-                    })}
+                    {
+                        data?.length === 0 ?
+                            <Center sx={{ height: '50vh' }}>
+                                <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Stories Yet</Title>
+                            </Center>
+                            :
+                            data?.map((story) => {
+                                return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} postAuthor={'postData!.author'} replyIndex={0} />
+                            })
+                    }
                 </Stack>
             </Stack>
         </Stack>

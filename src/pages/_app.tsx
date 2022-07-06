@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { AppRouter } from '../server/routers';
 import { trpc } from 'src/utils/trpc';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { persistQueryClient, PersistedClient, Persistor } from 'react-query/persistQueryClient-experimental'
+import { persistQueryClient, PersistedClient, Persister } from 'react-query/persistQueryClient'
 import { get, set, del } from "idb-keyval";
 
 const newQueryClient = new QueryClient({
@@ -38,11 +38,11 @@ function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
         removeClient: async () => {
             await del(idbValidKey);
         },
-    } as Persistor;
+    } as Persister;
 }
-persistQueryClient({
+const [unsubscribe, restorePromise] = persistQueryClient({
     queryClient: newQueryClient,
-    persistor: createIDBPersister(),
+    persister: createIDBPersister(),
 })
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
