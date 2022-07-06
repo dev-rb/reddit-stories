@@ -41,47 +41,6 @@ export const postRouter = createRouter()
             })
         }
     })
-    .query('sort', {
-        input: z.object({
-            sortType: z.enum(['hot', 'top', 'new']),
-            timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish()
-        }).nullish(),
-        async resolve({ input }) {
-            console.log("Sort called: ", input);
-            if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
-                let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort });
-                let totalComments = []
-                await prisma.post.createMany({
-                    data: [...prompts.map(({ totalStories, ...rest }) => rest)],
-                    skipDuplicates: true
-                })
-
-                const totalPromptsLength = prompts.length;
-                for (let i = 0; i < totalPromptsLength; i++) {
-                    totalComments.push(getTotalCommentsForPost('/r/writingprompts', prompts[i].id));
-                }
-
-                await Promise.all(totalComments).then((totals) => {
-                    for (let i = 0; i < prompts.length; i++) {
-                        prompts[i] = { ...prompts[i], totalStories: totals[i] }
-
-                    }
-                });
-
-                return prompts;
-
-
-                // console.log(postsAndStories)
-            } else {
-                throw new TRPCError({
-                    code: 'BAD_REQUEST',
-                    message: `"${input?.sortType}" sort type not supported`
-                })
-            }
-
-
-        }
-    })
     // .query('sort', {
     //     input: z.object({
     //         sortType: z.enum(['hot', 'top', 'new']),
@@ -90,39 +49,26 @@ export const postRouter = createRouter()
     //     async resolve({ input }) {
     //         console.log("Sort called: ", input);
     //         if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
-    //             let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
-
+    //             let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort });
     //             let totalComments = []
+    //             await prisma.post.createMany({
+    //                 data: [...prompts.map(({ totalStories, ...rest }) => rest)],
+    //                 skipDuplicates: true
+    //             })
 
     //             const totalPromptsLength = prompts.length;
     //             for (let i = 0; i < totalPromptsLength; i++) {
-    //                 totalComments.push(fetchCommentsForPost('/r/writingprompts', prompts[i].id))
+    //                 totalComments.push(getTotalCommentsForPost('/r/writingprompts', prompts[i].id));
     //             }
 
-    //             // await prisma.post.createMany({
-    //             //     data: [...prompts],
-    //             //     skipDuplicates: true
-    //             // })
-
-    //             // const totalPromptsLength = prompts.length;
-    //             // for (let i = 0; i < totalPromptsLength; i++) {
-    //             //     totalComments.push(fetchCommentsForPost('/r/writingprompts', prompts[i].id));
-    //             // }
-
-    //             let newPrompts: PromptAndStoriesWithReplies[] = []
-    //             await Promise.all(totalComments).then((stories) => {
+    //             await Promise.all(totalComments).then((totals) => {
     //                 for (let i = 0; i < prompts.length; i++) {
-    //                     stories[i] = stories[i].map((val) => {
-    //                         val.replies = getReplies(val.replies);
-    //                         return val;
-    //                     })
-    //                     let newPost: PromptAndStoriesWithReplies = { ...prompts[i], stories: stories[i] }
-    //                     newPrompts.push(newPost)
+    //                     prompts[i] = { ...prompts[i], totalStories: totals[i] }
 
     //                 }
     //             });
 
-    //             return newPrompts;
+    //             return prompts;
 
 
     //             // console.log(postsAndStories)
@@ -136,6 +82,60 @@ export const postRouter = createRouter()
 
     //     }
     // })
+    .query('sort', {
+        input: z.object({
+            sortType: z.enum(['hot', 'top', 'new']),
+            timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish()
+        }).nullish(),
+        async resolve({ input }) {
+            console.log("Sort called: ", input);
+            if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
+                let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
+
+                let totalComments = []
+
+                const totalPromptsLength = prompts.length;
+                for (let i = 0; i < totalPromptsLength; i++) {
+                    totalComments.push(fetchCommentsForPost('/r/writingprompts', prompts[i].id))
+                }
+
+                // await prisma.post.createMany({
+                //     data: [...prompts],
+                //     skipDuplicates: true
+                // })
+
+                // const totalPromptsLength = prompts.length;
+                // for (let i = 0; i < totalPromptsLength; i++) {
+                //     totalComments.push(fetchCommentsForPost('/r/writingprompts', prompts[i].id));
+                // }
+
+                let newPrompts: PromptAndStoriesWithReplies[] = []
+                await Promise.all(totalComments).then((stories) => {
+                    for (let i = 0; i < prompts.length; i++) {
+                        stories[i] = stories[i].map((val) => {
+                            val.replies = getReplies(val.replies);
+                            return val;
+                        })
+                        let newPost: PromptAndStoriesWithReplies = { ...prompts[i], stories: stories[i] }
+                        newPrompts.push(newPost)
+
+                    }
+                });
+
+                return newPrompts;
+
+
+                // console.log(postsAndStories)
+            } else {
+                throw new TRPCError({
+                    code: 'BAD_REQUEST',
+                    message: `"${input?.sortType}" sort type not supported`
+                })
+            }
+
+
+        }
+    })
     .query("byId", {
         input: z.object({
             id: z.string()

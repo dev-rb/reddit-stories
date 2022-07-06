@@ -10,6 +10,7 @@ import { useQueries, useQueryClient } from 'react-query';
 import { ExtendedReply, PromptAndStoriesWithReplies } from 'src/interfaces/db';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { Story } from '@prisma/client';
+import { set, update } from 'idb-keyval';
 
 const allQueries = [
   'hot',
@@ -60,11 +61,9 @@ const Home = () => {
     }
   }
 
-  const getStories = async () => {
-    const stories: (Story & { replies: ExtendedReply[]; })[][] = []
-    rqData?.map((val) => trpcContext.client.query('story.forPost', { id: val.id }).then((data) => stories.push(data)))
-
-    return stories;
+  const downloadPostsAndStories = () => {
+    // update(`prompts-stories`, (old) => old.concat(queryClient.getQueryData(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }])));
+    // console.log(queryClient.getQueryData('post.sort'))
   }
 
   React.useEffect(() => {
@@ -107,7 +106,7 @@ const Home = () => {
           <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
             <SortSelect onChange={onSortChange} />
             {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
-            <ActionIcon variant='filled' color='gray' onClick={() => { }}>
+            <ActionIcon variant='filled' color='gray' onClick={() => { downloadPostsAndStories() }}>
               <MdDownload />
             </ActionIcon>
           </Group>

@@ -1,6 +1,8 @@
 import * as React from 'react';
 import Post from '../Post';
 import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual';
+import { get } from 'idb-keyval';
+import { PromptAndStoriesWithExtendedReplies } from 'src/interfaces/db';
 
 interface ListVirtualizerProps {
     data: any[]
@@ -32,6 +34,9 @@ const ListVirtualizer = ({ data }: ListVirtualizerProps) => {
     //         window.removeEventListener("scroll", scrollHandler);
     //     };
     // }, [scrollToOffset]);
+
+
+
     return (
         <>
 
@@ -43,8 +48,8 @@ const ListVirtualizer = ({ data }: ListVirtualizerProps) => {
                 }}
             >
                 {/* Only the visible items in the virtualizer, manually positioned to be in view */}
-                {rowVirtualizer.getVirtualItems().map((virtualItem: any, index: number) => (
-                    <div
+                {rowVirtualizer.getVirtualItems().map((virtualItem: any, index: number) => {
+                    return (<div
                         key={virtualItem.index}
                         ref={virtualItem.measureElement}
                         style={{
@@ -58,8 +63,8 @@ const ListVirtualizer = ({ data }: ListVirtualizerProps) => {
                     >
                         <Post key={data[virtualItem.index].id} {...data[virtualItem.index]} created={data[virtualItem.index].created} totalStories={data[virtualItem.index].totalStories} index={index} />
 
-                    </div>
-                ))}
+                    </div>)
+                })}
             </div>
         </>
     );

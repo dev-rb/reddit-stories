@@ -9,17 +9,20 @@ import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Post } from '@prisma/client';
+import { PromptAndStoriesWithExtendedReplies } from 'src/interfaces/db';
+import { get } from 'idb-keyval';
 
 dayjs.extend(relativeTime)
 
-const Post = ({ title, id, score, author, permalink, totalStories, created, index }: Post & { totalStories: number, index: number }) => {
+const Post = ({ title, id, score, author, permalink, totalStories, created, index }: Post & { totalStories: number, index: number, isDownloaded?: boolean }) => {
 
     const [liked, setLiked] = React.useState(false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
-
     const [requests, setRequests] = React.useState({ download: false, readLater: false, pending: false });
+
+    const [isDownloaded, setIsDownloaded] = React.useState(false);
 
     const updateForRequest = (typeOfRequest: string, setTo: boolean = false) => {
         if (typeOfRequest === 'download') {
@@ -35,6 +38,19 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
+    const isPostDownloaded = async (postId: string) => {
+        const all: PromptAndStoriesWithExtendedReplies[] | undefined = await get('prompts-stories');
+        const found = all?.findIndex((val) => val.id === postId);
+        console.log("All prompts: ", found !== -1 && found !== undefined)
+        return found !== -1 && found !== undefined;
+    }
+
+    React.useEffect(() => {
+        isPostDownloaded(id).then((val) => {
+            setIsDownloaded(val);
+        })
+    }, [])
+
     return (
         <Anchor variant='text' component={Link} href={`/posts/${id}`}>
             <Box ref={postRef} px='lg' py='sm' mt={-1} sx={(theme) => ({ borderTop: '1px solid', borderBottom: '1px solid', borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2], width: largeScreen ? '100%' : '100vw' })}>
@@ -47,7 +63,7 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
                             <Text size='xs'>{dayjs(created).fromNow()}</Text>
                         </Group>
                         <Group noWrap spacing={10}>
-                            <MdFileDownload onClick={(e) => { e.stopPropagation(); updateForRequest('download') }} size={16} color={requests.download ? '#F8A130' : '#313131'} />
+                            <MdFileDownload onClick={(e) => { e.stopPropagation(); updateForRequest('download') }} size={16} color={isDownloaded ? '#F8A130' : '#313131'} />
                             <BsClockHistory onClick={(e) => { e.stopPropagation(); updateForRequest('readLater') }} size={16} color={requests.readLater ? '#3079F8' : '#313131'} />
                         </Group>
                     </Group>
