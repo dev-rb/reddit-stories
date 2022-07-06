@@ -12,6 +12,8 @@ import ScrollToTopButton from 'src/components/ScrollToTop';
 import { Story } from '@prisma/client';
 import { set, update } from 'idb-keyval';
 import { useRouter } from 'next/router';
+import { useDownload } from 'src/hooks/useDownload';
+import { DownloadContext } from './_app';
 
 const allQueries = [
   'hot',
@@ -38,12 +40,17 @@ const Home = () => {
   const [sortType, setSortType] = React.useState<string>(currentSort);
   const [timeSort, setTimeSort] = React.useState(currentTime);
 
+  const { download } = React.useContext(DownloadContext);
 
   const queryClient = useQueryClient();
 
   const trpcContext = trpc.useContext();
 
   const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }], {
+    initialData: () => {
+      console.log("Home initial data: ", queryClient.getQueryCache().findAll(['post.sort'], { queryKey: ['post.sort'] }))
+      return queryClient.getQueryCache().findAll(['post.sort'], { exact: true, queryKey: ['post.sort'] });
+    },
     onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData(['post.sort'], () => data)
   });
 
@@ -100,7 +107,7 @@ const Home = () => {
           <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
             <SortSelect onChange={onSortChange} />
             {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
-            <ActionIcon variant='filled' color='gray' onClick={() => { downloadPostsAndStories() }}>
+            <ActionIcon variant='filled' color='gray' onClick={() => { download!() }}>
               <MdDownload />
             </ActionIcon>
           </Group>

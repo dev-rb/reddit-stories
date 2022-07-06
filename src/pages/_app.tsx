@@ -8,12 +8,13 @@ import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core
 import AppLayout from '../components/AppLayout';
 import { useLocalStorage } from '@mantine/hooks';
 import { withTRPC } from '@trpc/next';
-import { useState } from 'react';
+import { createContext, useState } from 'react';
 import { AppRouter } from '../server/routers';
 import { trpc } from 'src/utils/trpc';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { persistQueryClient, PersistedClient, Persister } from 'react-query/persistQueryClient'
+import { persistQueryClient, PersistedClient, Persister, PersistQueryClientOptions, persistQueryClientRestore, persistQueryClientSubscribe, persistQueryClientSave } from 'react-query/persistQueryClient'
 import { get, set, del } from "idb-keyval";
+import { useDownload } from 'src/hooks/useDownload';
 
 const newQueryClient = new QueryClient({
     defaultOptions: {
@@ -40,10 +41,25 @@ function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
         },
     } as Persister;
 }
-const [unsubscribe, restorePromise] = persistQueryClient({
+
+function customPersist(
+    props: PersistQueryClientOptions
+): [() => Promise<void>, Promise<void>] {
+
+    const persistData = () => persistQueryClientSave(props);
+    // Attempt restore
+    const restorePromise = persistQueryClientRestore(props).catch((err) => console.log(err))
+
+    return [persistData, restorePromise]
+}
+
+const [persistData] = customPersist({
     queryClient: newQueryClient,
     persister: createIDBPersister(),
+    maxAge: Infinity
 })
+
+export const DownloadContext = createContext<{ download: (() => Promise<void>) | null }>({ download: null });
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
 
@@ -107,11 +123,12 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                                 withGlobalStyles
                                 withNormalizeCSS
                             >
-                                <AppLayout>
-                                    <Component {...pageProps} />
+                                <DownloadContext.Provider value={{ download: persistData }}>
+                                    <AppLayout>
+                                        <Component {...pageProps} />
 
-                                </AppLayout>
-
+                                    </AppLayout>
+                                </DownloadContext.Provider>
                             </MantineProvider>
                         </ColorSchemeProvider>
                     </Provider>
