@@ -3,6 +3,7 @@ import { Box, createStyles, Drawer, Group, keyframes, NativeSelect, Stack, Unsty
 import { MdArrowDropDown, MdCheck, MdNewReleases, MdTrendingFlat, MdTrendingUp, MdWhatshot } from 'react-icons/md';
 import { useMediaQuery } from '@mantine/hooks';
 import { BsTrophy } from 'react-icons/bs';
+import { useRouter } from 'next/router';
 
 const useStyles = createStyles((theme) => ({
     bottomSheet: {
@@ -10,7 +11,7 @@ const useStyles = createStyles((theme) => ({
     }
 }));
 
-type TopTimeSort = 'Today' | 'This Week' | 'This Month' | 'This Year' | 'All Time';
+export type TopTimeSort = 'Today' | 'This Week' | 'This Month' | 'This Year' | 'All Time';
 export type TopSorts = 'day' | 'week' | 'month' | 'year' | 'all'
 export type SortType = 'Popular' | 'Top' | 'New';
 export type RedditSortTypeConversion = 'hot' | 'top' | 'new'
@@ -33,7 +34,7 @@ export const sortTypeMap: { [key in SortType]: RedditSortTypeConversion } = {
     Top: 'top'
 }
 
-const topSortTypeMap: { [key in TopTimeSort]: TopSorts } = {
+export const topSortTypeMap: { [key in TopTimeSort]: TopSorts } = {
     Today: 'day',
     "This Week": 'week',
     "This Month": 'month',
@@ -88,8 +89,9 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
 
     const [bottomSheetOpen, setBottomSheetOpen] = React.useState(false);
 
-    const [activeType, setActiveType] = React.useState<string>('Popular');
-    const [activeTopSortType, setActiveTopSortType] = React.useState<string>('Today');
+    const router = useRouter();
+    const [activeType, setActiveType] = React.useState<string>(router.query.sort?.toString() ?? 'Popular');
+    const [activeTopSortType, setActiveTopSortType] = React.useState<string>(router.query.time?.toString() ?? 'Today');
     const [showTopOptions, setShowTopOptions] = React.useState(false);
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
@@ -126,6 +128,11 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
         setActiveType(newType);
 
         if (onChange) {
+            if (newType === 'Top') {
+                router.push(`/?sort=${newType}&time=${activeTopSortType}`, undefined, { shallow: true })
+            } else {
+                router.push(`/?sort=${newType}`, undefined, { shallow: true })
+            }
             onChange(sortTypeMap[newType as SortType].toString())
         }
     }
@@ -137,12 +144,13 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
         setActiveTopSortType(newType);
 
         if (onChange) {
+            router.push(`/?sort=${activeType}&time=${newType}`, undefined, { shallow: true })
             onChange(sortTypeMap[activeType as SortType].toString(), topSortTypeMap[newType as TopTimeSort].toString())
         }
     }
 
     React.useEffect(() => {
-        console.log("Sort: ", activeType, "Top Sort: ", activeTopSortType)
+
     }, [activeType, activeTopSortType])
 
     return (

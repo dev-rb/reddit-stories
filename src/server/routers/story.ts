@@ -92,7 +92,7 @@ export const storiesRouter = createRouter()
             id: z.string()
         }),
         async resolve({ input }) {
-            console.log("Story For Post called")
+            // console.log("Story For Post called")
             const { id } = input;
             const stories = await fetchCommentsForPost('/r/writingprompts', id);
             let newResult = stories.map((val) => {

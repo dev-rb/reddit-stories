@@ -3,7 +3,7 @@ import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title
 import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
-import SortSelect, { TopSorts, sortTypeMap, RedditSortTypeConversion } from '../components/SortSelect';
+import SortSelect, { TopSorts, sortTypeMap, RedditSortTypeConversion, SortType, topSortTypeMap, TopTimeSort } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
 import ListVirtualizer from '../components/ListVirtualizer';
 import { useQueries, useQueryClient } from 'react-query';
@@ -11,6 +11,7 @@ import { ExtendedReply, PromptAndStoriesWithReplies } from 'src/interfaces/db';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { Story } from '@prisma/client';
 import { set, update } from 'idb-keyval';
+import { useRouter } from 'next/router';
 
 const allQueries = [
   'hot',
@@ -27,9 +28,16 @@ const Home = () => {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
+  const router = useRouter();
 
-  const [sortType, setSortType] = React.useState<string>('hot');
-  const [timeSort, setTimeSort] = React.useState('day');
+  const { sort, time } = router.query;
+
+  const currentSort = sort ? sortTypeMap[sort.toString() as SortType].toString() : 'hot'
+  const currentTime = time ? topSortTypeMap[time.toString() as TopTimeSort].toString() : 'day'
+
+  const [sortType, setSortType] = React.useState<string>(currentSort);
+  const [timeSort, setTimeSort] = React.useState(currentTime);
+
 
   const queryClient = useQueryClient();
 
@@ -39,21 +47,6 @@ const Home = () => {
     onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData('post.sort', () => data)
   });
 
-  // const testData = useQueries(rqData ? [...rqData!.map((val) => {
-  //   return {
-  //     queryKey: ['story.forPost', val.id],
-  //     queryFn: () => trpcContext.client.query('story.forPost', { id: val.id })
-  //   };
-  // })] : []).map((val) => {
-
-  //   return { ...val.data }
-  // })
-
-  // const { } = trpc.useQuery(['story.forPosts', [...rqData!.map((val) => ({ id: val.id }))]], {
-  //   enabled: !!rqData
-  // })
-
-
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
     if (timeSort) {
@@ -62,6 +55,9 @@ const Home = () => {
   }
 
   const downloadPostsAndStories = () => {
+    rqData?.forEach((val) => {
+      trpcContext.prefetchQuery(['story.forPost', { id: val.id }]);
+    })
     // update(`prompts-stories`, (old) => old.concat(queryClient.getQueryData(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }])));
     // console.log(queryClient.getQueryData('post.sort'))
   }
