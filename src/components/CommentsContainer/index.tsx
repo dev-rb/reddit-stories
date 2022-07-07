@@ -12,6 +12,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import SortSelect from '../SortSelect';
 import { useQueryClient } from 'react-query';
 import { PromptAndStoriesWithReplies, Prompt } from 'src/interfaces/db';
+import ListVirtualizer from '../ListVirtualizer';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -49,14 +50,23 @@ const CommentsContainer = ({ postId }: Props) => {
     const queryClient = useQueryClient();
 
     const { data } = trpc.useQuery(['story.forPost', { id: postId }], {
+        enabled: false,
         initialData: () => {
-            console.log("Inital Data for post stories called")
-            return (queryClient.getQueryData(['post.sort']) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)?.stories
+            (queryClient.getQueryCache().getAll().forEach((val) => {
+                if (val.state.data !== undefined) {
+                    console.log(val.state.data)
+                    return (val.state.data as any[]).find((val2) => val2.id === postId)
+                }
+            }))
+            console.log("Inital Data for post stories called",)
+            return (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)?.stories
         }
     });
     const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
+        enabled: false,
         initialData: () => {
-            return (queryClient.getQueryData(['post.sort']) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)
+            console.log("Inital Data for post called", (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId))
+            return (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)
         }
     });
     const { classes } = useStyles();
@@ -87,9 +97,29 @@ const CommentsContainer = ({ postId }: Props) => {
                                 <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Stories Yet</Title>
                             </Center>
                             :
-                            data?.map((story) => {
-                                return <CommentDisplay key={story.id} {...story} postId={postId} updatedAt={null} postAuthor={'postData!.author'} replyIndex={0} />
-                            })
+                            <ListVirtualizer
+                                data={data ?? []}
+                                renderItem={(item) => {
+                                    return (
+                                        <div
+                                            key={item.index}
+                                            ref={item.measureElement}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                // height: `${item.size}px`,
+                                                transform: `translateY(${item.start}px)`,
+                                            }}
+                                        >
+                                            <CommentDisplay key={data![item.index].id} {...data![item.index]} postId={postId} updatedAt={null} postAuthor={'postData!.author'} replyIndex={0} />
+                                        </div>
+                                    )
+                                }}
+
+                            />
+
                     }
                 </Stack>
             </Stack>

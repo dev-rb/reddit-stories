@@ -125,7 +125,26 @@ const Home = () => {
             <Center>
               <Loader />
             </Center> :
-            <ListVirtualizer data={rqData!} />
+            <ListVirtualizer data={rqData!} renderItem={(item, index) => {
+              return (
+                <div
+                  key={item.index}
+                  ref={item.measureElement}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    // height: `${item.size}px`,
+                    transform: `translateY(${item.start}px)`,
+                  }}
+                >
+                  <Post key={rqData![item.index].id} {...rqData![item.index]} created={rqData![item.index].created} totalStories={rqData![item.index].stories.length} index={index} />
+
+                </div>
+              )
+            }}
+            />
             // null
           }
 
