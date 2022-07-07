@@ -88,7 +88,7 @@ export const postRouter = createRouter()
             timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish()
         }).nullish(),
         async resolve({ input }) {
-            console.log("Sort called: ", input);
+            console.log("Sort called in backend: ", input);
             if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 

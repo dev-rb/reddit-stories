@@ -19,9 +19,9 @@ export default trpcNext.createNextApiHandler({
             // cache request for 1 day + revalidate once every second
             const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
             return {
-                headers: {
-                    'cache-control': `s-maxage=1, stale-while-revalidate=${60}`,
-                },
+                // headers: {
+                //     'cache-control': `s-maxage=1, stale-while-revalidate=${60}`,
+                // },
             };
         }
         return {

@@ -42,16 +42,25 @@ const Home = () => {
 
   const { download } = React.useContext(DownloadContext);
 
+  const [isEnabled, setIsEnabled] = React.useState(false);
+
   const queryClient = useQueryClient();
 
   const trpcContext = trpc.useContext();
 
-  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }], {
-    initialData: () => {
-      console.log("Home initial data: ", queryClient.getQueryCache().findAll(['post.sort'], { queryKey: ['post.sort'] }))
-      return queryClient.getQueryCache().findAll(['post.sort'], { exact: true, queryKey: ['post.sort'] });
-    },
-    onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData(['post.sort'], () => data)
+  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: sortType === 'hot' ? undefined : timeSort as TopSorts }], {
+    enabled: isEnabled
+    // initialData: () => {
+    //   setTimeout(() => {
+    //     const data = queryClient.getQueryCache().findAll(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }])
+
+    //     if (data) {
+    //       console.log("Data found", data)
+    //       return data
+    //     }
+    //   }, 500)
+    // },
+    // onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData(['post.sort'], () => data)
   });
 
   const onSortChange = (newType: string, timeSort?: string) => {
@@ -67,11 +76,11 @@ const Home = () => {
     })
   }
 
-  // React.useEffect(() => {
-  //   if (rqData) {
-  //     console.log("Stories: ", rqData)
-  //   }
-  // }, [rqData])
+  React.useEffect(() => {
+    setTimeout(() => {
+      setIsEnabled(true);
+    }, 1000)
+  }, [])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>

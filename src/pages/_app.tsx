@@ -31,7 +31,7 @@ const newQueryClient = new QueryClient({
 function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
     return {
         persistClient: async (client: PersistedClient) => {
-            set(idbValidKey, client);
+            await set(idbValidKey, client);
         },
         restoreClient: async () => {
             return await get<PersistedClient>(idbValidKey);
@@ -44,11 +44,25 @@ function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
 
 function customPersist(
     props: PersistQueryClientOptions
-): [() => Promise<void>, Promise<void>] {
+): [() => void, Promise<void>] {
 
-    const persistData = () => persistQueryClientSave(props);
+    let hasUnsubscribed = false
+    let persistQueryClientUnsubscribe: (() => void) | undefined
+    const unsubscribe = () => {
+        hasUnsubscribed = true
+        persistQueryClientUnsubscribe?.()
+    }
+    // props.persister.persistClient({ buster: '', clientState: { mutations: [], queries: [] }, timestamp: 0 });
+    const persistData = () => { console.log("Download called"); persistQueryClientSave(props); }
     // Attempt restore
-    const restorePromise = persistQueryClientRestore(props).catch((err) => console.log(err))
+    const restorePromise = persistQueryClientRestore(props)
+    // .then(() => {
+    //     if (!hasUnsubscribed) {
+    //         // Subscribe to changes in the query cache to trigger the save
+    //         persistQueryClientUnsubscribe = persistQueryClientSubscribe(props)
+    //     }
+    // })
+    // .catch((err) => console.log("Inside custom: ", err))
 
     return [persistData, restorePromise]
 }
@@ -59,7 +73,7 @@ const [persistData] = customPersist({
     maxAge: Infinity
 })
 
-export const DownloadContext = createContext<{ download: (() => Promise<void>) | null }>({ download: null });
+export const DownloadContext = createContext<{ download: (() => void) | null }>({ download: null });
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
 
