@@ -15,6 +15,8 @@ import { useRouter } from 'next/router';
 import { useDownload } from 'src/hooks/useDownload';
 import { DownloadContext } from './_app';
 import { fetchSubredditPostsStream } from 'src/utils/redditApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
 
 const allQueries = [
   'hot',
@@ -45,22 +47,27 @@ const Home = () => {
 
   const [isEnabled, setIsEnabled] = React.useState(false);
 
+  const dispatch = useDispatch();
+
   const queryClient = useQueryClient();
 
-  const trpcContext = trpc.useContext();
+  const selector = useSelector((state: PostsState) => downloadedPostsSelector(state, { sortType, timeSort }));
 
-  const { data: rqData, isLoading, isFetching, isRefetching } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: sortType === 'hot' ? undefined : timeSort as TopSorts }], {
-    enabled: isEnabled
-    // initialData: () => {
-    //   setTimeout(() => {
-    //     const data = queryClient.getQueryCache().findAll(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }])
+  // const trpcContext = trpc.useContext();
 
-    //     if (data) {
-    //       console.log("Data found", data)
-    //       return data
-    //     }
-    //   }, 500)
-    // },
+  const { data: rqData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: sortType === 'hot' ? undefined : timeSort as TopSorts }], {
+    enabled: true,
+    onSuccess: (data) => console.log(`Data: `, data),
+    initialData: () => {
+      if (selector.length === 0) {
+        console.log("Empty state")
+        return
+      }
+      return selector.map((val) => {
+        const { downloaded, ...rest } = val;
+        return rest;
+      });
+    },
     // onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData(['post.sort'], () => data)
   });
 
@@ -72,9 +79,9 @@ const Home = () => {
   }
 
   const downloadPostsAndStories = () => {
-    rqData?.forEach((val) => {
-      trpcContext.prefetchQuery(['story.forPost', { id: val.id }]);
-    })
+    if (rqData) {
+      dispatch(downloadPosts({ posts: rqData, sortType, timeSort }));
+    }
   }
 
   React.useEffect(() => {
@@ -117,7 +124,7 @@ const Home = () => {
           <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
             <SortSelect onChange={onSortChange} />
             {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
-            <ActionIcon variant='filled' color='gray' onClick={() => { download!() }}>
+            <ActionIcon variant='filled' color='gray' onClick={() => { downloadPostsAndStories!() }}>
               <MdDownload />
             </ActionIcon>
           </Group>

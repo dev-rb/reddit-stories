@@ -5,7 +5,7 @@ import { Post, Prisma, Reply, Story } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import dayjs from "dayjs";
 import { fetchCommentsForPost, fetchSubredditPosts, getReplies, getTotalCommentsForPost } from "src/utils/redditApi";
-import { Prompt, PromptAndStoriesWithReplies, PromptAndStories } from "src/interfaces/db";
+import { Prompt, PromptAndStoriesWithReplies, PromptAndStories, PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from "src/interfaces/db";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     id: true,
@@ -109,14 +109,15 @@ export const postRouter = createRouter()
                 //     totalComments.push(fetchCommentsForPost('/r/writingprompts', prompts[i].id));
                 // }
 
-                let newPrompts: PromptAndStoriesWithReplies[] = []
-                await Promise.all(totalComments).then((stories) => {
+                let newPrompts: PromptAndStoriesWithExtendedReplies[] = []
+                await Promise.all(totalComments).then((allStories) => {
                     for (let i = 0; i < prompts.length; i++) {
-                        stories[i] = stories[i].map((val) => {
-                            val.replies = getReplies(val.replies);
-                            return val;
+                        let storiesForPrompt = allStories[i];
+                        let newStories: StoryAndExtendedReplies[] = [];
+                        newStories = storiesForPrompt.map((val) => {
+                            return { ...val, replies: getReplies(val.replies) }
                         })
-                        let newPost: PromptAndStoriesWithReplies = { ...prompts[i], stories: stories[i] }
+                        let newPost: PromptAndStoriesWithExtendedReplies = { ...prompts[i], stories: newStories }
                         newPrompts.push(newPost)
 
                     }

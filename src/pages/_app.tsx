@@ -3,18 +3,16 @@ import type { AppProps } from 'next/app'
 import Head from 'next/head';
 import { Provider } from 'react-redux';
 import { setCookies } from 'cookies-next';
-import { store } from '../redux/store';
+import { persistor, store } from '../redux/store';
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core';
 import AppLayout from '../components/AppLayout';
 import { useLocalStorage } from '@mantine/hooks';
-import { withTRPC } from '@trpc/next';
 import { createContext, useState } from 'react';
-import { AppRouter } from '../server/routers';
 import { trpc } from 'src/utils/trpc';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { persistQueryClient, PersistedClient, Persister, PersistQueryClientOptions, persistQueryClientRestore, persistQueryClientSubscribe, persistQueryClientSave } from 'react-query/persistQueryClient'
+import { PersistedClient, Persister, PersistQueryClientOptions, persistQueryClientRestore, persistQueryClientSave } from 'react-query/persistQueryClient'
 import { get, set, del } from "idb-keyval";
-import { useDownload } from 'src/hooks/useDownload';
+import { PersistGate } from 'redux-persist/integration/react';
 
 const newQueryClient = new QueryClient({
     defaultOptions: {
@@ -22,7 +20,7 @@ const newQueryClient = new QueryClient({
             refetchOnWindowFocus: false,
             refetchOnReconnect: false,
             refetchIntervalInBackground: false,
-            cacheTime: Infinity,
+            // cacheTime: Infinity,
             staleTime: Infinity,
             refetchInterval: Infinity
         }
@@ -67,11 +65,13 @@ function customPersist(
     return [persistData, restorePromise]
 }
 
-const [persistData] = customPersist({
-    queryClient: newQueryClient,
-    persister: createIDBPersister(),
-    maxAge: Infinity
-})
+// const [persistData] = customPersist({
+//     queryClient: newQueryClient,
+//     persister: createIDBPersister(),
+//     maxAge: Infinity
+// })
+
+const persistData = () => { }
 
 export const DownloadContext = createContext<{ download: (() => void) | null }>({ download: null });
 
@@ -131,20 +131,22 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
             <trpc.Provider client={trpcClient} queryClient={queryClient}>
                 <QueryClientProvider client={queryClient}>
                     <Provider store={store}>
-                        <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
-                            <MantineProvider
-                                theme={{ colorScheme: theme }}
-                                withGlobalStyles
-                                withNormalizeCSS
-                            >
-                                <DownloadContext.Provider value={{ download: persistData }}>
-                                    <AppLayout>
-                                        <Component {...pageProps} />
+                        <PersistGate loading={null} persistor={persistor}>
+                            <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
+                                <MantineProvider
+                                    theme={{ colorScheme: theme }}
+                                    withGlobalStyles
+                                    withNormalizeCSS
+                                >
+                                    <DownloadContext.Provider value={{ download: persistData }}>
+                                        <AppLayout>
+                                            <Component {...pageProps} />
 
-                                    </AppLayout>
-                                </DownloadContext.Provider>
-                            </MantineProvider>
-                        </ColorSchemeProvider>
+                                        </AppLayout>
+                                    </DownloadContext.Provider>
+                                </MantineProvider>
+                            </ColorSchemeProvider>
+                        </PersistGate>
                     </Provider>
                 </QueryClientProvider>
             </trpc.Provider>

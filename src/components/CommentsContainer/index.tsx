@@ -13,6 +13,8 @@ import SortSelect from '../SortSelect';
 import { useQueryClient } from 'react-query';
 import { PromptAndStoriesWithReplies, Prompt } from 'src/interfaces/db';
 import ListVirtualizer from '../ListVirtualizer';
+import { useSelector } from 'react-redux';
+import { postSelector, PostsState } from 'src/redux/slices';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -49,27 +51,33 @@ const CommentsContainer = ({ postId }: Props) => {
 
     const queryClient = useQueryClient();
 
-    const { data } = trpc.useQuery(['story.forPost', { id: postId }], {
-        enabled: false,
-        initialData: () => {
-            (queryClient.getQueryCache().getAll().forEach((val) => {
-                if (val.state.data !== undefined) {
-                    console.log(val.state.data)
-                    return (val.state.data as any[]).find((val2) => val2.id === postId)
-                }
-            }))
-            console.log("Inital Data for post stories called",)
-            return (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)?.stories
-        }
-    });
-    const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
-        enabled: false,
-        initialData: () => {
-            console.log("Inital Data for post called", (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId))
-            return (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)
-        }
-    });
+    const postInfo = useSelector((state: PostsState) => postSelector(state, postId))
+
+    // const { data } = trpc.useQuery(['story.forPost', { id: postId }], {
+    //     enabled: false,
+    //     initialData: () => {
+    //         (queryClient.getQueryCache().getAll().forEach((val) => {
+    //             if (val.state.data !== undefined) {
+    //                 console.log(val.state.data)
+    //                 return (val.state.data as any[]).find((val2) => val2.id === postId)
+    //             }
+    //         }))
+    //         console.log("Inital Data for post stories called",)
+    //         return (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)?.stories
+    //     }
+    // });
+    // const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
+    //     enabled: false,
+    //     initialData: () => {
+    //         console.log("Inital Data for post called", (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId))
+    //         return (queryClient.getQueryData(['post.sort'], { exact: false }) as (PromptAndStoriesWithReplies[]))?.find((val) => val.id === postId)
+    //     }
+    // });
     const { classes } = useStyles();
+
+    React.useEffect(() => {
+        console.log(postInfo)
+    }, [postInfo])
 
     useFixedNavbar(headerRef, true);
 
@@ -80,9 +88,9 @@ const CommentsContainer = ({ postId }: Props) => {
                     <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
                 </Paper>
                 {/* Post Details */}
-                {(postData && data) &&
+                {(postInfo) &&
                     <Box mt={60}>
-                        <Post totalStories={data.length} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} index={0} />
+                        <Post totalStories={postInfo.stories.length} id={postInfo.id} title={postInfo.title} created={postInfo.created} updatedAt={null} score={postInfo.score} author={postInfo.author} permalink={postInfo.permalink} index={0} />
                     </Box>
                 }
                 <Stack spacing={0} pb={40}>
@@ -92,13 +100,13 @@ const CommentsContainer = ({ postId }: Props) => {
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
                     </Group>
                     {
-                        data?.length === 0 ?
+                        postInfo?.stories.length === 0 ?
                             <Center sx={{ height: '50vh' }}>
                                 <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Stories Yet</Title>
                             </Center>
                             :
                             <ListVirtualizer
-                                data={data ?? []}
+                                data={postInfo?.stories ?? []}
                                 renderItem={(item) => {
                                     return (
                                         <div
@@ -113,7 +121,7 @@ const CommentsContainer = ({ postId }: Props) => {
                                                 transform: `translateY(${item.start}px)`,
                                             }}
                                         >
-                                            <CommentDisplay key={data![item.index].id} {...data![item.index]} postId={postId} updatedAt={null} postAuthor={'postData!.author'} replyIndex={0} />
+                                            <CommentDisplay key={postInfo!.stories![item.index].id} {...postInfo!.stories![item.index]} postId={postId} updatedAt={null} postAuthor={'postData!.author'} replyIndex={0} />
                                         </div>
                                     )
                                 }}
