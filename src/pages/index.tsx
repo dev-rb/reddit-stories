@@ -14,6 +14,7 @@ import { set, update } from 'idb-keyval';
 import { useRouter } from 'next/router';
 import { useDownload } from 'src/hooks/useDownload';
 import { DownloadContext } from './_app';
+import { fetchSubredditPostsStream } from 'src/utils/redditApi';
 
 const allQueries = [
   'hot',

@@ -35,22 +35,6 @@ const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtuali
         rowVirtualizer.measure();
     }, [data])
 
-    // const { scrollToOffset } = rowVirtualizer;
-    // React.useEffect(() => {
-    //     const resizeHandler = () => (window.document.body.style.height = `${window.innerHeight}px`);
-    //     const scrollHandler = () => scrollToOffset(window.scrollY);
-    //     window.addEventListener("resize", resizeHandler);
-    //     window.addEventListener("scroll", scrollHandler, { passive: true });
-    //     window.document.body.style.height = `${window.innerHeight}px`;
-    //     scrollToOffset(window.scrollY);
-    //     return () => {
-    //         window.removeEventListener("resize", resizeHandler);
-    //         window.removeEventListener("scroll", scrollHandler);
-    //     };
-    // }, [scrollToOffset]);
-
-
-
     return (
         <>
 

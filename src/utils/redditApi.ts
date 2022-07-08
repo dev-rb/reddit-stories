@@ -1,6 +1,7 @@
 import { Post, Story, Reply } from '@prisma/client';
 import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
 import { ExtendedReply, Prompt, StoryAndReplies } from '../interfaces/db';
+import { Stream } from 'stream';
 
 interface RedditFetchOptions {
     sortType?: string,
@@ -10,6 +11,47 @@ interface RedditFetchOptions {
 }
 
 const promptTags = ['wp', 'cw', 'eu', 'pm', 'pi', 'sp', 'tt', 'rf'];
+
+
+// Testing json streams
+export const fetchSubredditPostsStream = async (subreddit: string) => {
+    await (fetch(`https://www.reddit.com${subreddit}/hot.json?limit=100&raw_json=1`))
+        .then((res) => res.body)
+        .then((rb) => {
+            let reader = rb?.getReader();
+
+            return new ReadableStream({
+                start(controller) {
+                    function push() {
+                        reader?.read().then(({ done, value }) => {
+                            if (done) {
+                                console.log(`DONE! ${done}`)
+                                controller.close()
+                                return;
+                            }
+                            console.log(`Value: ${value}`)
+                            // const jsonData: Posts = JSON.parse(new TextDecoder("utf-8").decode(value));
+                            // jsonData.data.children.forEach((val) => {
+                            //     console.log(`Json data we can access: ${val}`)
+                            // })
+                            // console.log(`Done? ${done}...Value: ${JSON.parse(JSON.stringify(new TextDecoder("utf-8").decode(value)))}`)
+                            controller.enqueue(value);
+
+                            push();
+                        })
+                    }
+                    push();
+
+                }
+            })
+        }).then((stream) => {
+            console.log(`Stream values: ${stream}`)
+
+            return new Response(stream, { headers: { "Content-Type": "application/json" } }).json()
+        }).then((result) => {
+            console.log(`Result: ${JSON.stringify(result)}`)
+        })
+}
 
 export const fetchSubredditPosts = async (subreddit: string, options: RedditFetchOptions) => {
     let data: PostInfo[] = []
