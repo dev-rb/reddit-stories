@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Box, createStyles, Drawer, Group, keyframes, NativeSelect, Stack, UnstyledButton } from '@mantine/core';
-import { MdArrowDropDown, MdCheck, MdNewReleases, MdTrendingFlat, MdTrendingUp, MdWhatshot } from 'react-icons/md';
+import { createStyles, Drawer, Group, NativeSelect, Stack, UnstyledButton } from '@mantine/core';
+import { MdArrowDropDown, MdCheck, MdNewReleases, MdWhatshot } from 'react-icons/md';
 import { useMediaQuery } from '@mantine/hooks';
 import { BsTrophy } from 'react-icons/bs';
 import { useRouter } from 'next/router';

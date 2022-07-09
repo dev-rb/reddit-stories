@@ -71,10 +71,6 @@ function customPersist(
 //     maxAge: Infinity
 // })
 
-const persistData = () => { }
-
-export const DownloadContext = createContext<{ download: (() => void) | null }>({ download: null });
-
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
 
     const [queryClient] = useState(newQueryClient);
@@ -138,12 +134,10 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                                     withGlobalStyles
                                     withNormalizeCSS
                                 >
-                                    <DownloadContext.Provider value={{ download: persistData }}>
-                                        <AppLayout>
-                                            <Component {...pageProps} />
+                                    <AppLayout>
+                                        <Component {...pageProps} />
 
-                                        </AppLayout>
-                                    </DownloadContext.Provider>
+                                    </AppLayout>
                                 </MantineProvider>
                             </ColorSchemeProvider>
                         </PersistGate>

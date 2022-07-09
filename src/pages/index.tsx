@@ -6,15 +6,8 @@ import Post from '../components/Post';
 import SortSelect, { TopSorts, sortTypeMap, RedditSortTypeConversion, SortType, topSortTypeMap, TopTimeSort } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
 import ListVirtualizer from '../components/ListVirtualizer';
-import { useQueries, useQueryClient } from 'react-query';
-import { ExtendedReply, PromptAndStoriesWithReplies } from 'src/interfaces/db';
 import ScrollToTopButton from 'src/components/ScrollToTop';
-import { Story } from '@prisma/client';
-import { set, update } from 'idb-keyval';
 import { useRouter } from 'next/router';
-import { useDownload } from 'src/hooks/useDownload';
-import { DownloadContext } from './_app';
-import { fetchSubredditPostsStream } from 'src/utils/redditApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
 
@@ -30,7 +23,7 @@ const allQueries = [
 
 const Home = () => {
 
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { toggleColorScheme } = useMantineColorScheme();
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
   const router = useRouter();
@@ -43,17 +36,12 @@ const Home = () => {
   const [sortType, setSortType] = React.useState<string>(currentSort);
   const [timeSort, setTimeSort] = React.useState(currentTime);
 
-  const { download } = React.useContext(DownloadContext);
-
-  const [isEnabled, setIsEnabled] = React.useState(false);
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
   const dispatch = useDispatch();
 
-  const queryClient = useQueryClient();
-
   const selector = useSelector((state: PostsState) => downloadedPostsSelector(state, { sortType, timeSort }));
 
-  // const trpcContext = trpc.useContext();
 
   const { data: rqData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: sortType === 'hot' ? undefined : timeSort as TopSorts }], {
     enabled: true,
@@ -68,7 +56,6 @@ const Home = () => {
         return rest;
       });
     },
-    // onSuccess: (data: PromptAndStoriesWithReplies[]) => queryClient.setQueryData(['post.sort'], () => data)
   });
 
   const onSortChange = (newType: string, timeSort?: string) => {
@@ -80,15 +67,19 @@ const Home = () => {
 
   const downloadPostsAndStories = () => {
     if (rqData) {
+      setIsDownloading(true);
       dispatch(downloadPosts({ posts: rqData, sortType, timeSort }));
+
     }
   }
 
   React.useEffect(() => {
-    setTimeout(() => {
-      setIsEnabled(true);
-    }, 1000)
-  }, [])
+    if (selector.length !== 0) {
+      setTimeout(() => {
+        setIsDownloading(false);
+      }, 1500)
+    }
+  }, [selector])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>
@@ -123,8 +114,7 @@ const Home = () => {
         <Stack spacing={0} sx={{ width: '100%' }}>
           <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
             <SortSelect onChange={onSortChange} />
-            {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
-            <ActionIcon variant='filled' color='gray' onClick={() => { downloadPostsAndStories!() }}>
+            <ActionIcon variant='filled' color={selector?.length === 0 ? 'gray' : 'blue'} loading={isDownloading} onClick={() => { downloadPostsAndStories!() }}>
               <MdDownload />
             </ActionIcon>
           </Group>
@@ -134,6 +124,7 @@ const Home = () => {
               <Loader />
             </Center> :
             <ListVirtualizer data={rqData!} renderItem={(item, index) => {
+              const currentItem = rqData![item.index];
               return (
                 <div
                   key={item.index}
@@ -147,7 +138,13 @@ const Home = () => {
                     transform: `translateY(${item.start}px)`,
                   }}
                 >
-                  <Post key={rqData![item.index].id} {...rqData![item.index]} created={rqData![item.index].created} totalStories={rqData![item.index].stories.length} index={index} />
+                  <Post key={currentItem.id}
+                    {...currentItem}
+                    created={currentItem.created}
+                    totalStories={currentItem.stories.length}
+                    index={index}
+                    isDownloaded={selector.find((val) => val.id === currentItem.id) !== undefined}
+                  />
 
                 </div>
               )
