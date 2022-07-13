@@ -8,6 +8,7 @@ import { useRouter } from 'next/router';
 const useStyles = createStyles((theme) => ({
     bottomSheet: {
         width: '100vw',
+        zIndex: 9999,
     }
 }));
 

@@ -2,7 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { set, get, del } from "idb-keyval";
 import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE } from "redux-persist";
 import { postsApi } from "../services";
-import { PostsReducer, PostsState } from "../slices";
+import { clearDownloadedPosts, PostsReducer, PostsState } from "../slices";
 
 function createIDBPersister(idbValidKey: IDBValidKey = "reduxPersist") {
     return {
@@ -37,3 +37,9 @@ export const store = configureStore({
         }),
 });
 export const persistor = persistStore(store)
+
+export const clearStorePosts = async ({ sortType, timeSort }: { sortType: string, timeSort?: string }) => {
+    await persistor.purge();
+    store.dispatch(clearDownloadedPosts({ sortType, timeSort }))
+    await persistor.flush();
+}

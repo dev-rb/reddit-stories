@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title, useMantineColorScheme, Text } from '@mantine/core';
+import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title, useMantineColorScheme, Text, Button } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { MdDownload, MdSearch } from 'react-icons/md';
+import { MdDownload, MdRefresh, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
 import SortSelect, { TopSorts, sortTypeMap, RedditSortTypeConversion, SortType, topSortTypeMap, TopTimeSort } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
@@ -9,7 +9,9 @@ import ListVirtualizer from '../components/ListVirtualizer';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-import { downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
+import { clearDownloadedPosts, downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
+import { useModals } from '@mantine/modals';
+import { clearStorePosts } from 'src/redux/store';
 
 const allQueries = [
   'hot',
@@ -39,6 +41,8 @@ const Home = () => {
   const [isDownloading, setIsDownloading] = React.useState(false);
 
   const dispatch = useDispatch();
+
+  const modals = useModals();
 
   const selector = useSelector((state: PostsState) => downloadedPostsSelector(state, { sortType, timeSort }));
 
@@ -71,6 +75,25 @@ const Home = () => {
       dispatch(downloadPosts({ posts: rqData, sortType, timeSort }));
 
     }
+  }
+
+  const handleRefresh = () => {
+    const confirmRefresh = modals.openConfirmModal({
+      title: 'Are you sure you want to refresh?',
+      children: (
+        <Text size="sm">
+          Refreshing will get the newest posts, but will remove any downloaded posts.
+          Are you sure you want to continue?
+        </Text>
+      ),
+      centered: true,
+      labels: { confirm: 'Continue', cancel: 'Cancel' },
+      onCancel: () => modals.closeModal(confirmRefresh, true),
+      onConfirm: () => {
+        refetch();
+        clearStorePosts({ sortType, timeSort });
+      },
+    })
   }
 
   React.useEffect(() => {
@@ -112,12 +135,20 @@ const Home = () => {
           </Box>
         </Stack>
         <Stack spacing={0} sx={{ width: '100%' }}>
-          <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
+          <Group px='lg' pb='sm' pt='sm' noWrap align='center' position='apart'>
             <SortSelect onChange={onSortChange} />
-            <ActionIcon variant='filled' color={selector?.length === 0 ? 'gray' : 'blue'} loading={isDownloading} onClick={() => { downloadPostsAndStories!() }}>
-              <MdDownload />
-            </ActionIcon>
+            <Group noWrap spacing={'sm'}>
+              {/* <Button rightIcon={<MdRefresh size={18} />} compact color='blue'> Refresh </Button> */}
+              {/* <Button rightIcon={<MdRefresh size={18} />} compact color='gray'> Refresh </Button> */}
+              {/* <ActionIcon variant='filled' color={'gray'} loading={isDownloading} onClick={() => { downloadPostsAndStories!() }}>
+                <MdRefresh />
+              </ActionIcon> */}
+              <ActionIcon variant='filled' color={selector?.length === 0 ? 'gray' : 'blue'} loading={isDownloading} onClick={() => { downloadPostsAndStories!() }}>
+                <MdDownload />
+              </ActionIcon>
+            </Group>
           </Group>
+          <Button radius={0} rightIcon={<MdRefresh size={18} />} color='gray' fullWidth onClick={handleRefresh} sx={{ alignSelf: 'center' }}> Refresh </Button>
 
           {!rqData && (isLoading || isFetching || isRefetching) ?
             <Center>

@@ -13,6 +13,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { PersistedClient, Persister, PersistQueryClientOptions, persistQueryClientRestore, persistQueryClientSave } from 'react-query/persistQueryClient'
 import { get, set, del } from "idb-keyval";
 import { PersistGate } from 'redux-persist/integration/react';
+import { ModalsProvider } from '@mantine/modals';
 
 const newQueryClient = new QueryClient({
     defaultOptions: {
@@ -134,10 +135,12 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                                     withGlobalStyles
                                     withNormalizeCSS
                                 >
-                                    <AppLayout>
-                                        <Component {...pageProps} />
+                                    <ModalsProvider>
+                                        <AppLayout>
+                                            <Component {...pageProps} />
 
-                                    </AppLayout>
+                                        </AppLayout>
+                                    </ModalsProvider>
                                 </MantineProvider>
                             </ColorSchemeProvider>
                         </PersistGate>

@@ -12,7 +12,7 @@ const ScrollToTopButton = () => {
     }
 
     return (
-        <ActionIcon ref={ref} variant="filled" radius='xl' size='xl' onClick={scrollToTop} sx={{ position: 'fixed', bottom: 100, right: 20, zIndex: 99999, transition: '0.5s ease' }}>
+        <ActionIcon ref={ref} variant="filled" radius='xl' size='xl' onClick={scrollToTop} sx={{ position: 'fixed', bottom: 100, right: 20, zIndex: 100, transition: '0.5s ease' }}>
             <BsChevronDoubleUp size={24} />
         </ActionIcon>
     );

@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import { PromptAndStoriesWithExtendedReplies } from "src/interfaces/db";
+import { persistor } from "../store";
 
 interface PostStateItem extends PromptAndStoriesWithExtendedReplies {
     downloaded: boolean,
@@ -67,13 +68,34 @@ const PostsSlice = createSlice({
                     }
                 }
             }
+        },
+        clearDownloadedPosts: (state: PostsState, { payload }: PayloadAction<{ sortType: string, timeSort?: string }>) => {
+            if (payload.sortType === 'hot' || payload.sortType === 'new') {
+                state[payload.sortType].posts = [];
+            } else {
+                if (payload.timeSort) {
+                    state.top[payload.timeSort].posts = [];
+                } else {
+                    state.top['day'].posts = [];
+                }
+            }
+            // Object.assign(state, { ...initialState });
+            console.log("Reducer")
+            // state.hot.posts = state.hot.posts.filter((val) => (val.isReadLater || val.isSaved));
+            // state.new.posts = state.new.posts.filter((val) => (val.isReadLater || val.isSaved));
+            // const topKeys = Object.keys(state.top)
+            // for (const key of topKeys) {
+            //     state.top[key].posts = state.top[key].posts.filter((post) => post.isReadLater || post.isSaved);
+
+            // }
         }
     }
 
 });
 
 export const {
-    downloadPosts
+    downloadPosts,
+    clearDownloadedPosts
 } = PostsSlice.actions
 
 export const PostsReducer = PostsSlice.reducer;
