@@ -1,27 +1,19 @@
 import * as React from 'react';
 import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title, useMantineColorScheme, Text, Button } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+import { useDidUpdate, useMediaQuery } from '@mantine/hooks';
 import { MdDownload, MdRefresh, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
-import SortSelect, { TopSorts, sortTypeMap, RedditSortTypeConversion, SortType, topSortTypeMap, TopTimeSort } from '../components/SortSelect';
 import { trpc } from '../utils/trpc';
 import ListVirtualizer from '../components/ListVirtualizer';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { useRouter } from 'next/router';
-import { useDispatch, useSelector } from 'react-redux';
-import { clearDownloadedPosts, downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
 import { useModals } from '@mantine/modals';
 import { clearStorePosts } from 'src/redux/store';
-
-const allQueries = [
-  'hot',
-  'new',
-  { 'top': 'day' },
-  { 'top': 'week' },
-  { 'top': 'month' },
-  { 'top': 'year' },
-  { 'top': 'all' },
-]
+import { SortType, TopTimeSort, RedditSortTypeConversion, TopSorts } from 'src/interfaces/sorts';
+import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
+import SortSelect from 'src/components/MobileSelect/SortSelect';
 
 const Home = () => {
 
@@ -33,10 +25,10 @@ const Home = () => {
   const { sort, time } = router.query;
 
   const currentSort = sort ? sortTypeMap[sort.toString() as SortType].toString() : 'hot'
-  const currentTime = time ? topSortTypeMap[time.toString() as TopTimeSort].toString() : 'day'
+  const currentTime = time ? topSortTypeMap[time.toString() as TopTimeSort].toString() : undefined
 
   const [sortType, setSortType] = React.useState<string>(currentSort);
-  const [timeSort, setTimeSort] = React.useState(currentTime);
+  const [timeSort, setTimeSort] = React.useState<string | undefined>(currentTime);
 
   const [isDownloading, setIsDownloading] = React.useState(false);
 
@@ -44,15 +36,15 @@ const Home = () => {
 
   const modals = useModals();
 
-  const selector = useSelector((state: PostsState) => downloadedPostsSelector(state, { sortType, timeSort }));
+  const selector = useSelector((state: PostsState) => downloadedPostsSelector(state, { sortType, timeSort }), shallowEqual);
 
 
   const { data: rqData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: sortType === 'hot' ? undefined : timeSort as TopSorts }], {
     enabled: true,
-    onSuccess: (data) => console.log(`Data: `, data),
+    // onSuccess: (data) => console.log(`Data: `, data),
     initialData: () => {
       if (selector.length === 0) {
-        console.log("Empty state")
+        // console.log("Empty state")
         return
       }
       return selector.map((val) => {
@@ -64,9 +56,8 @@ const Home = () => {
 
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
-    if (timeSort) {
-      setTimeSort(timeSort)
-    }
+    setTimeSort(timeSort)
+
   }
 
   const downloadPostsAndStories = () => {
@@ -103,6 +94,10 @@ const Home = () => {
       }, 1500)
     }
   }, [selector])
+
+  useDidUpdate(() => {
+    console.log("Update")
+  }, [])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>

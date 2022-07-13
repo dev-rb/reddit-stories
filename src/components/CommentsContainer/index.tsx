@@ -9,11 +9,12 @@ import { trpc } from '../../utils/trpc';
 import { Story } from '@prisma/client';
 import Post from '../Post';
 import { useMediaQuery } from '@mantine/hooks';
-import SortSelect from '../SortSelect';
+import MobileSelect from '../MobileSelect';
 import { useQueryClient } from 'react-query';
 import ListVirtualizer from '../ListVirtualizer';
 import { useSelector } from 'react-redux';
 import { postSelector, PostsState } from 'src/redux/slices';
+import SortSelect from '../MobileSelect/SortSelect';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -90,7 +91,7 @@ const CommentsContainer = ({ postId }: Props) => {
                 <Stack spacing={0} pb={40}>
 
                     <Group noWrap px='lg' py='xs' sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[1] })}>
-                        <SortSelect />
+                        <SortSelect onChange={() => { }} />
                     </Group>
                     {
                         postData?.stories.length === 0 ?
