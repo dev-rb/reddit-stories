@@ -36,7 +36,7 @@ const Home = () => {
 
   const modals = useModals();
 
-  const selector = useSelector((state: PostsState) => downloadedPostsSelector(state, { sortType, timeSort }), shallowEqual);
+  const selector = useSelector((state: PostsState) => downloadedPostsSelector({ posts: state.posts, sortType, timeSort }), shallowEqual);
 
 
   const { data: rqData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: sortType === 'hot' ? undefined : timeSort as TopSorts }], {

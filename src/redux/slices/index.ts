@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import { PromptAndStoriesWithExtendedReplies } from "src/interfaces/db";
 import { persistor } from "../store";
@@ -77,10 +77,15 @@ export const {
 
 export const PostsReducer = PostsSlice.reducer;
 
-export const downloadedPostsSelector = (state: PostsState, options: { sortType: string, timeSort?: string }) => {
-    console.log("Downloaded posts selector: ", options)
-    return state.posts.filter((post) => (post.sortType === options.sortType && post.timeSort === options.timeSort) === true)
-};
+export const downloadedPostsSelector = createSelector(
+    [
+        (state: PostsState) => state.posts,
+        (options: { sortType: string, timeSort?: string }) => options
+    ],
+    (items, options) => {
+        console.log("Downloaded posts selector: ", options)
+        return items.filter((post) => (post.sortType === options.sortType && post.timeSort === options.timeSort) === true)
+    });
 
 export const postSelector = (state: PostsState, postId: string) => {
     const found = state.posts.find((post) => post.id === postId);
