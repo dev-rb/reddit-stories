@@ -83,7 +83,7 @@ export const downloadedPostsSelector = createSelector(
         (options: { sortType: string, timeSort?: string }) => options
     ],
     (items, options) => {
-        console.log("Downloaded posts selector: ", options)
+        // console.log("Downloaded posts selector: ", options)
         return items.filter((post) => (post.sortType === options.sortType && post.timeSort === options.timeSort) === true)
     });
 

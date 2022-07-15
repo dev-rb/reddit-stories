@@ -39,20 +39,21 @@ const Home = () => {
   const selector = useSelector((state: PostsState) => downloadedPostsSelector({ posts: state.posts, sortType, timeSort }), shallowEqual);
 
 
-  const { data: rqData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: sortType === 'hot' ? undefined : timeSort as TopSorts }], {
-    enabled: true,
-    // onSuccess: (data) => console.log(`Data: `, data),
-    initialData: () => {
-      if (selector.length === 0) {
-        // console.log("Empty state")
-        return
-      }
-      return selector.map((val) => {
-        const { downloaded, ...rest } = val;
-        return rest;
-      });
-    },
-  });
+  const { data: rqData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
+    ['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }],
+    {
+      // onSuccess: (data) => console.log(`Data: `, data),
+      initialData: () => {
+        if (selector.length === 0) {
+          // console.log("Empty state")
+          return
+        }
+        return selector.map((val) => {
+          const { downloaded, ...rest } = val;
+          return rest;
+        });
+      },
+    });
 
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);

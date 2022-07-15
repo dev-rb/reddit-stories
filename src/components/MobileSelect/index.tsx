@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { createStyles, Drawer, Group, NativeSelect, UnstyledButton } from '@mantine/core';
+import { createStyles, Drawer, Group, MantineNumberSize, NativeSelect, Stack, StackProps, UnstyledButton } from '@mantine/core';
 import { MdArrowDropDown, MdCheck } from 'react-icons/md';
 import { useDidUpdate, useMediaQuery } from '@mantine/hooks';
 import { useRouter } from 'next/router';
@@ -11,6 +11,7 @@ const useStyles = createStyles((theme) => ({
     }
 }));
 
+
 interface SortSelectProps {
     onChange: (newValue: string) => void,
     selectOptions: { value: string, icon: React.ReactNode }[],
@@ -18,10 +19,15 @@ interface SortSelectProps {
     defaultActive?: string,
     onBottomSheetClose: () => void,
     bottomSheetTitle?: string,
-    bottomSheetOpened?: boolean
+    bottomSheetOpened?: boolean,
+    styles?: {
+        spacing?: MantineNumberSize | number,
+        justify?: React.CSSProperties['justifyContent']
+    }
+
 }
 
-const MobileSelect = ({ onChange, onBottomSheetClose, data, selectOptions, bottomSheetTitle = 'Sort Posts By', bottomSheetOpened, defaultActive }: SortSelectProps) => {
+const MobileSelect = ({ onChange, onBottomSheetClose, data, selectOptions, bottomSheetTitle = 'Sort Posts By', bottomSheetOpened, defaultActive, styles }: SortSelectProps) => {
 
     const [bottomSheetOpen, setBottomSheetOpen] = React.useState(bottomSheetOpened ?? false);
 
@@ -66,17 +72,13 @@ const MobileSelect = ({ onChange, onBottomSheetClose, data, selectOptions, botto
                 title={bottomSheetTitle}
                 styles={(theme) => ({ 'drawer': { backgroundColor: theme.colors.dark[6], color: theme.colors.dark[2] } })}
             >
-                {
-                    selectOptions.map((val) => <SelectOption key={val.value} {...val} updateSortType={onSelectChange} active={val.value === activeValue} />)
-
-                }
-                {/* <Stack spacing={showTopOptions ? 0 : 'lg'} justify={showTopOptions ? 'space-between' : 'unset'} sx={{ height: '80%' }}>
+                <Stack spacing={styles?.spacing} justify={styles?.justify} sx={{ height: '80%' }}>
                     {
-                        showTopOptions ?
-                            topSortOptions.map((val) => <SelectOption key={val.value} {...val} updateSortType={onTopSortChange} active={val.value === activeTopSortType} />)
-                            :
+                        selectOptions.map((val) => <SelectOption key={val.value} {...val} updateSortType={onSelectChange} active={val.value === activeValue} />)
+
                     }
-                </Stack> */}
+                </Stack>
+
             </Drawer>
         </>
     )

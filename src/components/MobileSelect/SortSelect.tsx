@@ -3,8 +3,10 @@ import { useRouter } from 'next/router';
 import * as React from 'react';
 import { BsTrophy } from 'react-icons/bs';
 import { MdWhatshot, MdNewReleases } from 'react-icons/md';
-import { SortType, TopTimeSort } from 'src/interfaces/sorts';
+import { useQueryClient } from 'react-query';
+import { RedditSortTypeConversion, SortType, TopSorts, TopTimeSort } from 'src/interfaces/sorts';
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
+import { trpc } from 'src/utils/trpc';
 import MobileSelect from '.';
 
 const topSortOptions: { value: string, icon: React.ReactNode }[] = [
@@ -62,26 +64,43 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
     const [showTopOptions, setShowTopOptions] = React.useState<boolean | undefined>(time ? undefined : false);
     const [showOptions, setShowOptions] = React.useState<boolean | undefined>(undefined);
 
+    const trpcClient = trpc.useContext();
+    const queryClient = useQueryClient();
+
+    const cancelPreviousQuery = async (oldSort: string, oldTime?: string) => {
+        console.log("Should cancel query with input: ", sortTypeMap[oldSort as SortType].toString() as RedditSortTypeConversion, topSortTypeMap[oldTime as TopTimeSort].toString() as TopSorts)
+        // queryClient.cancelQueries();
+        // console.log(queryClient.getQueryData(['post.sort', { sortType: oldSort as RedditSortTypeConversion, timeSort: oldTime as TopSorts }]))
+        await queryClient.cancelQueries(['post.sort'], { exact: true })
+    }
+
     const onSortChange = (newValue: string) => {
-        if (newValue === 'Top') {
-            setShowOptions(false);
-            setShowTopOptions(true);
-            router.push(`/?sort=${newValue}&time=${timeSort}`, undefined, { shallow: true })
-            onChange(sortTypeMap[newValue as SortType].toString(), topSortTypeMap[timeSort as TopTimeSort].toString())
-        } else {
-            setTimeSort('Today')
-            router.push(`/?sort=${newValue}`, undefined, { shallow: true })
-            onChange(sortTypeMap[newValue as SortType].toString())
-            setShowOptions(true);
-            setShowTopOptions(false);
-        }
-        setSortType(newValue);
+        cancelPreviousQuery(sortType, timeSort).then(() => console.log("Finished cancel")).finally(() => {
+            if (newValue === 'Top') {
+                setShowOptions(false);
+                setShowTopOptions(true);
+
+                router.push(`/?sort=${newValue}&time=${timeSort}`, undefined, { shallow: true })
+                onChange(sortTypeMap[newValue as SortType].toString(), topSortTypeMap[timeSort as TopTimeSort].toString())
+            } else {
+                router.push(`/?sort=${newValue}`, undefined, { shallow: true })
+                onChange(sortTypeMap[newValue as SortType].toString())
+
+                setTimeSort('Today')
+                setShowOptions(true);
+                setShowTopOptions(false);
+            }
+            setSortType(newValue);
+        });
     }
 
     const onTimeSortChange = (newValue: string) => {
-        setTimeSort(newValue);
-        router.push(`/?sort=${sortType}&time=${newValue}`, undefined, { shallow: true })
-        onChange(sortTypeMap[sortType as SortType].toString(), topSortTypeMap[newValue as TopTimeSort].toString())
+        cancelPreviousQuery(sortType, timeSort).then(() => console.log("Finished cancel")).finally(() => {
+            setTimeSort(newValue);
+            router.push(`/?sort=${sortType}&time=${newValue}`, undefined, { shallow: true })
+            onChange(sortTypeMap[sortType as SortType].toString(), topSortTypeMap[newValue as TopTimeSort].toString())
+        });
+
     }
 
     return (
@@ -95,6 +114,7 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
                     onBottomSheetClose={() => { }}
                     bottomSheetOpened={showOptions}
                     defaultActive={sortType}
+                    styles={{ justify: 'unset', spacing: 'lg' }}
                 />
                 {
                     (showTopOptions === undefined || showTopOptions === true) &&
@@ -105,6 +125,7 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
                         onBottomSheetClose={() => { }}
                         bottomSheetOpened={showTopOptions === true}
                         defaultActive={timeSort}
+                        styles={{ justify: 'space-between', spacing: 0 }}
                     />
 
                 }
