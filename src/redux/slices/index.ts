@@ -23,6 +23,9 @@ const PostsSlice = createSlice({
     name: 'PostsSlice',
     initialState: initialState,
     reducers: {
+        downloadPost: (state: PostsState, { payload }: PayloadAction<{ post: PromptAndStoriesWithExtendedReplies, sortType: string, timeSort?: string }>) => {
+            state.posts.push({ ...payload.post, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
+        },
         downloadPosts: (state: PostsState, { payload }: PayloadAction<{ posts: PromptAndStoriesWithExtendedReplies[], sortType: string, timeSort?: string }>) => {
             for (const post of payload.posts) {
                 // if (payload.sortType === 'hot') {
@@ -71,6 +74,7 @@ const PostsSlice = createSlice({
 });
 
 export const {
+    downloadPost,
     downloadPosts,
     clearDownloadedPosts
 } = PostsSlice.actions

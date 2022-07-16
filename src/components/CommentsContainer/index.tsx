@@ -54,7 +54,7 @@ const CommentsContainer = ({ postId }: Props) => {
     const postInfo = useSelector((state: PostsState) => postSelector(state, postId))
 
     const { data: storiesData } = trpc.useQuery(['story.forPost', { id: postId }], {
-        enabled: false,
+        enabled: true,
         initialData: () => {
             if (postInfo === undefined) {
                 return;
@@ -63,7 +63,7 @@ const CommentsContainer = ({ postId }: Props) => {
         }
     });
     const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
-        enabled: false,
+        enabled: true,
         initialData: () => {
             if (postInfo === undefined) {
                 console.log("Empty state")
@@ -85,7 +85,7 @@ const CommentsContainer = ({ postId }: Props) => {
                 {/* Post Details */}
                 {(postData) &&
                     <Box mt={60}>
-                        <Post totalStories={postData.stories.length} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} index={0} />
+                        <Post totalStories={postData.totalComments} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} index={0} />
                     </Box>
                 }
                 <Stack spacing={0} pb={40}>
@@ -94,7 +94,7 @@ const CommentsContainer = ({ postId }: Props) => {
                         <SortSelect onChange={() => { }} />
                     </Group>
                     {
-                        postData?.stories.length === 0 ?
+                        postData?.totalComments === 0 ?
                             <Center sx={{ height: '50vh' }}>
                                 <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Stories Yet</Title>
                             </Center>

@@ -71,36 +71,31 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
         console.log("Should cancel query with input: ", sortTypeMap[oldSort as SortType].toString() as RedditSortTypeConversion, topSortTypeMap[oldTime as TopTimeSort].toString() as TopSorts)
         // queryClient.cancelQueries();
         // console.log(queryClient.getQueryData(['post.sort', { sortType: oldSort as RedditSortTypeConversion, timeSort: oldTime as TopSorts }]))
-        await queryClient.cancelQueries(['post.sort'], { exact: true })
+        await trpcClient.cancelQuery(['post.sort', { sortType: sortTypeMap[oldSort as SortType].toString() as RedditSortTypeConversion, timeSort: topSortTypeMap[oldTime as TopTimeSort].toString() as TopSorts }])
     }
 
     const onSortChange = (newValue: string) => {
-        cancelPreviousQuery(sortType, timeSort).then(() => console.log("Finished cancel")).finally(() => {
-            if (newValue === 'Top') {
-                setShowOptions(false);
-                setShowTopOptions(true);
+        if (newValue === 'Top') {
+            setShowOptions(false);
+            setShowTopOptions(true);
 
-                router.push(`/?sort=${newValue}&time=${timeSort}`, undefined, { shallow: true })
-                onChange(sortTypeMap[newValue as SortType].toString(), topSortTypeMap[timeSort as TopTimeSort].toString())
-            } else {
-                router.push(`/?sort=${newValue}`, undefined, { shallow: true })
-                onChange(sortTypeMap[newValue as SortType].toString())
+            router.push(`/?sort=${newValue}&time=${timeSort}`, undefined, { shallow: true })
+            onChange(sortTypeMap[newValue as SortType].toString(), topSortTypeMap[timeSort as TopTimeSort].toString())
+        } else {
+            router.push(`/?sort=${newValue}`, undefined, { shallow: true })
+            onChange(sortTypeMap[newValue as SortType].toString())
 
-                setTimeSort('Today')
-                setShowOptions(true);
-                setShowTopOptions(false);
-            }
-            setSortType(newValue);
-        });
+            setTimeSort('Today')
+            setShowOptions(true);
+            setShowTopOptions(false);
+        }
+        setSortType(newValue);
     }
 
     const onTimeSortChange = (newValue: string) => {
-        cancelPreviousQuery(sortType, timeSort).then(() => console.log("Finished cancel")).finally(() => {
-            setTimeSort(newValue);
-            router.push(`/?sort=${sortType}&time=${newValue}`, undefined, { shallow: true })
-            onChange(sortTypeMap[sortType as SortType].toString(), topSortTypeMap[newValue as TopTimeSort].toString())
-        });
-
+        setTimeSort(newValue);
+        router.push(`/?sort=${sortType}&time=${newValue}`, undefined, { shallow: true })
+        onChange(sortTypeMap[sortType as SortType].toString(), topSortTypeMap[newValue as TopTimeSort].toString())
     }
 
     return (

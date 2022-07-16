@@ -94,7 +94,7 @@ const removeDuplicates = (arr: PostInfo[]) => {
 const extractPostDetails = (postInfo: PostInfo) => {
     const { author, created_utc, id, permalink, score, title, num_comments } = postInfo.data;
 
-    return { author, created: new Date(created_utc * 1000), id, permalink, score, title } as Prompt;
+    return { author, created: new Date(created_utc * 1000), id, permalink, score, title, totalComments: num_comments } as Prompt;
 }
 
 export const getTotalCommentsForPost = async (subreddit: string, postId: string) => {

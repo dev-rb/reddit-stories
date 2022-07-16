@@ -92,38 +92,34 @@ export const postRouter = createRouter()
             if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
-                let totalComments = []
-
-                const totalPromptsLength = prompts.length;
-                for (let i = 0; i < totalPromptsLength; i++) {
-                    totalComments.push(fetchCommentsForPost('/r/writingprompts', prompts[i].id))
-                }
-
-                // await prisma.post.createMany({
-                //     data: [...prompts],
-                //     skipDuplicates: true
-                // })
+                await prisma.post.createMany({
+                    data: [...prompts.map((val) => {
+                        const { totalComments, ...rest } = val;
+                        return rest
+                    })],
+                    skipDuplicates: true
+                })
 
                 // const totalPromptsLength = prompts.length;
                 // for (let i = 0; i < totalPromptsLength; i++) {
                 //     totalComments.push(fetchCommentsForPost('/r/writingprompts', prompts[i].id));
                 // }
 
-                let newPrompts: PromptAndStoriesWithExtendedReplies[] = []
-                await Promise.all(totalComments).then((allStories) => {
-                    for (let i = 0; i < prompts.length; i++) {
-                        let storiesForPrompt = allStories[i];
-                        let newStories: StoryAndExtendedReplies[] = [];
-                        newStories = storiesForPrompt.map((val) => {
-                            return { ...val, replies: getReplies(val.replies) }
-                        })
-                        let newPost: PromptAndStoriesWithExtendedReplies = { ...prompts[i], stories: newStories }
-                        newPrompts.push(newPost)
+                // let newPrompts: PromptAndStoriesWithExtendedReplies[] = []
+                // await Promise.all(totalComments).then((allStories) => {
+                //     for (let i = 0; i < prompts.length; i++) {
+                //         let storiesForPrompt = allStories[i];
+                //         let newStories: StoryAndExtendedReplies[] = [];
+                //         newStories = storiesForPrompt.map((val) => {
+                //             return { ...val, replies: getReplies(val.replies) }
+                //         })
+                //         let newPost: PromptAndStoriesWithExtendedReplies = { ...prompts[i], stories: newStories }
+                //         newPrompts.push(newPost)
 
-                    }
-                });
+                //     }
+                // });
 
-                return newPrompts;
+                return prompts;
 
 
                 // console.log(postsAndStories)
@@ -151,12 +147,7 @@ export const postRouter = createRouter()
                     id: id
                 },
                 rejectOnNotFound: true,
-                include: {
-                    stories: true
-                }
             });
-
-            // console.log(post)
 
             if (!post) {
                 throw new TRPCError({
@@ -165,7 +156,10 @@ export const postRouter = createRouter()
                     message: `No post with id '${id}'`,
                 });
             }
-            return post;
+
+            const prompt: Prompt = { ...post, totalComments: await getTotalCommentsForPost('/r/writingprompts', post.id) }
+
+            return prompt;
         }
     })
     .mutation("like", {

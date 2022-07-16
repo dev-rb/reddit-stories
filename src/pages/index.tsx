@@ -8,12 +8,15 @@ import ListVirtualizer from '../components/ListVirtualizer';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { useRouter } from 'next/router';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
+import { downloadedPostsSelector, downloadPost, downloadPosts, PostsState } from 'src/redux/slices';
 import { useModals } from '@mantine/modals';
 import { clearStorePosts } from 'src/redux/store';
 import { SortType, TopTimeSort, RedditSortTypeConversion, TopSorts } from 'src/interfaces/sorts';
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
+import { useQueries, useQueryClient } from 'react-query';
+import { PromptAndStoriesWithExtendedReplies } from 'src/interfaces/db';
+import { useDependentQueries } from 'src/hooks/useDependentQueries';
 
 const Home = () => {
 
@@ -38,13 +41,23 @@ const Home = () => {
 
   const selector = useSelector((state: PostsState) => downloadedPostsSelector({ posts: state.posts, sortType, timeSort }), shallowEqual);
 
+  const queryClient = useQueryClient();
+  const trpcContext = trpc.useContext();
 
-  const { data: rqData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
+  const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
     ['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }],
     {
+      queryFn: async ({ queryKey, signal }) => {
+
+        return (await fetch(queryKey[0], { signal })).json()
+      },
       // onSuccess: (data) => console.log(`Data: `, data),
       initialData: () => {
         if (selector.length === 0) {
+          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }]);
+          if (cacheData) {
+            return cacheData
+          }
           // console.log("Empty state")
           return
         }
@@ -55,16 +68,25 @@ const Home = () => {
       },
     });
 
+  const allData = useDependentQueries({
+    enabled: isDownloading === true,
+    queries: postsData ? postsData!.map((val) => {
+      return {
+        queryKey: ['story.forPost', { id: val.id }],
+        queryFn: () => trpcContext.fetchQuery(['story.forPost', { id: val.id }]),
+      }
+    }) : []
+  })
+
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
     setTimeSort(timeSort)
 
   }
 
-  const downloadPostsAndStories = () => {
-    if (rqData) {
+  const downloadPostsAndStories = async () => {
+    if (postsData) {
       setIsDownloading(true);
-      dispatch(downloadPosts({ posts: rqData, sortType, timeSort }));
 
     }
   }
@@ -95,6 +117,19 @@ const Home = () => {
       }, 1500)
     }
   }, [selector])
+
+  React.useEffect(() => {
+    if (allData && postsData) {
+      for (let i = 0; i < postsData.length; i++) {
+        const post = postsData[i];
+        const postStories = allData[i];
+        // const postStories = await trpcContext.fetchQuery(['story.forPost', {id: post.id}]);
+        const newPost: PromptAndStoriesWithExtendedReplies = { ...post, stories: postStories.data! };
+        dispatch(downloadPost({ post: newPost, sortType, timeSort }));
+      }
+
+    }
+  }, [allData])
 
   useDidUpdate(() => {
     console.log("Update")
@@ -146,12 +181,12 @@ const Home = () => {
           </Group>
           <Button radius={0} rightIcon={<MdRefresh size={18} />} color='gray' fullWidth onClick={handleRefresh} sx={{ alignSelf: 'center' }}> Refresh </Button>
 
-          {!rqData && (isLoading || isFetching || isRefetching) ?
+          {!postsData && (isLoading || isFetching || isRefetching) ?
             <Center>
               <Loader />
             </Center> :
-            <ListVirtualizer data={rqData!} renderItem={(item, index) => {
-              const currentItem = rqData![item.index];
+            <ListVirtualizer data={postsData!} renderItem={(item, index) => {
+              const currentItem = postsData![item.index];
               return (
                 <div
                   key={item.index}
@@ -168,7 +203,7 @@ const Home = () => {
                   <Post key={currentItem.id}
                     {...currentItem}
                     created={currentItem.created}
-                    totalStories={currentItem.stories.length}
+                    totalStories={currentItem.totalComments}
                     index={index}
                     isDownloaded={selector.find((val) => val.id === currentItem.id) !== undefined}
                   />

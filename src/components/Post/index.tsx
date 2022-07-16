@@ -13,6 +13,8 @@ dayjs.extend(relativeTime)
 
 const Post = ({ title, id, score, author, permalink, totalStories, created, index, isDownloaded }: Post & { totalStories: number, index: number, isDownloaded?: boolean }) => {
 
+    const [downloadedStatus, setDownloadedStatus] = React.useState(isDownloaded ?? false);
+
     const [liked, setLiked] = React.useState(false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
