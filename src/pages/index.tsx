@@ -11,11 +11,11 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { downloadedPostsSelector, downloadPost, downloadPosts, PostsState } from 'src/redux/slices';
 import { useModals } from '@mantine/modals';
 import { clearStorePosts } from 'src/redux/store';
-import { SortType, TopTimeSort, RedditSortTypeConversion, TopSorts } from 'src/interfaces/sorts';
+import { SortType, TopTimeSort, RedditSortTypeConversion as SortTypeConversion, TopSorts } from 'src/interfaces/sorts';
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
 import { useQueries, useQueryClient } from 'react-query';
-import { PromptAndStoriesWithExtendedReplies } from 'src/interfaces/db';
+import { PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from 'src/interfaces/db';
 import { useDependentQueries } from 'src/hooks/useDependentQueries';
 
 const Home = () => {
@@ -45,7 +45,7 @@ const Home = () => {
   const trpcContext = trpc.useContext();
 
   const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
-    ['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }],
+    ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts }],
     {
       queryFn: async ({ queryKey, signal }) => {
 
@@ -54,7 +54,7 @@ const Home = () => {
       // onSuccess: (data) => console.log(`Data: `, data),
       initialData: () => {
         if (selector.length === 0) {
-          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as RedditSortTypeConversion, timeSort: timeSort as TopSorts }]);
+          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts }]);
           if (cacheData) {
             return cacheData
           }
@@ -68,15 +68,15 @@ const Home = () => {
       },
     });
 
-  const allData = useDependentQueries({
-    enabled: isDownloading === true,
-    queries: postsData ? postsData!.map((val) => {
-      return {
-        queryKey: ['story.forPost', { id: val.id }],
-        queryFn: () => trpcContext.fetchQuery(['story.forPost', { id: val.id }]),
-      }
-    }) : []
-  })
+  // const allData = useDependentQueries({
+  //   enabled: isDownloading === true,
+  //   queries: postsData ? postsData!.map((val) => {
+  //     return {
+  //       queryKey: ['story.forPost', { id: val.id }],
+  //       queryFn: () => trpcContext.fetchQuery(['story.forPost', { id: val.id }]),
+  //     }
+  //   }) : []
+  // })
 
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
@@ -84,10 +84,31 @@ const Home = () => {
 
   }
 
+  const batchAllDownload = async () => {
+    if (postsData) {
+      let allStories = []
+      for (const post of postsData) {
+        allStories.push(
+          new Promise((resolve, reject) => {
+            resolve(trpcContext.fetchQuery(['story.forPost', { id: post.id }]))
+
+          }).then((val) => {
+            setTimeout(() => {
+              dispatch(downloadPost({ post: { ...post, stories: val as StoryAndExtendedReplies[] }, sortType, timeSort }));
+            }, 5000)
+
+          })
+        )
+      }
+      await Promise.all(allStories)
+
+    }
+  }
+
   const downloadPostsAndStories = async () => {
     if (postsData) {
       setIsDownloading(true);
-
+      batchAllDownload()
     }
   }
 
@@ -118,18 +139,18 @@ const Home = () => {
     }
   }, [selector])
 
-  React.useEffect(() => {
-    if (allData && postsData) {
-      for (let i = 0; i < postsData.length; i++) {
-        const post = postsData[i];
-        const postStories = allData[i];
-        // const postStories = await trpcContext.fetchQuery(['story.forPost', {id: post.id}]);
-        const newPost: PromptAndStoriesWithExtendedReplies = { ...post, stories: postStories.data! };
-        dispatch(downloadPost({ post: newPost, sortType, timeSort }));
-      }
+  // React.useEffect(() => {
+  //   if (allData && postsData) {
+  //     for (let i = 0; i < postsData.length; i++) {
+  //       const post = postsData[i];
+  //       const postStories = allData[i];
+  //       // const postStories = await trpcContext.fetchQuery(['story.forPost', {id: post.id}]);
+  //       const newPost: PromptAndStoriesWithExtendedReplies = { ...post, stories: postStories.data! };
+  //       dispatch(downloadPost({ post: newPost, sortType, timeSort }));
+  //     }
 
-    }
-  }, [allData])
+  //   }
+  // }, [allData])
 
   useDidUpdate(() => {
     console.log("Update")

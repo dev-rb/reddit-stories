@@ -14,6 +14,9 @@ import { PersistedClient, Persister, PersistQueryClientOptions, persistQueryClie
 import { get, set, del } from "idb-keyval";
 import { PersistGate } from 'redux-persist/integration/react';
 import { ModalsProvider } from '@mantine/modals';
+import { httpBatchLink } from '@trpc/client/links/httpBatchLink';
+import { httpLink } from '@trpc/client/links/httpLink';
+import { splitLink } from '@trpc/client/links/splitLink';
 
 const newQueryClient = new QueryClient({
     defaultOptions: {
@@ -75,14 +78,46 @@ function customPersist(
 //     maxAge: Infinity
 // })
 
+const url = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}/api/trpc`
+    : 'http://localhost:3000/api/trpc';
+
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
 
-    const [queryClient] = useState(newQueryClient);
+    const [queryClient] = useState(() => new QueryClient({
+        defaultOptions: {
+            queries: {
+                refetchOnWindowFocus: false,
+                refetchOnReconnect: false,
+                refetchIntervalInBackground: false,
+                cacheTime: Infinity,
+                retryOnMount: false,
+                refetchOnMount: false,
+                retryDelay: Infinity,
+                staleTime: Infinity,
+                refetchInterval: Infinity
+            }
+        }
+    }));
     const [trpcClient] = useState(() =>
         trpc.createClient({
-            url: process.env.VERCEL_URL
-                ? `https://${process.env.VERCEL_URL}/api/trpc`
-                : 'http://localhost:3000/api/trpc',
+            links: [
+                splitLink({
+                    condition(op) {
+                        // check for context property `skipBatch`
+                        return op.context.skipBatch === true;
+                    },
+                    // when condition is true, use normal request
+                    true: httpLink({
+                        url,
+                    }),
+                    // when condition is false, use batching
+                    false: httpBatchLink({
+                        url,
+                    }),
+                }),
+            ],
+            url: url,
         }
 
         ))
