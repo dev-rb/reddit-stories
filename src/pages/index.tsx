@@ -84,23 +84,23 @@ const Home = () => {
 
   }
 
+  const delayDownload = (index: number, post: PromptAndStoriesWithExtendedReplies) => {
+    setTimeout(() => {
+      dispatch(downloadPost({ post, sortType, timeSort }));
+    }, index * 250)
+  }
+
   const batchAllDownload = async () => {
     if (postsData) {
-      let allStories = []
-      for (const post of postsData) {
-        allStories.push(
-          new Promise((resolve, reject) => {
-            resolve(trpcContext.fetchQuery(['story.forPost', { id: post.id }]))
+      let allStories: Promise<PromptAndStoriesWithExtendedReplies>[] = postsData.map((post) => {
+        return trpcContext.fetchQuery(['story.forPost', { id: post.id }]).then((val) => {
+          return { ...post, stories: val };
 
-          }).then((val) => {
-            setTimeout(() => {
-              dispatch(downloadPost({ post: { ...post, stories: val as StoryAndExtendedReplies[] }, sortType, timeSort }));
-            }, 5000)
+        })
+      })
 
-          })
-        )
-      }
-      await Promise.all(allStories)
+      const newPosts = (await Promise.all(allStories))
+      dispatch(downloadPosts({ posts: newPosts, sortType, timeSort }))
 
     }
   }

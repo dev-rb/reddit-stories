@@ -24,6 +24,7 @@ const PostsSlice = createSlice({
     initialState: initialState,
     reducers: {
         downloadPost: (state: PostsState, { payload }: PayloadAction<{ post: PromptAndStoriesWithExtendedReplies, sortType: string, timeSort?: string }>) => {
+            console.log("Download post called")
             state.posts.push({ ...payload.post, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
         },
         downloadPosts: (state: PostsState, { payload }: PayloadAction<{ posts: PromptAndStoriesWithExtendedReplies[], sortType: string, timeSort?: string }>) => {

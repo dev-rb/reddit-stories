@@ -13,13 +13,22 @@ dayjs.extend(relativeTime)
 
 const Post = ({ title, id, score, author, permalink, totalStories, created, index, isDownloaded }: Post & { totalStories: number, index: number, isDownloaded?: boolean }) => {
 
-    const [downloadedStatus, setDownloadedStatus] = React.useState(isDownloaded ?? false);
+    const [downloadedStatus, setDownloadedStatus] = React.useState(false);
 
     const [liked, setLiked] = React.useState(false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
+
+    React.useEffect(() => {
+        if (isDownloaded) {
+            setTimeout(() => {
+                console.log("Update downloaded Status in post")
+                setDownloadedStatus(isDownloaded)
+            }, 250 * index)
+        }
+    }, [isDownloaded])
 
     return (
         <Anchor variant='text' component={Link} href={`/posts/${id}`}>
@@ -33,7 +42,7 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
                             <Text size='xs'>{dayjs(created).fromNow()}</Text>
                         </Group>
                         <Group noWrap spacing={10}>
-                            <MdFileDownload size={16} color={isDownloaded ? '#F8A130' : '#313131'} />
+                            <MdFileDownload size={16} color={downloadedStatus ? '#F8A130' : '#313131'} />
                             <BsClockHistory size={16} color={'#313131'} />
                         </Group>
                     </Group>
