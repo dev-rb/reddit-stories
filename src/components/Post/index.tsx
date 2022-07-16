@@ -23,10 +23,11 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
 
     React.useEffect(() => {
         if (isDownloaded) {
-            setTimeout(() => {
-                console.log("Update downloaded Status in post")
-                setDownloadedStatus(isDownloaded)
-            }, 250 * index)
+            setDownloadedStatus(isDownloaded)
+            //     setTimeout(() => {
+            //     console.log("Update downloaded Status in post")
+            //     setDownloadedStatus(isDownloaded)
+            // }, 120 * index)
         }
     }, [isDownloaded])
 

@@ -6,9 +6,9 @@ import { appRouter } from '../../../server/routers';
 export default trpcNext.createNextApiHandler({
     router: appRouter,
     createContext: createContext,
-    batching: {
-        enabled: true
-    },
+    // batching: {
+    //     enabled: false
+    // },
     // responseMeta({ ctx, paths, type, errors }) {
     //     // assuming you have all your public routes with the keyword `public` in them
     //     //   const allPublic =

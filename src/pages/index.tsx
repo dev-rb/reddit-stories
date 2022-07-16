@@ -47,6 +47,9 @@ const Home = () => {
   const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
     ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts }],
     {
+      context: {
+        skipBatch: true
+      },
       queryFn: async ({ queryKey, signal }) => {
 
         return (await fetch(queryKey[0], { signal })).json()
@@ -206,6 +209,17 @@ const Home = () => {
             <Center>
               <Loader />
             </Center> :
+            // <Stack spacing={0}>
+            //   {postsData?.map((post, index) => {
+            //     return (<Post key={post.id}
+            //       {...post}
+            //       created={post.created}
+            //       totalStories={post.totalComments}
+            //       index={index}
+            //       isDownloaded={selector.find((val) => val.id === post.id) !== undefined}
+            //     />)
+            //   })}
+            // </Stack>
             <ListVirtualizer data={postsData!} renderItem={(item, index) => {
               const currentItem = postsData![item.index];
               return (
@@ -233,7 +247,6 @@ const Home = () => {
               )
             }}
             />
-            // null
           }
 
         </Stack>
