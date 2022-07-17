@@ -20,15 +20,6 @@ const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
 });
 
 export const postRouter = createRouter()
-    // .middleware(async ({ ctx, next, path, rawInput }) => {
-    //     const { sortType, timeSort }: { sortType: string, timeSort?: string } = rawInput as { sortType: string, timeSort?: string }
-    //     const cacheInfo = await getPosts(sortType, timeSort);
-    //     console.log("Middleware called")
-    //     if (cacheInfo) {
-    //         ctx.res.json(JSON.parse(cacheInfo));
-    //     }
-    //     return next();
-    // })
     .mutation('create', {
         input: z.object({
             id: z.string(),
@@ -51,47 +42,6 @@ export const postRouter = createRouter()
             })
         }
     })
-    // .query('sort', {
-    //     input: z.object({
-    //         sortType: z.enum(['hot', 'top', 'new']),
-    //         timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish()
-    //     }).nullish(),
-    //     async resolve({ input }) {
-    //         console.log("Sort called: ", input);
-    //         if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
-    //             let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort });
-    //             let totalComments = []
-    //             await prisma.post.createMany({
-    //                 data: [...prompts.map(({ totalStories, ...rest }) => rest)],
-    //                 skipDuplicates: true
-    //             })
-
-    //             const totalPromptsLength = prompts.length;
-    //             for (let i = 0; i < totalPromptsLength; i++) {
-    //                 totalComments.push(getTotalCommentsForPost('/r/writingprompts', prompts[i].id));
-    //             }
-
-    //             await Promise.all(totalComments).then((totals) => {
-    //                 for (let i = 0; i < prompts.length; i++) {
-    //                     prompts[i] = { ...prompts[i], totalStories: totals[i] }
-
-    //                 }
-    //             });
-
-    //             return prompts;
-
-
-    //             // console.log(postsAndStories)
-    //         } else {
-    //             throw new TRPCError({
-    //                 code: 'BAD_REQUEST',
-    //                 message: `"${input?.sortType}" sort type not supported`
-    //             })
-    //         }
-
-
-    //     }
-    // })
     .query('sort', {
         input: z.object({
             sortType: z.enum(['hot', 'top', 'new']),
@@ -118,37 +68,13 @@ export const postRouter = createRouter()
 
                 await addPosts(prompts, input.sortType, input.timeSort)
 
-                // const totalPromptsLength = prompts.length;
-                // for (let i = 0; i < totalPromptsLength; i++) {
-                //     totalComments.push(fetchCommentsForPost('/r/writingprompts', prompts[i].id));
-                // }
-
-                // let newPrompts: PromptAndStoriesWithExtendedReplies[] = []
-                // await Promise.all(totalComments).then((allStories) => {
-                //     for (let i = 0; i < prompts.length; i++) {
-                //         let storiesForPrompt = allStories[i];
-                //         let newStories: StoryAndExtendedReplies[] = [];
-                //         newStories = storiesForPrompt.map((val) => {
-                //             return { ...val, replies: getReplies(val.replies) }
-                //         })
-                //         let newPost: PromptAndStoriesWithExtendedReplies = { ...prompts[i], stories: newStories }
-                //         newPrompts.push(newPost)
-
-                //     }
-                // });
-
                 return prompts;
-
-
-                // console.log(postsAndStories)
             } else {
                 throw new TRPCError({
                     code: 'BAD_REQUEST',
                     message: `"${input?.sortType}" sort type not supported`
                 })
             }
-
-
         }
     })
     .query("byId", {
