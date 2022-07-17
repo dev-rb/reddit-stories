@@ -1,12 +1,28 @@
 import * as React from 'react';
 import Post from '../Post';
 import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual';
+import { get } from 'idb-keyval';
+import { PromptAndStoriesWithExtendedReplies } from 'src/interfaces/db';
 
-interface ListVirtualizerProps {
-    data: any[]
+type Key = number | string
+interface Item {
+    key: Key
+    index: number
+    start: number
+    end: number
+    size: number
 }
 
-const ListVirtualizer = ({ data }: ListVirtualizerProps) => {
+interface VirtualItem<TItemElement> extends Item {
+    measureElement: (el: TItemElement | null) => void
+}
+
+interface ListVirtualizerProps<TItem, TItemElement> {
+    data: TItem[],
+    renderItem: (item: VirtualItem<TItemElement>, index: number) => React.ReactNode
+}
+
+const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtualizerProps<TItem, TItemElement>) => {
     const rowVirtualizer = useWindowVirtualizer({
         count: data.length,
         getScrollElement: () => window,
@@ -19,19 +35,6 @@ const ListVirtualizer = ({ data }: ListVirtualizerProps) => {
         rowVirtualizer.measure();
     }, [data])
 
-    // const { scrollToOffset } = rowVirtualizer;
-    // React.useEffect(() => {
-    //     const resizeHandler = () => (window.document.body.style.height = `${window.innerHeight}px`);
-    //     const scrollHandler = () => scrollToOffset(window.scrollY);
-    //     window.addEventListener("resize", resizeHandler);
-    //     window.addEventListener("scroll", scrollHandler, { passive: true });
-    //     window.document.body.style.height = `${window.innerHeight}px`;
-    //     scrollToOffset(window.scrollY);
-    //     return () => {
-    //         window.removeEventListener("resize", resizeHandler);
-    //         window.removeEventListener("scroll", scrollHandler);
-    //     };
-    // }, [scrollToOffset]);
     return (
         <>
 
@@ -43,23 +46,9 @@ const ListVirtualizer = ({ data }: ListVirtualizerProps) => {
                 }}
             >
                 {/* Only the visible items in the virtualizer, manually positioned to be in view */}
-                {rowVirtualizer.getVirtualItems().map((virtualItem: any, index: number) => (
-                    <div
-                        key={virtualItem.index}
-                        ref={virtualItem.measureElement}
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            // height: `${virtualItem.size}px`,
-                            transform: `translateY(${virtualItem.start}px)`,
-                        }}
-                    >
-                        <Post key={data[virtualItem.index].id} {...data[virtualItem.index]} created={data[virtualItem.index].created} totalStories={data[virtualItem.index].stories.length} index={index} />
-
-                    </div>
-                ))}
+                {rowVirtualizer.getVirtualItems().map((virtualItem: VirtualItem<TItemElement>, index: number) => {
+                    return (renderItem(virtualItem, index))
+                })}
             </div>
         </>
     );

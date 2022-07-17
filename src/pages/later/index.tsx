@@ -3,15 +3,15 @@ import { Stack, Group, Title, Avatar, TextInput, Box, ActionIcon, Center, Loader
 import { useMediaQuery } from '@mantine/hooks';
 import { MdSearch, MdDownload } from 'react-icons/md';
 import Post from '../../components/Post';
-import SortSelect, { SortType } from '../../components/SortSelect';
 import { IPost } from '../../interfaces/reddit';
+import SortSelect from 'src/components/MobileSelect/SortSelect';
 
 const ReadLaterStories = () => {
     const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
-    const onSortChange = (newType: SortType) => {
+    const onSortChange = (newValue: string) => {
     }
 
     return (
@@ -30,7 +30,7 @@ const ReadLaterStories = () => {
                 </Stack>
                 <Stack spacing={0} sx={{ width: '100%' }}>
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
-                        <SortSelect onChange={onSortChange} />
+                        <SortSelect onChange={() => { }} />
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
                         <ActionIcon variant='filled' color='gray'>
                             <MdDownload />

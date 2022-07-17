@@ -2,9 +2,10 @@ import { ActionIcon, Group } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ReactNode } from "react";
-import { BsClockHistory } from "react-icons/bs";
+import { ReactNode, useRef } from "react";
+import { BsChevronDoubleUp, BsClockHistory } from "react-icons/bs";
 import { MdHome, MdBookmarks } from "react-icons/md";
+import useScrollDownHide from "src/hooks/useScrollDownHide";
 
 interface NavLinkProps {
     pathTo: string,
@@ -43,8 +44,11 @@ const navLinks: NavLinkProps[] = [
 const BottomNavigationBar = () => {
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
+    const ref = useRef<HTMLDivElement>(null);
+    useScrollDownHide({ ref, animateOut: true, enter: (element) => { element.style.transform = 'translate(-50%, 0)' }, exit: (element) => { element.style.transform = 'translate(-50%, 60px)' } });
+
     return (
-        <Group noWrap px={40} py='sm' align='center' position='apart' sx={(theme) => ({ background: theme.colorScheme === 'dark' ? 'white' : theme.colors.dark[8], position: 'fixed', bottom: 20, borderRadius: 10, width: largeScreen ? '20vw' : '70vw', left: '50%', transform: 'translateX(-50%)' })}>
+        <Group ref={ref} noWrap px={40} py='sm' align='center' position='apart' sx={(theme) => ({ background: theme.colorScheme === 'dark' ? 'white' : theme.colors.dark[8], position: 'fixed', bottom: 20, borderRadius: 10, width: largeScreen ? '20vw' : '70vw', left: '50%', transform: 'translate(-50%, 0)', transition: '0.35s ease' })}>
             {navLinks.map((navLink) => <NavLink key={navLink.pathTo} {...navLink} />)}
         </Group>
     )

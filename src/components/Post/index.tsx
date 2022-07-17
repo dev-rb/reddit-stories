@@ -2,46 +2,34 @@ import * as React from 'react';
 import { MdBookmark, MdFileDownload, MdModeComment } from 'react-icons/md';
 import { BsClockHistory } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
-import { useSwipeControls } from '../../hooks/useSwipeControls';
 import { Anchor, Box, Group, Stack, Text, Title, UnstyledButton } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Post } from '@prisma/client';
-import { PostsContext } from 'src/pages';
 
 dayjs.extend(relativeTime)
 
-const Post = ({ title, id, score, author, permalink, totalStories, created, index }: Post & { totalStories: number, index: number }) => {
+const Post = ({ title, id, score, author, permalink, totalStories, created, index, isDownloaded }: Post & { totalStories: number, index: number, isDownloaded?: boolean }) => {
+
+    const [downloadedStatus, setDownloadedStatus] = React.useState(false);
 
     const [liked, setLiked] = React.useState(false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
-    const { setSize } = React.useContext(PostsContext);
-
-    const [requests, setRequests] = React.useState({ download: false, readLater: false, pending: false });
-
-    const updateForRequest = (typeOfRequest: string, setTo: boolean = false) => {
-        if (typeOfRequest === 'download') {
-            setRequests((prev) => ({ ...prev, download: true, pending: false }));
-        } else if (typeOfRequest === 'readLater') {
-            setRequests((prev) => ({ ...prev, readLater: true, pending: false }));
-        } else if (typeOfRequest === 'pending') {
-            setRequests((prev) => ({ ...prev, pending: true }));
-        }
-    }
-
-    const { onDragPost, onDragging, onDragStop, downloadRequest, readLaterRequest } = useSwipeControls(postRef, updateForRequest);
-
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     React.useEffect(() => {
-        if (postRef.current) {
-            setSize(index, postRef.current.getBoundingClientRect().height)
+        if (isDownloaded !== undefined) {
+            setDownloadedStatus(isDownloaded)
+            //     setTimeout(() => {
+            //     console.log("Update downloaded Status in post")
+            //     setDownloadedStatus(isDownloaded)
+            // }, 120 * index)
         }
-    }, [])
+    }, [isDownloaded])
 
     return (
         <Anchor variant='text' component={Link} href={`/posts/${id}`}>
@@ -55,8 +43,8 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
                             <Text size='xs'>{dayjs(created).fromNow()}</Text>
                         </Group>
                         <Group noWrap spacing={10}>
-                            <MdFileDownload onClick={(e) => { e.stopPropagation(); updateForRequest('download') }} size={16} color={requests.download ? '#F8A130' : '#313131'} />
-                            <BsClockHistory onClick={(e) => { e.stopPropagation(); updateForRequest('readLater') }} size={16} color={requests.readLater ? '#3079F8' : '#313131'} />
+                            <MdFileDownload size={16} color={downloadedStatus ? '#F8A130' : '#313131'} />
+                            <BsClockHistory size={16} color={'#313131'} />
                         </Group>
                     </Group>
                     <Text size='sm' weight={600}>

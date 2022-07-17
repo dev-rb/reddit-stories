@@ -3,15 +3,63 @@ import type { AppProps } from 'next/app'
 import Head from 'next/head';
 import { Provider } from 'react-redux';
 import { setCookies } from 'cookies-next';
-import { store } from '../redux/store';
+import { persistor, store } from '../redux/store';
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core';
 import AppLayout from '../components/AppLayout';
 import { useLocalStorage } from '@mantine/hooks';
-import { withTRPC } from '@trpc/next';
-import { AppRouter } from '../server/routers';
+import { createContext, useState } from 'react';
+import { trpc } from 'src/utils/trpc';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { get, set, del } from "idb-keyval";
+import { PersistGate } from 'redux-persist/integration/react';
+import { ModalsProvider } from '@mantine/modals';
+import { httpBatchLink } from '@trpc/client/links/httpBatchLink';
+import { httpLink } from '@trpc/client/links/httpLink';
+import { splitLink } from '@trpc/client/links/splitLink';
 
+const url = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}/api/trpc`
+    : 'http://localhost:3000/api/trpc';
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
+
+    const [queryClient] = useState(() => new QueryClient({
+        defaultOptions: {
+            queries: {
+                refetchOnWindowFocus: false,
+                refetchOnReconnect: false,
+                refetchIntervalInBackground: false,
+                cacheTime: Infinity,
+                retryOnMount: false,
+                refetchOnMount: false,
+                retryDelay: Infinity,
+                staleTime: Infinity,
+                refetchInterval: Infinity
+            }
+        }
+    }));
+    const [trpcClient] = useState(() =>
+        trpc.createClient({
+            links: [
+                splitLink({
+                    condition(op) {
+                        // check for context property `skipBatch`
+                        return op.context.skipBatch === true;
+                    },
+                    // when condition is true, use normal request
+                    true: httpLink({
+                        url,
+                    }),
+                    // when condition is false, use batching
+                    false: httpBatchLink({
+                        url,
+                    }),
+                }),
+            ],
+            // url: url,
+        }
+
+        ))
 
     const [theme, setColorTheme] = useLocalStorage<ColorScheme>({
         key: 'mantine-color-scheme',
@@ -54,46 +102,31 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                 <link rel="apple-touch-icon" href="/logo.png"></link>
                 <meta name="theme-color" content="#317EFB" />
             </Head>
-            <Provider store={store}>
-                <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
-                    <MantineProvider
-                        theme={{ colorScheme: theme }}
-                        withGlobalStyles
-                        withNormalizeCSS
-                    >
-                        <AppLayout>
-                            <Component {...pageProps} />
+            <trpc.Provider client={trpcClient} queryClient={queryClient}>
+                <QueryClientProvider client={queryClient}>
+                    <Provider store={store}>
+                        <PersistGate loading={null} persistor={persistor}>
+                            <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
+                                <MantineProvider
+                                    theme={{ colorScheme: theme }}
+                                    withGlobalStyles
+                                    withNormalizeCSS
+                                >
+                                    <ModalsProvider>
+                                        <AppLayout>
+                                            <Component {...pageProps} />
 
-                        </AppLayout>
-
-                    </MantineProvider>
-                </ColorSchemeProvider>
-            </Provider>
+                                        </AppLayout>
+                                    </ModalsProvider>
+                                </MantineProvider>
+                            </ColorSchemeProvider>
+                        </PersistGate>
+                    </Provider>
+                </QueryClientProvider>
+            </trpc.Provider>
 
         </>
     );
 }
 
-export default withTRPC<AppRouter>({
-    config({ ctx }) {
-        /**
-         * If you want to use SSR, you need to use the server's full URL
-         * @link https://trpc.io/docs/ssr
-         */
-        const url = process.env.VERCEL_URL
-            ? `https://${process.env.VERCEL_URL}/api/trpc`
-            : 'http://localhost:3000/api/trpc';
-
-        return {
-            url,
-            /**
-             * @link https://react-query.tanstack.com/reference/QueryClient
-             */
-            // queryClientConfig: { defaultOptions: { queries: { staleTime: 60 } } },
-        };
-    },
-    /**
-     * @link https://trpc.io/docs/ssr
-     */
-    ssr: false,
-})(MyApp);
+export default MyApp;
