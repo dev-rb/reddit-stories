@@ -45,14 +45,14 @@ const PostsSlice = createSlice({
             }
         },
         clearDownloadedPosts: (state: PostsState, { payload }: PayloadAction<{ sortType: string, timeSort?: string }>) => {
-            state.posts = state.posts.filter((post) => {
+            state.posts = [...state.posts.filter((post) => {
                 const isSameSort = post.sortType === payload.sortType;
                 const isSameTimeSort = post.timeSort === payload.timeSort;
                 const isSaved = post.isSaved === true;
                 const isReadLater = post.isReadLater === true;
 
                 return !(isSameSort || isSameTimeSort || isSaved || isReadLater) && post.downloaded;
-            })
+            })]
             //     if (payload.sortType === 'hot' || payload.sortType === 'new') {
             //     state[payload.sortType].posts = [];
             // } else {

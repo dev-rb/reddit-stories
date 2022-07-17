@@ -61,7 +61,6 @@ const Home = () => {
           if (cacheData) {
             return cacheData
           }
-          // console.log("Empty state")
           return
         }
         return selector.map((val) => {
@@ -71,26 +70,10 @@ const Home = () => {
       },
     });
 
-  // const allData = useDependentQueries({
-  //   enabled: isDownloading === true,
-  //   queries: postsData ? postsData!.map((val) => {
-  //     return {
-  //       queryKey: ['story.forPost', { id: val.id }],
-  //       queryFn: () => trpcContext.fetchQuery(['story.forPost', { id: val.id }]),
-  //     }
-  //   }) : []
-  // })
-
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
     setTimeSort(timeSort)
 
-  }
-
-  const delayDownload = (index: number, post: PromptAndStoriesWithExtendedReplies) => {
-    setTimeout(() => {
-      dispatch(downloadPost({ post, sortType, timeSort }));
-    }, index * 250)
   }
 
   const batchAllDownload = async () => {
@@ -98,20 +81,18 @@ const Home = () => {
       let allStories: Promise<PromptAndStoriesWithExtendedReplies>[] = postsData.map((post) => {
         return trpcContext.fetchQuery(['story.forPost', { id: post.id }]).then((val) => {
           return { ...post, stories: val };
+        });
+      });
 
-        })
-      })
-
-      const newPosts = (await Promise.all(allStories))
-      dispatch(downloadPosts({ posts: newPosts, sortType, timeSort }))
-
+      const newPosts = (await Promise.all(allStories));
+      dispatch(downloadPosts({ posts: newPosts, sortType, timeSort }));
     }
   }
 
   const downloadPostsAndStories = async () => {
     if (postsData) {
       setIsDownloading(true);
-      batchAllDownload()
+      batchAllDownload();
     }
   }
 
@@ -131,7 +112,7 @@ const Home = () => {
         refetch();
         clearStorePosts({ sortType, timeSort });
       },
-    })
+    });
   }
 
   React.useEffect(() => {
@@ -141,23 +122,6 @@ const Home = () => {
       }, 1500)
     }
   }, [selector])
-
-  // React.useEffect(() => {
-  //   if (allData && postsData) {
-  //     for (let i = 0; i < postsData.length; i++) {
-  //       const post = postsData[i];
-  //       const postStories = allData[i];
-  //       // const postStories = await trpcContext.fetchQuery(['story.forPost', {id: post.id}]);
-  //       const newPost: PromptAndStoriesWithExtendedReplies = { ...post, stories: postStories.data! };
-  //       dispatch(downloadPost({ post: newPost, sortType, timeSort }));
-  //     }
-
-  //   }
-  // }, [allData])
-
-  useDidUpdate(() => {
-    console.log("Update")
-  }, [])
 
   return (
     <Stack align='center' sx={{ width: '100%', height: '100vh' }}>
@@ -205,7 +169,7 @@ const Home = () => {
           </Group>
           <Button radius={0} rightIcon={<MdRefresh size={18} />} color='gray' fullWidth onClick={handleRefresh} sx={{ alignSelf: 'center' }}> Refresh </Button>
 
-          {!postsData && (isLoading || isFetching || isRefetching) ?
+          {(isLoading || isFetching || isRefetching) ?
             <Center>
               <Loader />
             </Center> :

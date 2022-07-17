@@ -22,7 +22,7 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     React.useEffect(() => {
-        if (isDownloaded) {
+        if (isDownloaded !== undefined) {
             setDownloadedStatus(isDownloaded)
             //     setTimeout(() => {
             //     console.log("Update downloaded Status in post")

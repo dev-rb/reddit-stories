@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 import dayjs from "dayjs";
 import { fetchCommentsForPost, fetchSubredditPosts, getReplies, getTotalCommentsForPost } from "src/utils/redditApi";
 import { Prompt, PromptAndStoriesWithReplies, PromptAndStories, PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from "src/interfaces/db";
+import { addPosts, getPosts } from "src/utils/redis";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     id: true,
@@ -19,6 +20,15 @@ const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
 });
 
 export const postRouter = createRouter()
+    // .middleware(async ({ ctx, next, path, rawInput }) => {
+    //     const { sortType, timeSort }: { sortType: string, timeSort?: string } = rawInput as { sortType: string, timeSort?: string }
+    //     const cacheInfo = await getPosts(sortType, timeSort);
+    //     console.log("Middleware called")
+    //     if (cacheInfo) {
+    //         ctx.res.json(JSON.parse(cacheInfo));
+    //     }
+    //     return next();
+    // })
     .mutation('create', {
         input: z.object({
             id: z.string(),
@@ -90,6 +100,12 @@ export const postRouter = createRouter()
         async resolve({ input }) {
             console.log("Sort called in backend: ", input);
             if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
+                const posts = await getPosts(input.sortType, input.timeSort);
+                if (posts !== undefined && posts !== null) {
+                    console.log("Posts from redis: ")
+                    return posts as unknown as Prompt[];
+                }
+
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
                 await prisma.post.createMany({
@@ -99,6 +115,8 @@ export const postRouter = createRouter()
                     })],
                     skipDuplicates: true
                 })
+
+                await addPosts(prompts, input.sortType, input.timeSort)
 
                 // const totalPromptsLength = prompts.length;
                 // for (let i = 0; i < totalPromptsLength; i++) {
