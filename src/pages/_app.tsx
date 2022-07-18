@@ -17,8 +17,8 @@ import { httpBatchLink } from '@trpc/client/links/httpBatchLink';
 import { httpLink } from '@trpc/client/links/httpLink';
 import { splitLink } from '@trpc/client/links/splitLink';
 
-const url = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}/api/trpc`
+const url = process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/trpc`
     : 'http://localhost:3000/api/trpc';
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
