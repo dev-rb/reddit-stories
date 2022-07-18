@@ -58,13 +58,13 @@ export const postRouter = createRouter()
 
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
-                await prisma.post.createMany({
+                /* await prisma.post.createMany({
                     data: [...prompts.map((val) => {
                         const { totalComments, ...rest } = val;
                         return rest
                     })],
                     skipDuplicates: true
-                })
+                }) */
 
                 // await addPosts(prompts, input.sortType, input.timeSort)
 
