@@ -50,11 +50,11 @@ export const postRouter = createRouter()
         async resolve({ input }) {
             console.log("Sort called in backend: ", input);
             if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
-                const posts = await getPosts(input.sortType, input.timeSort);
-                if (posts !== undefined && posts !== null) {
-                    console.log("Posts from redis: ")
-                    return posts as unknown as Prompt[];
-                }
+                // const posts = await getPosts(input.sortType, input.timeSort);
+                // if (posts !== undefined && posts !== null) {
+                //     console.log("Posts from redis: ")
+                //     return posts as unknown as Prompt[];
+                // }
 
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
@@ -66,7 +66,7 @@ export const postRouter = createRouter()
                     skipDuplicates: true
                 })
 
-                await addPosts(prompts, input.sortType, input.timeSort)
+                // await addPosts(prompts, input.sortType, input.timeSort)
 
                 return prompts;
             } else {
