@@ -16,7 +16,6 @@ import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
 import { useQueries, useQueryClient } from 'react-query';
 import { PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from 'src/interfaces/db';
-import { useDependentQueries } from 'src/hooks/useDependentQueries';
 
 const Home = () => {
 
