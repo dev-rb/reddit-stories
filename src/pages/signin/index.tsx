@@ -99,11 +99,18 @@ const SignIn = () => {
                     </Stack>
 
                     <Stack align='center' sx={{ width: '100%' }}>
-                        <TextInput type='email' label='Email Address' placeholder='Your Email' required sx={{ width: '100%' }} />
-                        <PasswordInput label='Password' placeholder='Your Password' required sx={{ width: '100%' }} />
-                        <Group position='right' sx={{ width: '100%' }}>
+                        <TextInput
+                            // variant='filled'
+                            type='email'
+                            label='Email Address'
+                            placeholder='Your Email'
+                            required sx={{ width: '100%' }}
+                            description='You only need your email to sign in. A link will be sent to your email for verification.'
+                        />
+                        {/* <PasswordInput label='Password' placeholder='Your Password' required sx={{ width: '100%' }} />
+                        <Group position='right' sx={{ width: '100%' }}> 
                             <Anchor> Forgot Password? </Anchor>
-                        </Group>
+                        </Group> */}
 
                         <Stack sx={{ width: '100%' }}>
                             <Button mt={'xl'} sx={{ height: '40px' }}> Sign In </Button>
