@@ -8,8 +8,15 @@ export default NextAuth({
     providers: [
         Email({
             from: process.env.MAIL_EMAIL!,
-            server: process.env.EMAIL_SERVER!,
-            secret: 'Teststring',
+            server: {
+                host: "smtp.gmail.com",
+                port: 465,
+                secure: true,
+                auth: {
+                    user: 'rbatra486',
+                    pass: process.env.MAIL_PASSWORD
+                }
+            }
         }),
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID!,

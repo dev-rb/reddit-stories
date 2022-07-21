@@ -6,6 +6,8 @@ import { BsGoogle, BsReddit } from 'react-icons/bs';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import { ClientSafeProvider, getProviders, LiteralUnion, signIn } from 'next-auth/react';
 import { BuiltInProviderType } from 'next-auth/providers';
+import { useForm, zodResolver } from '@mantine/form';
+import { z } from 'zod';
 
 const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
     mainContainer: {
@@ -77,6 +79,10 @@ const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }
     }
 }));
 
+const schema = z.object({
+    email: z.string().email({ message: 'Invalid email address' })
+})
+
 interface SignInProps {
     providers: Record<LiteralUnion<BuiltInProviderType, string>, ClientSafeProvider> | null
 }
@@ -91,12 +97,19 @@ const SignIn = ({ providers }: SignInProps) => {
 
     const { classes } = useStyles({ largeScreen });
 
-    const emailSignIn = () => {
-        signIn(providers?.email.id)
+    const form = useForm({
+        schema: zodResolver(schema),
+        initialValues: {
+            email: '',
+        },
+    });
+
+    const emailSignIn = ({ email }: { email: string }) => {
+        signIn('email', { email, callbackUrl: '/' });
     }
 
     const googleSignIn = () => {
-
+        signIn('google');
     }
 
     const redditSignIn = () => {
@@ -117,22 +130,32 @@ const SignIn = ({ providers }: SignInProps) => {
                     </Stack>
 
                     <Stack align='center' sx={{ width: '100%' }}>
-                        <TextInput
-                            // variant='filled'
-                            type='email'
-                            label='Email Address'
-                            placeholder='Your Email'
-                            required sx={{ width: '100%' }}
-                            description='You only need your email to sign in. A link will be sent to your email for verification.'
-                        />
-                        {/* <PasswordInput label='Password' placeholder='Your Password' required sx={{ width: '100%' }} />
+                        <form onSubmit={form.onSubmit((values) => emailSignIn(values))}>
+                            <TextInput
+                                // variant='filled'
+                                type='email'
+                                label='Email Address'
+                                placeholder='Your Email'
+                                required sx={{ width: '100%' }}
+                                description='You only need your email to sign in. A link will be sent to your email for verification.'
+                                {...form.getInputProps('email')}
+                            />
+                            {/* <PasswordInput label='Password' placeholder='Your Password' required sx={{ width: '100%' }} />
                         <Group position='right' sx={{ width: '100%' }}> 
                             <Anchor> Forgot Password? </Anchor>
                         </Group> */}
+                            <Button mt={50} fullWidth sx={{ height: '40px' }} type='submit'> Sign In </Button>
+                        </form>
 
                         <Stack sx={{ width: '100%' }}>
-                            <Button mt={'xl'} sx={{ height: '40px' }} onClick={emailSignIn}> Sign In </Button>
-                            <Button variant='outline' color={theme.colorScheme === 'dark' ? 'dark' : 'gray'} fullWidth leftIcon={<BsGoogle color='#3079F8' />} sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}>
+                            <Button
+                                variant='outline'
+                                color={theme.colorScheme === 'dark' ? 'dark' : 'gray'}
+                                fullWidth
+                                leftIcon={<BsGoogle color='#3079F8' />}
+                                sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}
+                                onClick={googleSignIn}
+                            >
                                 Sign in with Google
                             </Button>
                             <Button variant='outline' color={theme.colorScheme === 'dark' ? 'dark' : 'gray'} fullWidth leftIcon={<BsReddit color='#F8A130' />} sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}>
