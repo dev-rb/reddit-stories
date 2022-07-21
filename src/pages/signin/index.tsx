@@ -4,6 +4,8 @@ import { useColorScheme, useMediaQuery } from '@mantine/hooks';
 import { useRouter } from 'next/router';
 import { BsGoogle, BsReddit } from 'react-icons/bs';
 import { MdKeyboardBackspace } from 'react-icons/md';
+import { ClientSafeProvider, getProviders, LiteralUnion, signIn } from 'next-auth/react';
+import { BuiltInProviderType } from 'next-auth/providers';
 
 const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
     mainContainer: {
@@ -75,7 +77,11 @@ const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }
     }
 }));
 
-const SignIn = () => {
+interface SignInProps {
+    providers: Record<LiteralUnion<BuiltInProviderType, string>, ClientSafeProvider> | null
+}
+
+const SignIn = ({ providers }: SignInProps) => {
 
     const router = useRouter();
 
@@ -84,6 +90,18 @@ const SignIn = () => {
     const largeScreen = useMediaQuery('(min-width: 1000px)');
 
     const { classes } = useStyles({ largeScreen });
+
+    const emailSignIn = () => {
+        signIn(providers?.email.id)
+    }
+
+    const googleSignIn = () => {
+
+    }
+
+    const redditSignIn = () => {
+
+    }
 
     return (
         <Group className={classes.mainContainer} noWrap spacing={0} align={largeScreen ? 'center' : undefined} position={largeScreen ? 'apart' : 'center'}>
@@ -113,7 +131,7 @@ const SignIn = () => {
                         </Group> */}
 
                         <Stack sx={{ width: '100%' }}>
-                            <Button mt={'xl'} sx={{ height: '40px' }}> Sign In </Button>
+                            <Button mt={'xl'} sx={{ height: '40px' }} onClick={emailSignIn}> Sign In </Button>
                             <Button variant='outline' color={theme.colorScheme === 'dark' ? 'dark' : 'gray'} fullWidth leftIcon={<BsGoogle color='#3079F8' />} sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}>
                                 Sign in with Google
                             </Button>
@@ -155,3 +173,10 @@ const SignIn = () => {
 }
 
 export default SignIn;
+
+export async function getServerSideProps(context: any) {
+    const providers = await getProviders()
+    return {
+        props: { providers },
+    }
+}
