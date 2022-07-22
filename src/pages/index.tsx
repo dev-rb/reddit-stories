@@ -16,6 +16,7 @@ import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
 import { useQueries, useQueryClient } from 'react-query';
 import { PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from 'src/interfaces/db';
+import AccountDrawer from 'src/components/AccountDrawer';
 
 const Home = () => {
 
@@ -25,6 +26,8 @@ const Home = () => {
   const router = useRouter();
 
   const { sort, time } = router.query;
+
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const currentSort = sort ? sortTypeMap[sort.toString() as SortType].toString() : 'hot'
   const currentTime = time ? topSortTypeMap[time.toString() as TopTimeSort].toString() : undefined
@@ -132,7 +135,8 @@ const Home = () => {
               <Title sx={{ fontWeight: 200 }}>Explore</Title>
               <Title >Stories</Title>
             </Stack>
-            <Avatar radius={'xl'} onClick={() => { toggleColorScheme(); }} />
+            <Avatar radius={'xl'} onClick={() => { setDrawerOpen(true) }} />
+            <AccountDrawer opened={drawerOpen} closeDrawer={() => setDrawerOpen(false)} />
           </Group>
 
           <TextInput variant='filled' size='lg' mt={40} icon={<MdSearch size={25} />} placeholder='Search Stories' sx={{ width: '100%' }} />
