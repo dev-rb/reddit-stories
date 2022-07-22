@@ -45,7 +45,8 @@ export const postRouter = createRouter()
     .query('sort', {
         input: z.object({
             sortType: z.enum(['hot', 'top', 'new']),
-            timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish()
+            timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish(),
+            userId: z.string().nullish()
         }).nullish(),
         async resolve({ input }) {
             console.log("Sort called in backend: ", input);
@@ -57,6 +58,21 @@ export const postRouter = createRouter()
                 // }
 
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
+
+                // Check if user has saved or liked any of the posts
+
+                if (input.userId) {
+                    prompts = await Promise.all(prompts.map(async (prompt) => {
+                        const dbPost = await prisma.userPostSaved.findFirst({
+                            where: {
+                                userId: input.userId!,
+                                postId: prompt.id
+                            }
+                        });
+
+                        return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, saved: dbPost?.favorited };
+                    }))
+                }
 
                 /* await prisma.post.createMany({
                     data: [...prompts.map((val) => {
@@ -108,7 +124,7 @@ export const postRouter = createRouter()
     })
     .mutation("like", {
         input: z.object({
-            userId: z.string().uuid(),
+            userId: z.string(),
             postId: z.string(),
             liked: z.boolean()
         }),

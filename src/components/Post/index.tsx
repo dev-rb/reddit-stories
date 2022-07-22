@@ -8,6 +8,7 @@ import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Post } from '@prisma/client';
+import PostControls from '../PostControls';
 
 dayjs.extend(relativeTime)
 
@@ -24,10 +25,6 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
     React.useEffect(() => {
         if (isDownloaded !== undefined) {
             setDownloadedStatus(isDownloaded)
-            //     setTimeout(() => {
-            //     console.log("Update downloaded Status in post")
-            //     setDownloadedStatus(isDownloaded)
-            // }, 120 * index)
         }
     }, [isDownloaded])
 
@@ -50,33 +47,7 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
                     <Text size='sm' weight={600}>
                         {title.replace('[WP]', '').trim()}
                     </Text>
-                    <Group noWrap align='center' spacing={40}>
-                        <UnstyledButton
-                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); e.preventDefault(); setLiked((prev) => !prev); }}
-                            sx={(theme) => ({ color: liked ? theme.colors.orange[4] : theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}
-                        >
-                            <Group noWrap align='center' spacing={4}>
-                                {
-                                    liked ?
-                                        <HiHeart size={20} /> :
-                                        <HiOutlineHeart size={20} />
-                                }
-                                <Text weight={500}>{score}</Text>
-                            </Group>
-                        </UnstyledButton>
-                        <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
-                            <Group noWrap align='center' spacing={4}>
-                                <MdModeComment size={20} />
-                                <Text weight={500}>{totalStories}</Text>
-                            </Group>
-                        </UnstyledButton>
-                        <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
-                            <MdBookmark size={20} />
-                        </UnstyledButton>
-                        <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
-                            <BsClockHistory size={20} />
-                        </UnstyledButton>
-                    </Group>
+                    <PostControls postInfo={{ title, id, score, author, created }} liked={liked} score={score} totalStories={totalStories} toggleLiked={() => setLiked((prev) => !prev)} />
                 </Stack>
             </Box>
         </Anchor>

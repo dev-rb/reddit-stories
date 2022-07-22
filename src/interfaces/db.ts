@@ -12,7 +12,10 @@ export type StoryAndExtendedReplies = Story & { replies: ExtendedReply[] }
 export type StoriesAndReplies = { stories: StoryAndReplies[] }
 
 export interface Prompt extends Post {
-    totalComments: number
+    totalComments: number,
+    liked?: boolean,
+    saved?: boolean
+    readLater?: boolean
 }
 
 export type PromptAndStories = Prompt & { stories: Story[] };

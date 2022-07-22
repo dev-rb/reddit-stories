@@ -24,6 +24,11 @@ export default NextAuth({
         })
     ],
     adapter: PrismaAdapter(prisma),
+    callbacks: {
+        session: async ({ session, user }) => {
+            return { ...session, user: user };
+        }
+    },
     session: {
         strategy: 'database'
     },
