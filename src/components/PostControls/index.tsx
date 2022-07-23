@@ -7,34 +7,49 @@ import { Prompt, StoryAndExtendedReplies } from 'src/interfaces/db';
 import { trpc } from 'src/utils/trpc';
 import { useSession } from 'next-auth/react';
 
-type PostOrComment = Omit<Prompt, 'updatedAt' | 'permalink' | 'totalComments'> | StoryAndExtendedReplies
+type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>
+type NeededStoryValues = Pick<StoryAndExtendedReplies, 'replies' | 'liked' | 'score' | 'id'>
+type PostOrComment = NeededPromptValues | NeededStoryValues
 
 interface PostControlsProps<TData extends PostOrComment> {
     postInfo: TData,
     liked: boolean,
-    score: number,
-    totalStories: number,
     toggleLiked: () => void
 }
 
-const PostControls = <TData extends PostOrComment,>({ postInfo, liked, score, totalStories, toggleLiked }: PostControlsProps<TData>) => {
+const PostControls = <TData extends PostOrComment,>({ postInfo, liked, toggleLiked }: PostControlsProps<TData>) => {
 
     const session = useSession();
 
     const { mutate: likePostMutation } = trpc.useMutation('post.like');
+    const { mutate: likeStoryMutation } = trpc.useMutation('story.like');
 
     const likePost = () => {
         if (session.data?.user) {
-            likePostMutation({ liked: true, postId: postInfo.id, userId: session.data.user.id })
+            toggleLiked();
+            if ((postInfo as NeededStoryValues).replies) {
+                console.log("Is story")
+                likeStoryMutation({ liked: !liked, storyId: postInfo.id, userId: session.data.user.id })
+            } else {
+                console.log("Is prompt")
+                likePostMutation({ liked: !liked, postId: postInfo.id, userId: session.data.user.id })
+
+            }
         } else {
             console.log("Unauthenticated")
         }
     }
 
+    const handleLikePress = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        e.preventDefault();
+        likePost();
+    }
+
     return (
         <Group noWrap align='center' spacing={40}>
             <UnstyledButton
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); e.preventDefault(); toggleLiked(); }}
+                onClick={handleLikePress}
                 sx={(theme) => ({ color: liked ? theme.colors.orange[4] : theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}
             >
                 <Group noWrap align='center' spacing={4}>
@@ -49,7 +64,7 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, score, to
             <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
                 <Group noWrap align='center' spacing={4}>
                     <MdModeComment size={20} />
-                    <Text weight={500}>{totalStories}</Text>
+                    <Text weight={500}>{(postInfo as any).totalComments}</Text>
                 </Group>
             </UnstyledButton>
             <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>

@@ -10,7 +10,8 @@ import { Story } from '@prisma/client';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 import { nestedColors } from 'src/utils/nestedColors';
-import { ExtendedReply } from 'src/interfaces/db';
+import { ExtendedReply, IStory } from 'src/interfaces/db';
+import PostControls from '../PostControls';
 
 dayjs.extend(RelativeTime);
 const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: boolean, replyIndex: number }) => ({
@@ -38,8 +39,8 @@ const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: bo
     }
 }));
 
-const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, permalink, postId, postAuthor, replyIndex }: Story & { replies: ExtendedReply[], postAuthor: string, replyIndex: number }) => {
-    const [liked, setLiked] = React.useState(false);
+const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, permalink, postId, postAuthor, replyIndex, liked: storyLiked }: IStory & { replies: ExtendedReply[], postAuthor: string, replyIndex: number }) => {
+    const [liked, setLiked] = React.useState(storyLiked ?? false);
     const { classes } = useCommentStyles({ liked, replyIndex });
 
     const commentRef = React.useRef<HTMLDivElement>(null);
@@ -66,7 +67,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
     const longPressEvent = useLongPress<HTMLDivElement>({
         onLongPress: minimizeComment,
         onClick: expandComment
-    }, { delay: 1000 });
+    }, { delay: 1000, shouldPreventDefault: false });
 
     return (
         <Stack ref={commentRef} id={'root-container'} className={classes.rootContainer} spacing={0} {...longPressEvent}>
@@ -82,29 +83,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
                 <Stack spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
 
-                    <Group noWrap align='center' spacing={40}>
-                        <UnstyledButton
-                            className={classes.likeButton}
-                            onTouchStart={(e: React.TouchEvent<HTMLButtonElement>) => { e.stopPropagation(); }}
-                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); e.preventDefault(); console.log("Liked!"); setLiked((prev) => !prev); }}
-                        >
-                            <Group noWrap align='center' spacing={4}>
-                                {
-                                    liked ?
-                                        <HiHeart size={20} /> :
-                                        <HiOutlineHeart size={20} />
-                                }
-                                <Text weight={500}>{score}</Text>
-                            </Group>
-                        </UnstyledButton>
-
-                        <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6] })}>
-                            <MdBookmark size={20} />
-                        </UnstyledButton>
-                        <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6] })}>
-                            <BsClockHistory size={20} />
-                        </UnstyledButton>
-                    </Group>
+                    <PostControls liked={liked} postInfo={{ body, bodyHtml, author, created, id, score, postId, replies, totalComments: replies.length }} toggleLiked={() => setLiked((prev) => !prev)} />
                 </Stack>
 
             </Stack>

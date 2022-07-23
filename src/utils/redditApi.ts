@@ -1,6 +1,6 @@
 import { Post, Story, Reply } from '@prisma/client';
 import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
-import { ExtendedReply, Prompt, StoryAndReplies } from '../interfaces/db';
+import { ExtendedReply, IStory, Prompt, StoryAndReplies } from '../interfaces/db';
 import { Stream } from 'stream';
 
 interface RedditFetchOptions {
@@ -107,7 +107,7 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
 
     let data: RedditCommentRoot[] = await (await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)).json()
     // console.log(data)
-    let stories: (Story & { replies: Reply[] })[] = [];
+    let stories: (IStory & { replies: Reply[] })[] = [];
     const commentDetails = data[1].data.children;
     const commentDetailsLength = commentDetails.length;
 

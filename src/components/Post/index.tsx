@@ -7,16 +7,16 @@ import { useMediaQuery } from '@mantine/hooks';
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { Post } from '@prisma/client';
 import PostControls from '../PostControls';
+import { Prompt } from 'src/interfaces/db';
 
 dayjs.extend(relativeTime)
 
-const Post = ({ title, id, score, author, permalink, totalStories, created, index, isDownloaded }: Post & { totalStories: number, index: number, isDownloaded?: boolean }) => {
+const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked }: Prompt & { index: number, isDownloaded?: boolean }) => {
 
     const [downloadedStatus, setDownloadedStatus] = React.useState(false);
 
-    const [liked, setLiked] = React.useState(false);
+    const [liked, setLiked] = React.useState(postLiked ?? false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
@@ -47,7 +47,7 @@ const Post = ({ title, id, score, author, permalink, totalStories, created, inde
                     <Text size='sm' weight={600}>
                         {title.replace('[WP]', '').trim()}
                     </Text>
-                    <PostControls postInfo={{ title, id, score, author, created }} liked={liked} score={score} totalStories={totalStories} toggleLiked={() => setLiked((prev) => !prev)} />
+                    <PostControls postInfo={{ title, id, score, author, created, totalComments }} liked={liked} toggleLiked={() => setLiked((prev) => !prev)} />
                 </Stack>
             </Box>
         </Anchor>

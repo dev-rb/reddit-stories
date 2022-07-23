@@ -15,6 +15,7 @@ import ListVirtualizer from '../ListVirtualizer';
 import { useSelector } from 'react-redux';
 import { postSelector, PostsState } from 'src/redux/slices';
 import SortSelect from '../MobileSelect/SortSelect';
+import { useSession } from 'next-auth/react';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -46,15 +47,13 @@ const CommentsContainer = ({ postId }: Props) => {
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     const headerRef = React.useRef(null);
-    const [stories, setStories] = React.useState<Story[]>();
     const router = useRouter();
 
-    const queryClient = useQueryClient();
+    const session = useSession();
 
     const postInfo = useSelector((state: PostsState) => postSelector(state, postId))
 
-    const { data: storiesData } = trpc.useQuery(['story.forPost', { id: postId }], {
-        enabled: true,
+    const { data: storiesData } = trpc.useQuery(['story.forPost', { id: postId, userId: session.data?.user?.id }], {
         initialData: () => {
             if (postInfo === undefined) {
                 return;
@@ -62,8 +61,7 @@ const CommentsContainer = ({ postId }: Props) => {
             return postInfo.stories
         }
     });
-    const { data: postData } = trpc.useQuery(['post.byId', { id: postId }], {
-        enabled: true,
+    const { data: postData } = trpc.useQuery(['post.byId', { id: postId, userId: session.data?.user?.id }], {
         initialData: () => {
             if (postInfo === undefined) {
                 console.log("Empty state")
@@ -85,7 +83,7 @@ const CommentsContainer = ({ postId }: Props) => {
                 {/* Post Details */}
                 {(postData) &&
                     <Box mt={60}>
-                        <Post totalStories={postData.totalComments} id={postData.id} title={postData.title} created={postData.created} updatedAt={null} score={postData.score} author={postData.author} permalink={postData.permalink} index={0} />
+                        <Post {...postData} index={0} />
                     </Box>
                 }
                 <Stack spacing={0} pb={40}>
@@ -119,9 +117,7 @@ const CommentsContainer = ({ postId }: Props) => {
                                             <CommentDisplay
                                                 key={currentItem.id}
                                                 {...currentItem}
-                                                replies={currentItem.replies}
                                                 postId={postId}
-                                                updatedAt={null}
                                                 postAuthor={postData!.author}
                                                 replyIndex={0} />
                                         </div>

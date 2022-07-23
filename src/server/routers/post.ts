@@ -46,22 +46,28 @@ export const postRouter = createRouter()
         input: z.object({
             sortType: z.enum(['hot', 'top', 'new']),
             timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish(),
-            userId: z.string().nullish()
-        }).nullish(),
+            userId: z.string().optional()
+        }),
         async resolve({ input }) {
             console.log("Sort called in backend: ", input);
-            if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
+            if (input.sortType === 'hot' || input.sortType === 'new' || input.sortType.includes('top')) {
                 // const posts = await getPosts(input.sortType, input.timeSort);
                 // if (posts !== undefined && posts !== null) {
                 //     console.log("Posts from redis: ")
                 //     return posts as unknown as Prompt[];
                 // }
-
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
+                await prisma.post.createMany({
+                    data: [...prompts.map((val) => {
+                        const { totalComments, liked, readLater, saved, ...rest } = val;
+                        return { ...rest }
+                    })],
+                    skipDuplicates: true
+                })
                 // Check if user has saved or liked any of the posts
 
-                if (input.userId) {
+                if (input.userId !== undefined) {
                     prompts = await Promise.all(prompts.map(async (prompt) => {
                         const dbPost = await prisma.userPostSaved.findFirst({
                             where: {
@@ -73,14 +79,6 @@ export const postRouter = createRouter()
                         return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, saved: dbPost?.favorited };
                     }))
                 }
-
-                /* await prisma.post.createMany({
-                    data: [...prompts.map((val) => {
-                        const { totalComments, ...rest } = val;
-                        return rest
-                    })],
-                    skipDuplicates: true
-                }) */
 
                 // await addPosts(prompts, input.sortType, input.timeSort)
 
@@ -95,10 +93,11 @@ export const postRouter = createRouter()
     })
     .query("byId", {
         input: z.object({
-            id: z.string()
+            id: z.string(),
+            userId: z.string().optional()
         }),
         async resolve({ input }) {
-            const { id } = input;
+            const { id, userId } = input;
 
             console.log("backend called")
 
@@ -109,6 +108,26 @@ export const postRouter = createRouter()
                 rejectOnNotFound: true,
             });
 
+            let prompt: Prompt = { ...post, totalComments: await getTotalCommentsForPost('/r/writingprompts', post.id) }
+
+            if (userId) {
+                const userPrompt = await prisma.userPostSaved.findUnique({
+                    where: {
+                        userId_postId: {
+                            userId,
+                            postId: id
+                        }
+                    }
+                });
+
+                if (userPrompt) {
+                    prompt.liked = userPrompt.liked;
+                    prompt.readLater = userPrompt.readLater;
+                    prompt.saved = userPrompt.favorited;
+                }
+            }
+
+
             if (!post) {
                 throw new TRPCError({
                     cause: undefined,
@@ -117,7 +136,6 @@ export const postRouter = createRouter()
                 });
             }
 
-            const prompt: Prompt = { ...post, totalComments: await getTotalCommentsForPost('/r/writingprompts', post.id) }
 
             return prompt;
         }
@@ -134,15 +152,22 @@ export const postRouter = createRouter()
                 where: { id: postId },
                 data: {
                     userPostSaved: {
-                        update: {
+                        upsert: {
+                            create: {
+                                userId,
+                                liked,
+                                favorited: false,
+                                readLater: false
+                            },
+                            update: {
+                                liked,
+                                userId
+                            },
                             where: {
                                 userId_postId: {
-                                    userId,
-                                    postId
+                                    postId,
+                                    userId
                                 }
-                            },
-                            data: {
-                                liked: liked
                             }
                         }
                     }

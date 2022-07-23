@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Prisma, Story } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchCommentsForPost, getReplies } from "src/utils/redditApi";
-import { ExtendedReply } from "src/interfaces/db";
+import { ExtendedReply, IStory } from "src/interfaces/db";
 
 const defaultStorySelect = Prisma.validator<Prisma.StorySelect>()({
     id: true,
@@ -89,17 +89,38 @@ export const storiesRouter = createRouter()
     })
     .query("forPost", {
         input: z.object({
-            id: z.string()
+            id: z.string(),
+            userId: z.string().optional()
         }),
         async resolve({ input }) {
             // console.log("Story For Post called")
-            const { id } = input;
+            const { id, userId } = input;
             const stories = await fetchCommentsForPost('/r/writingprompts', id);
             let newResult = stories.map((val) => {
                 let { replies, ...story } = val;
-                let newStory: Story & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
+                let newStory: IStory & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
                 return newStory;
             })
+
+            if (userId) {
+                for (const story of newResult) {
+                    const userStory = await prisma.userStorySaved.findUnique({
+                        where: {
+                            userId_storyId: {
+                                storyId: story.id,
+                                userId
+                            }
+                        }
+                    });
+                    if (userStory) {
+                        story.liked = userStory.liked;
+                        story.readLater = userStory.readLater;
+                        story.saved = userStory.favorited;
+                    }
+                }
+
+
+            }
             // const story = await prisma.story.findUnique({
             //     where: {
             //         id: id
@@ -149,33 +170,33 @@ export const storiesRouter = createRouter()
     })
     .mutation("like", {
         input: z.object({
-            userId: z.string().uuid(),
+            userId: z.string(),
             storyId: z.string(),
             liked: z.boolean()
         }),
         async resolve({ input, ctx }) {
             const { storyId, liked, userId } = input;
-            const story = prisma.story.update({
-                where: { id: storyId },
-                data: {
-                    userStorySaved: {
-                        update: {
-                            where: {
-                                userId_storyId: {
-                                    storyId,
-                                    userId
-                                }
-                            },
-                            data: {
-                                liked: liked
-                            }
-                        }
-                    }
+            const userStory = await prisma.userStorySaved.upsert({
+                create: {
+                    liked,
+                    favorited: false,
+                    readLater: false,
+                    storyId,
+                    userId
                 },
-                select: defaultStorySelect
-            });
+                update: {
+                    liked,
+                    userId,
+                },
+                where: {
+                    userId_storyId: {
+                        storyId,
+                        userId
+                    }
+                }
+            })
 
-            return story;
+            return userStory;
         }
     })
     .mutation("favorite", {

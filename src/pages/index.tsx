@@ -49,20 +49,22 @@ const Home = () => {
   const queryClient = useQueryClient();
   const trpcContext = trpc.useContext();
 
+  const userId = session.data?.user?.id;
+  console.log("Client userId: ", userId)
   const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
-    ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId: session.data?.user?.id }],
+    ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId: userId }],
     {
       context: {
         skipBatch: true
       },
-      queryFn: async ({ queryKey, signal }) => {
+      // queryFn: async ({ queryKey, signal }) => {
 
-        return (await fetch(queryKey[0], { signal })).json()
-      },
+      //   return (await fetch(queryKey[0], { signal })).json()
+      // },
       // onSuccess: (data) => console.log(`Data: `, data),
       initialData: () => {
         if (selector.length === 0) {
-          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts }]);
+          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId }]);
           if (cacheData) {
             return cacheData
           }
@@ -205,10 +207,9 @@ const Home = () => {
                     transform: `translateY(${item.start}px)`,
                   }}
                 >
-                  <Post key={currentItem.id}
+                  <Post
+                    key={currentItem.id}
                     {...currentItem}
-                    created={currentItem.created}
-                    totalStories={currentItem.totalComments}
                     index={index}
                     isDownloaded={selector.find((val) => val.id === currentItem.id) !== undefined}
                   />
