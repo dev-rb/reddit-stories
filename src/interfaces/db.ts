@@ -6,7 +6,7 @@ export interface IStory extends Comment {
     readLater?: boolean
 }
 
-export interface ExtendedReply extends Comment {
+export interface ExtendedReply extends IStory {
     replies: ExtendedReply[]
 }
 

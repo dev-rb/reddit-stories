@@ -52,11 +52,7 @@ export const storiesRouter = createRouter()
             // console.log("Story For Post called")
             const { id, userId } = input;
             const stories = await fetchCommentsForPost('/r/writingprompts', id);
-            let newResult = stories.map((val) => {
-                let { replies, ...story } = val;
-                let newStory: IStory & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
-                return newStory;
-            })
+
             for (const story of stories) {
                 const { liked, readLater, replies, saved, mainCommentId, ...restOfStory } = story;
                 await prisma.comment.upsert({
@@ -83,40 +79,43 @@ export const storiesRouter = createRouter()
                     where: {
                         id: restOfStory.id
                     }
-                    // create: {
-                    //     ...restOfStory,
-                    //     replies: {
-                    //         createMany: {
-                    //             data: replies,
-                    //             skipDuplicates: true
-                    //         },
-                    //     }
-                    // },
-                    // update: {
-                    //     ...restOfStory,
-                    //     replies: {
-                    //         updateMany: {
-                    //             data: replies,
-                    //             where: {
-                    //                 // storyId: story.id,
-                    //             }
-                    //         },
-                    //     }
-                    // },
-                    // where: {
-                    //     id: story.id
-                    // }
+
                 });
+
+                if (userId) {
+                    for (let reply of replies) {
+                        const userCommentSaved = await prisma.userCommentSaved.findUnique({
+                            where: {
+                                userId_commentId: {
+                                    commentId: reply.id,
+                                    userId
+                                }
+                            }
+                        });
+                        if (userCommentSaved) {
+                            console.log("Found info for reply")
+                            reply.liked = userCommentSaved.liked;
+                            reply.readLater = userCommentSaved.readLater;
+                            reply.saved = userCommentSaved.favorited;
+                        }
+                    }
+                }
 
                 await prisma.comment.createMany({
                     data: [...replies.map((val) => {
-                        const { mainCommentId, replyId, ...rest } = val;
+                        const { mainCommentId, replyId, liked, readLater, saved, ...rest } = val;
                         // console.log("Reply: ", rest)
                         return rest;
                     })],
                     skipDuplicates: true
                 })
             }
+
+            let newResult = stories.map((val) => {
+                let { replies, ...story } = val;
+                let newStory: IStory & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
+                return newStory;
+            })
 
             if (userId) {
                 console.log("Find usercommentsaved")
@@ -178,17 +177,17 @@ export const storiesRouter = createRouter()
     .mutation("like", {
         input: z.object({
             userId: z.string(),
-            storyId: z.string(),
+            commentId: z.string(),
             liked: z.boolean()
         }),
         async resolve({ input, ctx }) {
-            const { storyId, liked, userId } = input;
+            const { commentId, liked, userId } = input;
             const userStory = await prisma.userCommentSaved.upsert({
                 create: {
                     liked,
                     favorited: false,
                     readLater: false,
-                    commentId: storyId,
+                    commentId: commentId,
                     userId
                 },
                 update: {
@@ -197,7 +196,7 @@ export const storiesRouter = createRouter()
                 },
                 where: {
                     userId_commentId: {
-                        commentId: storyId,
+                        commentId: commentId,
                         userId
                     }
                 }

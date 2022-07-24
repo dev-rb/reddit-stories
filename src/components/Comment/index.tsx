@@ -92,7 +92,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
                     {replies.map((reply, index) => {
 
                         return (
-                            <CommentDisplay key={reply.id} {...reply} permalink={permalink} postId={postId} replies={reply.replies} replyIndex={replyIndex + 1} postAuthor={postAuthor} />
+                            <CommentDisplay key={reply.id} {...reply} permalink={permalink} postId={postId} replies={reply.replies} replyIndex={replyIndex + 1} postAuthor={postAuthor} liked={reply.liked} />
                         )
                     })}
                 </Stack>

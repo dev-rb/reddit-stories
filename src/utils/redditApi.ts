@@ -107,7 +107,7 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
 
     let data: RedditCommentRoot[] = await (await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)).json()
     // console.log(data)
-    let stories: (IStory & { replies: Comment[] })[] = [];
+    let stories: (IStory & { replies: IStory[] })[] = [];
     const commentDetails = data[1].data.children;
     const commentDetailsLength = commentDetails.length;
 
@@ -135,7 +135,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
         postId,
         bodyHtml: body_html,
         updatedAt: undefined!,
-        replies: getRepliesForComment(commentInfo, commentInfo.author, commentInfo.id, null, []) ?? [],
+        replies: getRepliesForComment(postId, commentInfo, commentInfo.author, commentInfo.id, null, []) ?? [],
         mainCommentId: null,
         replyId: null
     };
@@ -151,8 +151,9 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
  * @param replies          array for accumulated nested replies
  * @returns                accumulated replies after we've gone through all of them
  */
-const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string, parentCommentId: string, parentReplyId: string | null, replies: Comment[]) => {
+const getRepliesForComment = (postId: string, commentInfo: CommentDetails, commentAuthor: string, parentCommentId: string, parentReplyId: string | null, replies: IStory[]) => {
 
+    // console.log(commentInfo.replies, commentInfo.replies.data, commentInfo.replies.data.children)
     // If there are no replies, return and continue looking through the rest of the replies
     if (commentInfo.replies === undefined || commentInfo.replies.data === undefined || commentInfo.replies.data.children.length === 0) {
         return
@@ -162,27 +163,35 @@ const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string
     const commentDetails = commentInfo.replies.data.children;
     const commentDetailsLength = commentDetails.length;
 
+    // console.log(commentDetails)
+
     for (let i = 0; i < commentDetailsLength; i++) {
         const val = commentDetails[i];
-        const { author, body, body_html, created_utc, id, replies: repliesForReply, permalink, score, title } = val.data;
-        if (body_html === undefined) {
-            console.log("Found undefined at: ", parentCommentId,)
+        const { author, body, body_html, created_utc, id, replies: repliesForReply, permalink, score } = val.data;
+        if (body_html === undefined || id === '_') {
+            // console.log("Found undefined at: ", val.data,)
+            return
         }
         // Uncomment to only get this reply if it's from the author of the story
         // if (author === commentAuthor) {
-        const reply: Comment = {
-            author, body, bodyHtml: body_html, created: new Date(created_utc * 1000), id, score,
+        const reply: IStory = {
+            author,
+            body,
+            bodyHtml: body_html,
+            created: new Date(created_utc * 1000),
+            id,
+            score,
             updatedAt: undefined!,
             mainCommentId: parentCommentId,
             replyId: parentReplyId,
             permalink,
-            postId: null
+            postId: postId
         };
         // Add this reply to the list of accumulated relies
         replies.push(reply);
         // Recursively call this function again on the current reply we are on to check for if it has replies as well. 
         // We go through all nested replies
-        getRepliesForComment(val.data, commentAuthor, parentCommentId, id, replies);
+        getRepliesForComment(postId, val.data, commentAuthor, parentCommentId, id, replies);
         // }
     }
 

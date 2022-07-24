@@ -29,7 +29,7 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, toggleLik
             toggleLiked();
             if ((postInfo as NeededStoryValues).replies) {
                 console.log("Is story")
-                likeStoryMutation({ liked: !liked, storyId: postInfo.id, userId: session.data.user.id })
+                likeStoryMutation({ liked: !liked, commentId: postInfo.id, userId: session.data.user.id })
             } else {
                 console.log("Is prompt")
                 likePostMutation({ liked: !liked, postId: postInfo.id, userId: session.data.user.id })
