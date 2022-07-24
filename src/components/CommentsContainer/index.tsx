@@ -6,7 +6,6 @@ import useFixedNavbar from '../../hooks/useFixedNavbar';
 import { createStyles, Group, Paper, Stack, Box, Title, Center } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
-import { Story } from '@prisma/client';
 import Post from '../Post';
 import { useMediaQuery } from '@mantine/hooks';
 import MobileSelect from '../MobileSelect';

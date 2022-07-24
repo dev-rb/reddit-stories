@@ -1,7 +1,7 @@
 import { createRouter } from ".";
 import { prisma } from "../prisma";
 import { z } from 'zod';
-import { Post, Prisma, Reply, Story } from "@prisma/client";
+import { Post, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import dayjs from "dayjs";
 import { fetchCommentsForPost, fetchSubredditPosts, getReplies, getTotalCommentsForPost } from "src/utils/redditApi";
@@ -15,7 +15,7 @@ const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     author: true,
     created: true,
     permalink: true,
-    stories: true,
+    comments: true,
     userPostSaved: true
 });
 

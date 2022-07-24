@@ -40,15 +40,15 @@ model Session {
 }
 
 model User {
-  id            String           @id @default(cuid())
+  id            String             @id @default(cuid())
   name          String?
-  email         String?          @unique
+  email         String?            @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   savedPosts    UserPostSaved[]
-  savedStories  UserStorySaved[]
+  savedComments UserCommentSaved[]
 }
 
 model VerificationToken {
@@ -79,51 +79,56 @@ model Post {
   score         Int
   author        String
   permalink     String
-  stories       Story[]
+  comments      Comment[]
   userPostSaved UserPostSaved[]
 }
 
-model UserStorySaved {
+model UserCommentSaved {
   liked     Boolean
   favorited Boolean
   readLater Boolean
-  story     Story   @relation(fields: [storyId], references: [id])
+  comment   Comment @relation(fields: [commentId], references: [id])
   user      User    @relation(fields: [userId], references: [id])
-  storyId   String
+  commentId String
   userId    String
 
-  @@unique([userId, storyId])
+  @@unique([userId, commentId])
 }
 
-model Story {
-  id             String           @id
-  body           String           @db.LongText
-  bodyHtml       String           @db.LongText
-  permalink      String
-  score          Int
-  author         String
-  created        DateTime
-  updatedAt      DateTime?        @updatedAt
-  Post           Post?            @relation(fields: [postId], references: [id])
-  postId         String?
-  userStorySaved UserStorySaved[]
-  replies        Reply[]
+model Comment {
+  id               String             @id
+  body             String             @db.LongText
+  bodyHtml         String             @db.LongText
+  permalink        String
+  score            Int
+  author           String
+  created          DateTime
+  updatedAt        DateTime?          @updatedAt
+  Post             Post?              @relation(fields: [postId], references: [id])
+  postId           String?
+  userCommentSaved UserCommentSaved[]
 
-  @@index([postId])
+  mainCommentId String?
+
+  replies      Comment[] @relation("replies")
+  replyComment Comment?  @relation(name: "replies", fields: [replyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replyId      String?
+
+  // @@unique([id, author])
 }
 
-model Reply {
-  id            String    @id
-  body          String    @db.LongText
-  bodyHtml      String    @db.LongText
-  author        String
-  score         Int
-  created       DateTime
-  updatedAt     DateTime? @updatedAt
-  parentComment Story?    @relation(fields: [storyId], references: [id])
-  storyId       String?
+// model Reply {
+//   id            String    @id
+//   body          String    @db.LongText
+//   bodyHtml      String    @db.LongText
+//   author        String
+//   score         Int
+//   created       DateTime
+//   updatedAt     DateTime? @updatedAt
+//   parentComment Comment?    @relation(fields: [commentId], references: [id])
+//   commentId       String?
 
-  replies Reply[] @relation("replies")
-  Reply   Reply?  @relation(name: "replies", fields: [replyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replyId String?
-}
+//   replies Reply[] @relation("replies")
+//   Reply   Reply?  @relation(name: "replies", fields: [replyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+//   replyId String?
+// }

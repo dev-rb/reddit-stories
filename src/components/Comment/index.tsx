@@ -6,7 +6,6 @@ import { MdBookmark } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { BsClockHistory } from 'react-icons/bs';
 import useLongPress from '../../hooks/useLongPress';
-import { Story } from '@prisma/client';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 import { nestedColors } from 'src/utils/nestedColors';

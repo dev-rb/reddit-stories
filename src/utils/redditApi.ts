@@ -1,4 +1,4 @@
-import { Post, Story, Reply } from '@prisma/client';
+import { Post, Comment } from '@prisma/client';
 import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
 import { ExtendedReply, IStory, Prompt, StoryAndReplies } from '../interfaces/db';
 import { Stream } from 'stream';
@@ -107,7 +107,7 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
 
     let data: RedditCommentRoot[] = await (await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)).json()
     // console.log(data)
-    let stories: (IStory & { replies: Reply[] })[] = [];
+    let stories: (IStory & { replies: Comment[] })[] = [];
     const commentDetails = data[1].data.children;
     const commentDetailsLength = commentDetails.length;
 
@@ -135,7 +135,9 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
         postId,
         bodyHtml: body_html,
         updatedAt: undefined!,
-        replies: getRepliesForComment(commentInfo, commentInfo.author, commentInfo.id, null, []) ?? []
+        replies: getRepliesForComment(commentInfo, commentInfo.author, commentInfo.id, null, []) ?? [],
+        mainCommentId: null,
+        replyId: null
     };
     return story;
 }
@@ -149,7 +151,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
  * @param replies          array for accumulated nested replies
  * @returns                accumulated replies after we've gone through all of them
  */
-const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string, parentCommentId: string, parentReplyId: string | null, replies: Reply[]) => {
+const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string, parentCommentId: string, parentReplyId: string | null, replies: Comment[]) => {
 
     // If there are no replies, return and continue looking through the rest of the replies
     if (commentInfo.replies === undefined || commentInfo.replies.data === undefined || commentInfo.replies.data.children.length === 0) {
@@ -163,14 +165,18 @@ const getRepliesForComment = (commentInfo: CommentDetails, commentAuthor: string
     for (let i = 0; i < commentDetailsLength; i++) {
         const val = commentDetails[i];
         const { author, body, body_html, created_utc, id, replies: repliesForReply, permalink, score, title } = val.data;
-
+        if (body_html === undefined) {
+            console.log("Found undefined at: ", parentCommentId,)
+        }
         // Uncomment to only get this reply if it's from the author of the story
         // if (author === commentAuthor) {
-        const reply: Reply = {
+        const reply: Comment = {
             author, body, bodyHtml: body_html, created: new Date(created_utc * 1000), id, score,
             updatedAt: undefined!,
-            storyId: parentCommentId,
-            replyId: parentReplyId
+            mainCommentId: parentCommentId,
+            replyId: parentReplyId,
+            permalink,
+            postId: null
         };
         // Add this reply to the list of accumulated relies
         replies.push(reply);
@@ -198,7 +204,7 @@ const recursiveFind = (start: ExtendedReply, findId: string, lookingForOriginId:
     return;
 }
 
-export const getReplies = (replies: Reply[]) => {
+export const getReplies = (replies: Comment[]) => {
     let nestedReplies: ExtendedReply[] = [];
     replies.forEach((reply) => {
         if (reply.replyId === null) {

@@ -1,18 +1,18 @@
-import { Post, Story, Reply } from '@prisma/client';
+import { Post, Comment } from '@prisma/client';
 
-export interface IStory extends Story {
+export interface IStory extends Comment {
     liked?: boolean,
     saved?: boolean
     readLater?: boolean
 }
 
-export interface ExtendedReply extends Reply {
+export interface ExtendedReply extends Comment {
     replies: ExtendedReply[]
 }
 
 export type Replies = { replies: ExtendedReply[] }
 
-export type StoryAndReplies = IStory & { replies: Reply[] }
+export type StoryAndReplies = IStory & { replies: Comment[] }
 export type StoryAndExtendedReplies = IStory & { replies: ExtendedReply[] }
 
 export type StoriesAndReplies = { stories: StoryAndReplies[] }

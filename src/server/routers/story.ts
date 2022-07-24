@@ -1,12 +1,12 @@
 import { createRouter } from ".";
 import { prisma } from "../prisma";
 import { z } from 'zod';
-import { Prisma, Story } from "@prisma/client";
+import { Prisma, Comment } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchCommentsForPost, getReplies } from "src/utils/redditApi";
 import { ExtendedReply, IStory } from "src/interfaces/db";
 
-const defaultStorySelect = Prisma.validator<Prisma.StorySelect>()({
+const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
     id: true,
     score: true,
     author: true,
@@ -23,7 +23,7 @@ export const storiesRouter = createRouter()
         }),
         async resolve({ input }) {
             const { postId } = input;
-            const result = await prisma.story.findMany({
+            const result = await prisma.comment.findMany({
                 where: {
                     postId: postId
                 },
@@ -37,54 +37,10 @@ export const storiesRouter = createRouter()
             });
             let newResult = result.map((val) => {
                 let { replies, ...story } = val;
-                let newStory: Story & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
+                let newStory: Comment & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)], mainCommentId: null, replyId: null }
                 return newStory;
             })
             return newResult;
-        }
-    })
-    .query("forPosts", {
-        input: z.array(z.object({
-            id: z.string()
-        })),
-        async resolve({ input }) {
-
-            const inputLength = input.length;
-
-            let allResults: (Story & {
-                replies: ExtendedReply[];
-            })[] = []
-
-            for (let i = 0; i < inputLength; i++) {
-                const stories = await fetchCommentsForPost('/r/writingprompts', input[i].id);
-                const newResult = stories.map((val) => {
-                    let { replies, ...story } = val;
-                    let newStory: Story & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
-                    return newStory;
-                });
-
-                allResults.concat(newResult);
-            }
-
-
-            // const story = await prisma.story.findUnique({
-            //     where: {
-            //         id: id
-            //     },
-            //     select: {
-            //         ...defaultStorySelect,
-            //         replies: true
-            //     },
-            // });
-
-            if (!allResults) {
-                throw new TRPCError({
-                    cause: undefined,
-                    code: 'NOT_FOUND',
-                    message: `No stories found'`,
-                });
-            }
-            return allResults;
         }
     })
     .query("forPost", {
@@ -101,13 +57,74 @@ export const storiesRouter = createRouter()
                 let newStory: IStory & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
                 return newStory;
             })
+            for (const story of stories) {
+                const { liked, readLater, replies, saved, mainCommentId, ...restOfStory } = story;
+                await prisma.comment.upsert({
+                    create: {
+                        author: restOfStory.author,
+                        body: restOfStory.body,
+                        bodyHtml: restOfStory.bodyHtml,
+                        created: restOfStory.created,
+                        id: restOfStory.id,
+                        permalink: restOfStory.permalink,
+                        score: restOfStory.score,
+                        postId: restOfStory.postId,
+                    },
+                    update: {
+                        author: restOfStory.author,
+                        body: restOfStory.body,
+                        bodyHtml: restOfStory.bodyHtml,
+                        created: restOfStory.created,
+                        id: restOfStory.id,
+                        permalink: restOfStory.permalink,
+                        score: restOfStory.score,
+                        postId: restOfStory.postId,
+                    },
+                    where: {
+                        id: restOfStory.id
+                    }
+                    // create: {
+                    //     ...restOfStory,
+                    //     replies: {
+                    //         createMany: {
+                    //             data: replies,
+                    //             skipDuplicates: true
+                    //         },
+                    //     }
+                    // },
+                    // update: {
+                    //     ...restOfStory,
+                    //     replies: {
+                    //         updateMany: {
+                    //             data: replies,
+                    //             where: {
+                    //                 // storyId: story.id,
+                    //             }
+                    //         },
+                    //     }
+                    // },
+                    // where: {
+                    //     id: story.id
+                    // }
+                });
+
+                await prisma.comment.createMany({
+                    data: [...replies.map((val) => {
+                        const { mainCommentId, replyId, ...rest } = val;
+                        // console.log("Reply: ", rest)
+                        return rest;
+                    })],
+                    skipDuplicates: true
+                })
+            }
 
             if (userId) {
+                console.log("Find usercommentsaved")
                 for (const story of newResult) {
-                    const userStory = await prisma.userStorySaved.findUnique({
+                    const userStory = await prisma.userCommentSaved.findUnique({
                         where: {
-                            userId_storyId: {
-                                storyId: story.id,
+                            userId_commentId: {
+                                commentId: story.id,
                                 userId
                             }
                         }
@@ -121,16 +138,6 @@ export const storiesRouter = createRouter()
 
 
             }
-            // const story = await prisma.story.findUnique({
-            //     where: {
-            //         id: id
-            //     },
-            //     select: {
-            //         ...defaultStorySelect,
-            //         replies: true
-            //     },
-            // });
-
             if (!newResult) {
                 throw new TRPCError({
                     cause: undefined,
@@ -148,7 +155,7 @@ export const storiesRouter = createRouter()
         async resolve({ input }) {
             const { id } = input;
 
-            const story = await prisma.story.findUnique({
+            const story = await prisma.comment.findUnique({
                 where: {
                     id: id
                 },
@@ -176,12 +183,12 @@ export const storiesRouter = createRouter()
         }),
         async resolve({ input, ctx }) {
             const { storyId, liked, userId } = input;
-            const userStory = await prisma.userStorySaved.upsert({
+            const userStory = await prisma.userCommentSaved.upsert({
                 create: {
                     liked,
                     favorited: false,
                     readLater: false,
-                    storyId,
+                    commentId: storyId,
                     userId
                 },
                 update: {
@@ -189,8 +196,8 @@ export const storiesRouter = createRouter()
                     userId,
                 },
                 where: {
-                    userId_storyId: {
-                        storyId,
+                    userId_commentId: {
+                        commentId: storyId,
                         userId
                     }
                 }
@@ -207,15 +214,15 @@ export const storiesRouter = createRouter()
         }),
         async resolve({ input, ctx }) {
             const { storyId, favorited, userId } = input;
-            const story = prisma.story.update({
+            const story = prisma.comment.update({
                 where: { id: storyId },
                 data: {
-                    userStorySaved: {
+                    userCommentSaved: {
                         update: {
                             where: {
-                                userId_storyId: {
+                                userId_commentId: {
                                     userId,
-                                    storyId
+                                    commentId: storyId
                                 }
                             },
                             data: {
@@ -238,15 +245,15 @@ export const storiesRouter = createRouter()
         }),
         async resolve({ input, ctx }) {
             const { storyId, readLater, userId } = input;
-            const story = prisma.story.update({
+            const story = prisma.comment.update({
                 where: { id: storyId },
                 data: {
-                    userStorySaved: {
+                    userCommentSaved: {
                         update: {
                             where: {
-                                userId_storyId: {
+                                userId_commentId: {
                                     userId,
-                                    storyId
+                                    commentId: storyId
                                 }
                             },
                             data: {
