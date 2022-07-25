@@ -107,7 +107,7 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
                     selectOptions={sortOptions}
                     onChange={onSortChange}
                     onBottomSheetClose={() => { }}
-                    bottomSheetOpened={showOptions}
+                    bottomSheetOpened={showOptions === true}
                     defaultActive={sortType}
                     styles={{ justify: 'unset', spacing: 'lg' }}
                 />

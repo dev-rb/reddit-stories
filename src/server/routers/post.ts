@@ -1,7 +1,7 @@
 import { createRouter } from ".";
 import { prisma } from "../prisma";
 import { z } from 'zod';
-import { Post, Prisma, Reply, Story } from "@prisma/client";
+import { Post, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import dayjs from "dayjs";
 import { fetchCommentsForPost, fetchSubredditPosts, getReplies, getTotalCommentsForPost } from "src/utils/redditApi";
@@ -15,7 +15,7 @@ const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     author: true,
     created: true,
     permalink: true,
-    stories: true,
+    comments: true,
     userPostSaved: true
 });
 
@@ -45,28 +45,42 @@ export const postRouter = createRouter()
     .query('sort', {
         input: z.object({
             sortType: z.enum(['hot', 'top', 'new']),
-            timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish()
-        }).nullish(),
+            timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish(),
+            userId: z.string().optional()
+        }),
         async resolve({ input }) {
             console.log("Sort called in backend: ", input);
-            if (input && input?.sortType === 'hot' || input?.sortType === 'new' || input?.sortType.includes('top')) {
-                const posts = await getPosts(input.sortType, input.timeSort);
-                if (posts !== undefined && posts !== null) {
-                    console.log("Posts from redis: ")
-                    return posts as unknown as Prompt[];
-                }
-
+            if (input.sortType === 'hot' || input.sortType === 'new' || input.sortType.includes('top')) {
+                // const posts = await getPosts(input.sortType, input.timeSort);
+                // if (posts !== undefined && posts !== null) {
+                //     console.log("Posts from redis: ")
+                //     return posts as unknown as Prompt[];
+                // }
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
                 await prisma.post.createMany({
                     data: [...prompts.map((val) => {
-                        const { totalComments, ...rest } = val;
-                        return rest
+                        const { totalComments, liked, readLater, saved, ...rest } = val;
+                        return { ...rest }
                     })],
                     skipDuplicates: true
                 })
+                // Check if user has saved or liked any of the posts
 
-                await addPosts(prompts, input.sortType, input.timeSort)
+                if (input.userId !== undefined) {
+                    prompts = await Promise.all(prompts.map(async (prompt) => {
+                        const dbPost = await prisma.userPostSaved.findFirst({
+                            where: {
+                                userId: input.userId!,
+                                postId: prompt.id
+                            }
+                        });
+
+                        return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, saved: dbPost?.favorited };
+                    }))
+                }
+
+                // await addPosts(prompts, input.sortType, input.timeSort)
 
                 return prompts;
             } else {
@@ -79,10 +93,11 @@ export const postRouter = createRouter()
     })
     .query("byId", {
         input: z.object({
-            id: z.string()
+            id: z.string(),
+            userId: z.string().optional()
         }),
         async resolve({ input }) {
-            const { id } = input;
+            const { id, userId } = input;
 
             console.log("backend called")
 
@@ -93,6 +108,26 @@ export const postRouter = createRouter()
                 rejectOnNotFound: true,
             });
 
+            let prompt: Prompt = { ...post, totalComments: await getTotalCommentsForPost('/r/writingprompts', post.id) }
+
+            if (userId) {
+                const userPrompt = await prisma.userPostSaved.findUnique({
+                    where: {
+                        userId_postId: {
+                            userId,
+                            postId: id
+                        }
+                    }
+                });
+
+                if (userPrompt) {
+                    prompt.liked = userPrompt.liked;
+                    prompt.readLater = userPrompt.readLater;
+                    prompt.saved = userPrompt.favorited;
+                }
+            }
+
+
             if (!post) {
                 throw new TRPCError({
                     cause: undefined,
@@ -101,14 +136,34 @@ export const postRouter = createRouter()
                 });
             }
 
-            const prompt: Prompt = { ...post, totalComments: await getTotalCommentsForPost('/r/writingprompts', post.id) }
 
             return prompt;
         }
     })
+    .query("getLikes", {
+        input: z.object({
+            userId: z.string()
+        }),
+        async resolve({ input }) {
+            const { userId } = input;
+
+            const userLikes = await prisma.userPostSaved.findMany({
+                where: {
+                    userId,
+                    liked: true
+                },
+                include: {
+                    post: true
+                }
+            });
+
+            const posts: Prompt[] = await Promise.all(userLikes.map(async (val) => ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })));
+            return posts;
+        }
+    })
     .mutation("like", {
         input: z.object({
-            userId: z.string().uuid(),
+            userId: z.string(),
             postId: z.string(),
             liked: z.boolean()
         }),
@@ -118,15 +173,22 @@ export const postRouter = createRouter()
                 where: { id: postId },
                 data: {
                     userPostSaved: {
-                        update: {
+                        upsert: {
+                            create: {
+                                userId,
+                                liked,
+                                favorited: false,
+                                readLater: false
+                            },
+                            update: {
+                                liked,
+                                userId
+                            },
                             where: {
                                 userId_postId: {
-                                    userId,
-                                    postId
+                                    postId,
+                                    userId
                                 }
-                            },
-                            data: {
-                                liked: liked
                             }
                         }
                     }
@@ -139,7 +201,7 @@ export const postRouter = createRouter()
     })
     .mutation("favorite", {
         input: z.object({
-            userId: z.string().uuid(),
+            userId: z.string(),
             postId: z.string(),
             favorited: z.boolean()
         }),
@@ -149,16 +211,23 @@ export const postRouter = createRouter()
                 where: { id: postId },
                 data: {
                     userPostSaved: {
-                        update: {
+                        upsert: {
+                            create: {
+                                favorited,
+                                userId,
+                                liked: false,
+                                readLater: false,
+                            },
+                            update: {
+                                favorited,
+                                userId
+                            },
                             where: {
                                 userId_postId: {
                                     userId,
                                     postId
                                 }
                             },
-                            data: {
-                                favorited: favorited
-                            }
                         }
                     }
                 },

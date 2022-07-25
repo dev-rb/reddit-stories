@@ -16,7 +16,8 @@ import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
 import { useQueries, useQueryClient } from 'react-query';
 import { PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from 'src/interfaces/db';
-import { useDependentQueries } from 'src/hooks/useDependentQueries';
+import AccountDrawer from 'src/components/AccountDrawer';
+import { useSession } from 'next-auth/react';
 
 const Home = () => {
 
@@ -26,6 +27,8 @@ const Home = () => {
   const router = useRouter();
 
   const { sort, time } = router.query;
+
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const currentSort = sort ? sortTypeMap[sort.toString() as SortType].toString() : 'hot'
   const currentTime = time ? topSortTypeMap[time.toString() as TopTimeSort].toString() : undefined
@@ -39,25 +42,29 @@ const Home = () => {
 
   const modals = useModals();
 
+  const session = useSession();
+
   const selector = useSelector((state: PostsState) => downloadedPostsSelector({ posts: state.posts, sortType, timeSort }), shallowEqual);
 
   const queryClient = useQueryClient();
   const trpcContext = trpc.useContext();
 
+  const userId = session.data?.user?.id;
+  console.log("Client userId: ", userId)
   const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
-    ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts }],
+    ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId: userId }],
     {
       context: {
         skipBatch: true
       },
-      queryFn: async ({ queryKey, signal }) => {
+      // queryFn: async ({ queryKey, signal }) => {
 
-        return (await fetch(queryKey[0], { signal })).json()
-      },
+      //   return (await fetch(queryKey[0], { signal })).json()
+      // },
       // onSuccess: (data) => console.log(`Data: `, data),
       initialData: () => {
         if (selector.length === 0) {
-          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts }]);
+          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId }]);
           if (cacheData) {
             return cacheData
           }
@@ -133,7 +140,8 @@ const Home = () => {
               <Title sx={{ fontWeight: 200 }}>Explore</Title>
               <Title >Stories</Title>
             </Stack>
-            <Avatar radius={'xl'} onClick={() => { toggleColorScheme(); }} />
+            <Avatar radius={'xl'} onClick={() => { setDrawerOpen(true) }} />
+            <AccountDrawer opened={drawerOpen} closeDrawer={() => setDrawerOpen(false)} />
           </Group>
 
           <TextInput variant='filled' size='lg' mt={40} icon={<MdSearch size={25} />} placeholder='Search Stories' sx={{ width: '100%' }} />
@@ -199,10 +207,9 @@ const Home = () => {
                     transform: `translateY(${item.start}px)`,
                   }}
                 >
-                  <Post key={currentItem.id}
+                  <Post
+                    key={currentItem.id}
                     {...currentItem}
-                    created={currentItem.created}
-                    totalStories={currentItem.totalComments}
                     index={index}
                     isDownloaded={selector.find((val) => val.id === currentItem.id) !== undefined}
                   />

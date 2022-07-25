@@ -65,7 +65,7 @@ const MobileSelect = ({ onChange, onBottomSheetClose, data, selectOptions, botto
 
             <Drawer
                 className={classes.bottomSheet}
-                opened={bottomSheetOpen}
+                opened={bottomSheetOpen && !largeScreen}
                 onClose={() => { setBottomSheetOpen(false); onBottomSheetClose(); }}
                 position='bottom'
                 padding={'lg'}

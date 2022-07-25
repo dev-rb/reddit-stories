@@ -16,9 +16,10 @@ import { ModalsProvider } from '@mantine/modals';
 import { httpBatchLink } from '@trpc/client/links/httpBatchLink';
 import { httpLink } from '@trpc/client/links/httpLink';
 import { splitLink } from '@trpc/client/links/splitLink';
+import { SessionProvider } from 'next-auth/react';
 
-const url = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}/api/trpc`
+const url = process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/trpc`
     : 'http://localhost:3000/api/trpc';
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
@@ -102,28 +103,30 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                 <link rel="apple-touch-icon" href="/logo.png"></link>
                 <meta name="theme-color" content="#317EFB" />
             </Head>
-            <trpc.Provider client={trpcClient} queryClient={queryClient}>
-                <QueryClientProvider client={queryClient}>
-                    <Provider store={store}>
-                        <PersistGate loading={null} persistor={persistor}>
-                            <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
-                                <MantineProvider
-                                    theme={{ colorScheme: theme }}
-                                    withGlobalStyles
-                                    withNormalizeCSS
-                                >
-                                    <ModalsProvider>
-                                        <AppLayout>
-                                            <Component {...pageProps} />
+            <SessionProvider>
+                <trpc.Provider client={trpcClient} queryClient={queryClient}>
+                    <QueryClientProvider client={queryClient}>
+                        <Provider store={store}>
+                            <PersistGate loading={null} persistor={persistor}>
+                                <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
+                                    <MantineProvider
+                                        theme={{ colorScheme: theme }}
+                                        withGlobalStyles
+                                        withNormalizeCSS
+                                    >
+                                        <ModalsProvider>
+                                            <AppLayout>
+                                                <Component {...pageProps} />
 
-                                        </AppLayout>
-                                    </ModalsProvider>
-                                </MantineProvider>
-                            </ColorSchemeProvider>
-                        </PersistGate>
-                    </Provider>
-                </QueryClientProvider>
-            </trpc.Provider>
+                                            </AppLayout>
+                                        </ModalsProvider>
+                                    </MantineProvider>
+                                </ColorSchemeProvider>
+                            </PersistGate>
+                        </Provider>
+                    </QueryClientProvider>
+                </trpc.Provider>
+            </SessionProvider>
 
         </>
     );
