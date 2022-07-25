@@ -201,7 +201,7 @@ export const postRouter = createRouter()
     })
     .mutation("favorite", {
         input: z.object({
-            userId: z.string().uuid(),
+            userId: z.string(),
             postId: z.string(),
             favorited: z.boolean()
         }),
@@ -211,16 +211,23 @@ export const postRouter = createRouter()
                 where: { id: postId },
                 data: {
                     userPostSaved: {
-                        update: {
+                        upsert: {
+                            create: {
+                                favorited,
+                                userId,
+                                liked: false,
+                                readLater: false,
+                            },
+                            update: {
+                                favorited,
+                                userId
+                            },
                             where: {
                                 userId_postId: {
                                     userId,
                                     postId
                                 }
                             },
-                            data: {
-                                favorited: favorited
-                            }
                         }
                     }
                 },

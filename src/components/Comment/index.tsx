@@ -2,9 +2,9 @@ import * as React from 'react';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
 import { createStyles, Group, Stack, Text, Title, UnstyledButton } from '@mantine/core';
-import { MdBookmark } from 'react-icons/md';
+import { MdBookmark, MdFileDownload } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
-import { BsClockHistory } from 'react-icons/bs';
+import { BsClockFill, BsClockHistory } from 'react-icons/bs';
 import useLongPress from '../../hooks/useLongPress';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
@@ -71,13 +71,19 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
     return (
         <Stack ref={commentRef} id={'root-container'} className={classes.rootContainer} spacing={0} {...longPressEvent}>
             <Stack id={"parent-reply"} className={classes.commentContainer} spacing={0} px='lg' py='xs'>
-                <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
-                    <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
-                    {postAuthor === author &&
-                        <Text size='xs' color='blue'>OP</Text>
-                    }
-                    <Text size='lg'>·</Text>
-                    <Text size='xs'>{(dayjs(created).fromNow())}</Text>
+                <Group align='center' position='apart'>
+                    <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
+                        <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
+                        {postAuthor === author &&
+                            <Text size='xs' color='blue'>OP</Text>
+                        }
+                        <Text size='lg'>·</Text>
+                        <Text size='xs'>{(dayjs(created).fromNow())}</Text>
+                    </Group>
+                    <Group noWrap spacing={10}>
+                        <BsClockFill size={16} color={'#313131'} />
+                        <MdBookmark size={16} color={'#313131'} />
+                    </Group>
                 </Group>
                 <Stack spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>

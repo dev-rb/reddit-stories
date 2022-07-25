@@ -36,21 +36,27 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
     }, [isDownloaded])
 
     const markAsRead = () => {
-        (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]).forEach((val) => {
-            if (val.id === id) {
-                val.userRead = true;
-            }
-        })
+        const queryCache = (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]);
+        if (queryCache) {
+            queryCache.forEach((val) => {
+                if (val.id === id) {
+                    val.userRead = true;
+                }
+            })
+        }
     }
 
     React.useEffect(() => {
-        (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]).forEach((val) => {
-            if (val.id === id) {
-                if (val.userRead) {
-                    setIsRead(val.userRead);
+        const queryCache = (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]);
+        if (queryCache) {
+            queryCache.forEach((val) => {
+                if (val.id === id) {
+                    if (val.userRead) {
+                        setIsRead(val.userRead);
+                    }
                 }
-            }
-        })
+            })
+        }
     }, [queryClient, id])
 
     return (

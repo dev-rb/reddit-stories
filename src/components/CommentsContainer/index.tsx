@@ -3,7 +3,7 @@ import { IPost } from '../../interfaces/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
 import useFixedNavbar from '../../hooks/useFixedNavbar';
-import { createStyles, Group, Paper, Stack, Box, Title, Center } from '@mantine/core';
+import { createStyles, Group, Paper, Stack, Box, Title, Center, Loader } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import Post from '../Post';
@@ -15,6 +15,7 @@ import { useSelector } from 'react-redux';
 import { postSelector, PostsState } from 'src/redux/slices';
 import SortSelect from '../MobileSelect/SortSelect';
 import { useSession } from 'next-auth/react';
+import { Prompt } from 'src/interfaces/db';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -49,10 +50,11 @@ const CommentsContainer = ({ postId }: Props) => {
     const router = useRouter();
 
     const session = useSession();
+    const queryClient = useQueryClient();
 
     const postInfo = useSelector((state: PostsState) => postSelector(state, postId))
 
-    const { data: storiesData } = trpc.useQuery(['story.forPost', { id: postId, userId: session.data?.user?.id }], {
+    const { data: storiesData, isLoading: isLoadingStories } = trpc.useQuery(['story.forPost', { id: postId, userId: session.data?.user?.id }], {
         // onSuccess: (data) => console.log(data),
         initialData: () => {
             if (postInfo === undefined) {
@@ -65,6 +67,13 @@ const CommentsContainer = ({ postId }: Props) => {
         initialData: () => {
             if (postInfo === undefined) {
                 console.log("Empty state")
+                const queryCache = (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]);
+                if (queryCache !== undefined) {
+                    const cacheInfo = queryCache.find((val) => val.id === postId);
+                    if (cacheInfo) {
+                        return cacheInfo;
+                    }
+                }
                 return
             }
             const { downloaded, isReadLater, isSaved, ...rest } = postInfo;
@@ -97,34 +106,35 @@ const CommentsContainer = ({ postId }: Props) => {
                                 <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Stories Yet</Title>
                             </Center>
                             :
-                            <ListVirtualizer
-                                data={storiesData ?? []}
-                                renderItem={(item) => {
-                                    const currentItem = storiesData![item.index]
-                                    return (
-                                        <div
-                                            key={item.index}
-                                            ref={item.measureElement}
-                                            style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                width: '100%',
-                                                // height: `${item.size}px`,
-                                                transform: `translateY(${item.start}px)`,
-                                            }}
-                                        >
-                                            <CommentDisplay
-                                                key={currentItem.id}
-                                                {...currentItem}
-                                                postId={postId}
-                                                postAuthor={postData!.author}
-                                                replyIndex={0} />
-                                        </div>
-                                    )
-                                }}
+                            isLoadingStories ? <Loader /> :
+                                <ListVirtualizer
+                                    data={storiesData ?? []}
+                                    renderItem={(item) => {
+                                        const currentItem = storiesData![item.index]
+                                        return (
+                                            <div
+                                                key={item.index}
+                                                ref={item.measureElement}
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    width: '100%',
+                                                    // height: `${item.size}px`,
+                                                    transform: `translateY(${item.start}px)`,
+                                                }}
+                                            >
+                                                <CommentDisplay
+                                                    key={currentItem.id}
+                                                    {...currentItem}
+                                                    postId={postId}
+                                                    postAuthor={postData!.author}
+                                                    replyIndex={0} />
+                                            </div>
+                                        )
+                                    }}
 
-                            />
+                                />
 
                     }
                 </Stack>
