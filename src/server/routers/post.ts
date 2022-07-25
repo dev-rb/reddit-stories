@@ -142,10 +142,18 @@ export const postRouter = createRouter()
     })
     .query("getLikes", {
         input: z.object({
-            userId: z.string()
+            userId: z.string().optional()
         }),
         async resolve({ input }) {
             const { userId } = input;
+
+            if (!userId) {
+                throw new TRPCError({
+                    cause: undefined,
+                    code: 'UNAUTHORIZED',
+                    message: 'User not authenticated'
+                })
+            }
 
             const userLikes = await prisma.userPostSaved.findMany({
                 where: {

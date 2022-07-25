@@ -18,6 +18,7 @@ import { useQueries, useQueryClient } from 'react-query';
 import { PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from 'src/interfaces/db';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { useSession } from 'next-auth/react';
+import { useUser } from 'src/hooks/useUser';
 
 const Home = () => {
 
@@ -42,14 +43,12 @@ const Home = () => {
 
   const modals = useModals();
 
-  const session = useSession();
-
   const selector = useSelector((state: PostsState) => downloadedPostsSelector({ posts: state.posts, sortType, timeSort }), shallowEqual);
 
   const queryClient = useQueryClient();
   const trpcContext = trpc.useContext();
 
-  const userId = session.data?.user?.id;
+  const { userId } = useUser();
   console.log("Client userId: ", userId)
   const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
     ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId: userId }],

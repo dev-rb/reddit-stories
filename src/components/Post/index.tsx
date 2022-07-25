@@ -71,12 +71,12 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
                             <Text size='xs'>{dayjs(created).fromNow()}</Text>
                         </Group>
                         <Group noWrap spacing={10}>
-                            <MdFileDownload size={16} color={downloadedStatus ? '#F8A130' : '#313131'} />
-                            <BsClockFill size={16} color={'#313131'} />
-                            <MdBookmark size={16} color={'#313131'} />
+                            <MdFileDownload size={16} color={downloadedStatus ? '#F8A130' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                            <BsClockFill size={16} color={theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                            <MdBookmark size={16} color={theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
                         </Group>
                     </Group>
-                    <Text size='sm' weight={600} color={isRead ? theme.colors.dark[3] : theme.colors.gray[0]}>
+                    <Text size='sm' weight={600} color={isRead ? (theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]) : (theme.colorScheme === 'dark' ? theme.colors.gray[0] : theme.black)}>
                         {title.replace('[WP]', '').trim()}
                     </Text>
                     <PostControls postInfo={{ title, id, score, author, created, totalComments }} liked={liked} toggleLiked={() => setLiked((prev) => !prev)} />

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
-import { createStyles, Group, Stack, Text, Title, UnstyledButton } from '@mantine/core';
+import { createStyles, Group, Stack, Text, Title, UnstyledButton, useMantineTheme } from '@mantine/core';
 import { MdBookmark, MdFileDownload } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { BsClockFill, BsClockHistory } from 'react-icons/bs';
@@ -44,6 +44,8 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
 
     const commentRef = React.useRef<HTMLDivElement>(null);
 
+    const theme = useMantineTheme();
+
     const minimizeComment = () => {
         console.log("Long press called")
         const comment = commentRef.current;
@@ -81,8 +83,8 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
                         <Text size='xs'>{(dayjs(created).fromNow())}</Text>
                     </Group>
                     <Group noWrap spacing={10}>
-                        <BsClockFill size={16} color={'#313131'} />
-                        <MdBookmark size={16} color={'#313131'} />
+                        <BsClockFill size={16} color={theme.colors.dark[4]} />
+                        <MdBookmark size={16} color={theme.colors.dark[4]} />
                     </Group>
                 </Group>
                 <Stack spacing={0}>

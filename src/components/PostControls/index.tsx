@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { Group, UnstyledButton, Text } from '@mantine/core';
-import { BsClockFill, BsClockHistory } from 'react-icons/bs';
+import { BsClockFill } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { MdModeComment, MdBookmark } from 'react-icons/md';
 import { Prompt, StoryAndExtendedReplies } from 'src/interfaces/db';
 import { trpc } from 'src/utils/trpc';
 import { useSession } from 'next-auth/react';
+import { useUser } from 'src/hooks/useUser';
 
 type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>
 type NeededStoryValues = Pick<StoryAndExtendedReplies, 'replies' | 'liked' | 'score' | 'id'>
@@ -19,20 +20,19 @@ interface PostControlsProps<TData extends PostOrComment> {
 
 const PostControls = <TData extends PostOrComment,>({ postInfo, liked, toggleLiked }: PostControlsProps<TData>) => {
 
-    const session = useSession();
-
     const { mutate: likePostMutation } = trpc.useMutation('post.like');
     const { mutate: likeStoryMutation } = trpc.useMutation('story.like');
+    const { userId, isAuthenticated } = useUser();
 
     const likePost = () => {
-        if (session.data?.user) {
+        if (isAuthenticated) {
             toggleLiked();
             if ((postInfo as NeededStoryValues).replies) {
                 console.log("Is story")
-                likeStoryMutation({ liked: !liked, commentId: postInfo.id, userId: session.data.user.id })
+                likeStoryMutation({ liked: !liked, commentId: postInfo.id, userId: userId! })
             } else {
                 console.log("Is prompt")
-                likePostMutation({ liked: !liked, postId: postInfo.id, userId: session.data.user.id })
+                likePostMutation({ liked: !liked, postId: postInfo.id, userId: userId! })
 
             }
         } else {
