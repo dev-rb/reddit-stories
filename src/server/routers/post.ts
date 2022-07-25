@@ -169,6 +169,64 @@ export const postRouter = createRouter()
             return posts;
         }
     })
+    .query("getSaves", {
+        input: z.object({
+            userId: z.string().optional()
+        }),
+        async resolve({ input }) {
+            const { userId } = input;
+
+            if (!userId) {
+                throw new TRPCError({
+                    cause: undefined,
+                    code: 'UNAUTHORIZED',
+                    message: 'User not authenticated'
+                })
+            }
+
+            const userLikes = await prisma.userPostSaved.findMany({
+                where: {
+                    userId,
+                    favorited: true
+                },
+                include: {
+                    post: true
+                }
+            });
+
+            const posts: Prompt[] = await Promise.all(userLikes.map(async (val) => ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })));
+            return posts;
+        }
+    })
+    .query("getReadLaters", {
+        input: z.object({
+            userId: z.string().optional()
+        }),
+        async resolve({ input }) {
+            const { userId } = input;
+
+            if (!userId) {
+                throw new TRPCError({
+                    cause: undefined,
+                    code: 'UNAUTHORIZED',
+                    message: 'User not authenticated'
+                })
+            }
+
+            const userLikes = await prisma.userPostSaved.findMany({
+                where: {
+                    userId,
+                    readLater: true
+                },
+                include: {
+                    post: true
+                }
+            });
+
+            const posts: Prompt[] = await Promise.all(userLikes.map(async (val) => ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })));
+            return posts;
+        }
+    })
     .mutation("like", {
         input: z.object({
             userId: z.string(),
@@ -247,7 +305,7 @@ export const postRouter = createRouter()
     })
     .mutation("readLater", {
         input: z.object({
-            userId: z.string().uuid(),
+            userId: z.string(),
             postId: z.string(),
             readLater: z.boolean()
         }),
@@ -257,16 +315,23 @@ export const postRouter = createRouter()
                 where: { id: postId },
                 data: {
                     userPostSaved: {
-                        update: {
+                        upsert: {
+                            create: {
+                                readLater,
+                                userId,
+                                liked: false,
+                                favorited: false,
+                            },
+                            update: {
+                                readLater,
+                                userId
+                            },
                             where: {
                                 userId_postId: {
                                     userId,
                                     postId
                                 }
                             },
-                            data: {
-                                readLater: readLater
-                            }
                         }
                     }
                 },

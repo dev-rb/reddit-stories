@@ -7,8 +7,6 @@ interface PostStateItem extends PromptAndStoriesWithExtendedReplies {
     sortType: string,
     timeSort?: string,
     downloaded: boolean,
-    isSaved?: boolean,
-    isReadLater?: boolean
 }
 
 export interface PostsState {
@@ -48,8 +46,8 @@ const PostsSlice = createSlice({
             state.posts = [...state.posts.filter((post) => {
                 const isSameSort = post.sortType === payload.sortType;
                 const isSameTimeSort = post.timeSort === payload.timeSort;
-                const isSaved = post.isSaved === true;
-                const isReadLater = post.isReadLater === true;
+                const isSaved = post.saved === true;
+                const isReadLater = post.readLater === true;
 
                 return !(isSameSort || isSameTimeSort || isSaved || isReadLater) && post.downloaded;
             })]

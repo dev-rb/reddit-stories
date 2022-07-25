@@ -15,13 +15,22 @@ type PostOrComment = NeededPromptValues | NeededStoryValues
 interface PostControlsProps<TData extends PostOrComment> {
     postInfo: TData,
     liked: boolean,
-    toggleLiked: () => void
+    favorited: boolean,
+    readLater: boolean,
+    toggleLiked: () => void,
+    toggleSaved: () => void,
+    toggleReadLater: () => void,
 }
 
-const PostControls = <TData extends PostOrComment,>({ postInfo, liked, toggleLiked }: PostControlsProps<TData>) => {
+const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited, readLater, toggleLiked, toggleSaved, toggleReadLater }: PostControlsProps<TData>) => {
 
     const { mutate: likePostMutation } = trpc.useMutation('post.like');
     const { mutate: likeStoryMutation } = trpc.useMutation('story.like');
+
+    const { mutate: savePostMutation } = trpc.useMutation('post.favorite');
+
+    const { mutate: readLaterPostMutation } = trpc.useMutation('post.readLater');
+
     const { userId, isAuthenticated } = useUser();
 
     const likePost = () => {
@@ -40,10 +49,52 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, toggleLik
         }
     }
 
+    const savePost = () => {
+        if (isAuthenticated) {
+            toggleSaved();
+            if ((postInfo as NeededStoryValues).replies) {
+                console.log("Is story")
+            } else {
+                console.log("Is prompt")
+                savePostMutation({ favorited: !favorited, postId: postInfo.id, userId: userId! })
+
+            }
+        } else {
+            console.log("Unauthenticated")
+        }
+    }
+
+    const readLaterPost = () => {
+        if (isAuthenticated) {
+            toggleReadLater();
+            if ((postInfo as NeededStoryValues).replies) {
+                console.log("Is story")
+            } else {
+                console.log("Is prompt")
+                readLaterPostMutation({ readLater: !readLater, postId: postInfo.id, userId: userId! })
+
+            }
+        } else {
+            console.log("Unauthenticated")
+        }
+    }
+
+    const handleSavedPress = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        e.preventDefault();
+        savePost();
+    }
+
     const handleLikePress = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         e.preventDefault();
         likePost();
+    }
+
+    const handleReadLaterPress = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        e.preventDefault();
+        readLaterPost();
     }
 
     return (
@@ -67,10 +118,10 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, toggleLik
                     <Text weight={500}>{(postInfo as any).totalComments}</Text>
                 </Group>
             </UnstyledButton>
-            <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
+            <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })} onClick={handleSavedPress}>
                 <MdBookmark size={20} />
             </UnstyledButton>
-            <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
+            <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })} onClick={handleReadLaterPress}>
                 <BsClockFill size={20} />
             </UnstyledButton>
         </Group>

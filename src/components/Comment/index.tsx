@@ -38,8 +38,10 @@ const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: bo
     }
 }));
 
-const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, permalink, postId, postAuthor, replyIndex, liked: storyLiked }: IStory & { replies: ExtendedReply[], postAuthor: string, replyIndex: number }) => {
+const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, permalink, postId, postAuthor, replyIndex, liked: storyLiked, saved: storySaved, readLater: storyReadLater }: IStory & { replies: ExtendedReply[], postAuthor: string, replyIndex: number }) => {
     const [liked, setLiked] = React.useState(storyLiked ?? false);
+    const [saved, setSaved] = React.useState(storySaved ?? false);
+    const [later, setLater] = React.useState(storyReadLater ?? false);
     const { classes } = useCommentStyles({ liked, replyIndex });
 
     const commentRef = React.useRef<HTMLDivElement>(null);
@@ -90,7 +92,15 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
                 <Stack spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
 
-                    <PostControls liked={liked} postInfo={{ body, bodyHtml, author, created, id, score, postId, replies, totalComments: replies.length }} toggleLiked={() => setLiked((prev) => !prev)} />
+                    <PostControls
+                        postInfo={{ body, bodyHtml, author, created, id, score, postId, replies, totalComments: replies.length }}
+                        liked={liked}
+                        toggleLiked={() => setLiked((prev) => !prev)}
+                        favorited={saved}
+                        toggleSaved={() => setSaved((prev) => !prev)}
+                        readLater={later}
+                        toggleReadLater={() => setLater((prev) => !prev)}
+                    />
                 </Stack>
 
             </Stack>

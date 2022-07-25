@@ -13,13 +13,15 @@ import { useQueryClient } from 'react-query';
 
 dayjs.extend(relativeTime)
 
-const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked }: Prompt & { index: number, isDownloaded?: boolean }) => {
+const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked, saved: postSaved, readLater: postReadLater }: Prompt & { index: number, isDownloaded?: boolean }) => {
 
     const [isRead, setIsRead] = React.useState(false);
 
     const [downloadedStatus, setDownloadedStatus] = React.useState(false);
 
     const [liked, setLiked] = React.useState(postLiked ?? false);
+    const [saved, setSaved] = React.useState(postSaved ?? false);
+    const [later, setLater] = React.useState(postReadLater ?? false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
@@ -71,15 +73,23 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
                             <Text size='xs'>{dayjs(created).fromNow()}</Text>
                         </Group>
                         <Group noWrap spacing={10}>
-                            <MdFileDownload size={16} color={downloadedStatus ? '#F8A130' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
-                            <BsClockFill size={16} color={theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
-                            <MdBookmark size={16} color={theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                            <MdFileDownload size={16} color={downloadedStatus ? '#F84B30' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                            <BsClockFill size={16} color={later ? '#F8A130' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                            <MdBookmark size={16} color={saved ? '#30CFF8' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
                         </Group>
                     </Group>
                     <Text size='sm' weight={600} color={isRead ? (theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]) : (theme.colorScheme === 'dark' ? theme.colors.gray[0] : theme.black)}>
                         {title.replace('[WP]', '').trim()}
                     </Text>
-                    <PostControls postInfo={{ title, id, score, author, created, totalComments }} liked={liked} toggleLiked={() => setLiked((prev) => !prev)} />
+                    <PostControls
+                        postInfo={{ title, id, score, author, created, totalComments }}
+                        liked={liked}
+                        toggleLiked={() => setLiked((prev) => !prev)}
+                        favorited={saved}
+                        toggleSaved={() => setSaved((prev) => !prev)}
+                        readLater={later}
+                        toggleReadLater={() => setLater((prev) => !prev)}
+                    />
                 </Stack>
             </Box>
         </Anchor>

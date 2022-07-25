@@ -76,7 +76,7 @@ const CommentsContainer = ({ postId }: Props) => {
                 }
                 return
             }
-            const { downloaded, isReadLater, isSaved, ...rest } = postInfo;
+            const { downloaded, ...rest } = postInfo;
             return rest;
         }
     });
@@ -92,7 +92,7 @@ const CommentsContainer = ({ postId }: Props) => {
                 {/* Post Details */}
                 {(postData) &&
                     <Box mt={60}>
-                        <Post {...postData} index={0} />
+                        <Post {...postData} index={0} isDownloaded={postInfo?.downloaded} />
                     </Box>
                 }
                 <Stack spacing={0} pb={40}>

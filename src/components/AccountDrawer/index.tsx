@@ -49,7 +49,7 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
                             <NavLink href='/' label='Home' icon={<MdHome />} />
                             <NavLink href='/likes' label='Your Likes' icon={<BsHeartFill />} />
                             <NavLink href='/saved' label='Your Favorites' icon={<BsBookmarkFill />} />
-                            <NavLink href='/readlater' label='Your Read Later' icon={<BsClockFill />} />
+                            <NavLink href='/later' label='Your Read Later' icon={<BsClockFill />} />
                         </Stack>
                         <Stack>
                             {

@@ -5,12 +5,20 @@ import { MdSearch, MdDownload } from 'react-icons/md';
 import Post from '../../components/Post';
 import { IPost } from '../../interfaces/reddit';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
+import ListVirtualizer from 'src/components/ListVirtualizer';
+import { useUser } from 'src/hooks/useUser';
+import { trpc } from 'src/utils/trpc';
+import AccountDrawer from 'src/components/AccountDrawer';
 
 const SavedStories = () => {
     const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+    const [drawerOpen, setDrawerOpen] = React.useState(false);
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
-
+    const { userId } = useUser();
+    const { data: userLikes, isLoading, isError, error } = trpc.useQuery(['post.getSaves', { userId }], {
+        refetchOnMount: 'always',
+    })
     const onSortChange = (newValue: string) => {
     }
 
@@ -24,11 +32,12 @@ const SavedStories = () => {
                             <Title sx={{ fontWeight: 200 }}>Saved</Title>
                             <Title >Stories</Title>
                         </Stack>
-                        <Avatar radius={'xl'} onClick={() => toggleColorScheme()} />
+                        <Avatar radius={'xl'} onClick={() => setDrawerOpen(true)} />
+                        <AccountDrawer opened={drawerOpen} closeDrawer={() => setDrawerOpen(false)} />
                     </Group>
 
                 </Stack>
-                <Stack spacing={0} sx={{ width: '100%' }}>
+                <Stack spacing={0} pb={40} sx={{ width: '100%' }}>
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
                         <SortSelect onChange={() => { }} />
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
@@ -36,16 +45,41 @@ const SavedStories = () => {
                             <MdDownload />
                         </ActionIcon>
                     </Group>
-                    {/* 
-                    {!data && isLoading ?
+                    {isLoading ?
                         <Center>
                             <Loader />
                         </Center> :
+                        isError ?
+                            <Center>
+                                <Text> {error.message} </Text>
+                            </Center>
+                            :
+                            <ListVirtualizer data={userLikes!} renderItem={(item, index) => {
+                                const currentItem = userLikes![item.index];
+                                return (
+                                    <div
+                                        key={item.index}
+                                        ref={item.measureElement}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            // height: `${item.size}px`,
+                                            transform: `translateY(${item.start}px)`,
+                                        }}
+                                    >
+                                        <Post
+                                            key={currentItem.id}
+                                            {...currentItem}
+                                            index={index}
+                                        />
 
-                        data?.map((post: IPost) => <Post key={post.id} {...post} />)
-
-                    } */}
-
+                                    </div>
+                                )
+                            }}
+                            />
+                    }
                 </Stack>
             </Stack>
         </Stack>
