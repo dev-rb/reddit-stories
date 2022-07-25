@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Group, UnstyledButton, Text } from '@mantine/core';
-import { BsClockHistory } from 'react-icons/bs';
+import { BsClockFill, BsClockHistory } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { MdModeComment, MdBookmark } from 'react-icons/md';
 import { Prompt, StoryAndExtendedReplies } from 'src/interfaces/db';
@@ -71,7 +71,7 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, toggleLik
                 <MdBookmark size={20} />
             </UnstyledButton>
             <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
-                <BsClockHistory size={20} />
+                <BsClockFill size={20} />
             </UnstyledButton>
         </Group>
     );

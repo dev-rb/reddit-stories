@@ -1,7 +1,10 @@
-import { Button, Drawer, Stack, Switch, Title, useMantineColorScheme, useMantineTheme } from '@mantine/core';
+import { Button, Divider, Drawer, Group, Stack, Switch, Title, useMantineColorScheme, useMantineTheme } from '@mantine/core';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import * as React from 'react';
+import { BsBookmarkFill, BsClockFill, BsHeartFill } from 'react-icons/bs';
+import { MdHome } from 'react-icons/md';
+import NavLink from '../NavLink';
 
 interface AccountDrawerProps {
     opened: boolean,
@@ -33,32 +36,43 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
                 onClose={() => closeDrawer()}
                 position='right'
                 padding='xl'
-                size={'sm'}
+                size={'md'}
             >
-                <Stack align='start' sx={{ height: '85%' }}>
+                <Stack align='start' sx={{ height: '95%' }}>
                     <Stack spacing={'sm'}>
                         <Title order={3}> Welcome Back{session?.data?.user && ','} </Title>
                         {session.data && <Title sx={{ color: '#F8A130' }}> {session.data.user?.name} </Title>}
-
                     </Stack>
+                    <Divider sx={{ width: '100%' }} />
                     <Stack mt={'lg'} justify='space-between' sx={{ height: '100%', width: '100%' }}>
-                        <Switch
-                            label="Toggle Dark Mode"
-                            checked={colorScheme === 'dark'}
-                            onChange={() => toggleColorScheme()}
-                            sx={{ flexDirection: 'column-reverse', alignItems: 'start' }}
-                            styles={{ label: { paddingLeft: 0, paddingBottom: 10 } }}
-                        />
-                        {
-                            session.status === 'authenticated' ?
-                                <Button fullWidth onClick={signOutUser}> Sign out </Button>
-                                :
-                                <Stack>
-                                    <Title order={4}> Sign in to view your saved stories and prompts </Title>
-                                    <Button fullWidth onClick={navigateToSignIn}> Sign in </Button>
-                                </Stack>
+                        <Stack align='start' spacing={'xl'} sx={{ height: '100%' }}>
+                            <NavLink href='/' label='Home' icon={<MdHome />} />
+                            <NavLink href='/likes' label='Your Likes' icon={<BsHeartFill />} />
+                            <NavLink href='/saved' label='Your Favorites' icon={<BsBookmarkFill />} />
+                            <NavLink href='/readlater' label='Your Read Later' icon={<BsClockFill />} />
+                        </Stack>
+                        <Stack>
+                            {
+                                session.status === 'authenticated' ?
+                                    <Button fullWidth onClick={signOutUser}> Sign out </Button>
+                                    :
+                                    <Stack>
+                                        <Title order={4}> Sign in to view your saved stories and prompts </Title>
+                                        <Button fullWidth onClick={navigateToSignIn}> Sign in </Button>
+                                    </Stack>
 
-                        }
+                            }
+                            <Divider />
+                            <Group position='center'>
+                                <Switch
+                                    label="Toggle Dark Mode"
+                                    checked={colorScheme === 'dark'}
+                                    onChange={() => toggleColorScheme()}
+                                    sx={{ flexDirection: 'row-reverse', alignItems: 'start' }}
+                                    styles={{ label: { paddingLeft: 0, paddingRight: 20 } }}
+                                />
+                            </Group>
+                        </Stack>
                     </Stack>
                 </Stack>
             </Drawer>

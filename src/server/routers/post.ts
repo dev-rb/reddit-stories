@@ -140,6 +140,27 @@ export const postRouter = createRouter()
             return prompt;
         }
     })
+    .query("getLikes", {
+        input: z.object({
+            userId: z.string()
+        }),
+        async resolve({ input }) {
+            const { userId } = input;
+
+            const userLikes = await prisma.userPostSaved.findMany({
+                where: {
+                    userId,
+                    liked: true
+                },
+                include: {
+                    post: true
+                }
+            });
+
+            const posts: Prompt[] = await Promise.all(userLikes.map(async (val) => ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })));
+            return posts;
+        }
+    })
     .mutation("like", {
         input: z.object({
             userId: z.string(),

@@ -21,7 +21,8 @@ export interface Prompt extends Post {
     totalComments: number,
     liked?: boolean,
     saved?: boolean
-    readLater?: boolean
+    readLater?: boolean,
+    userRead?: boolean
 }
 
 export type PromptAndStories = Prompt & { stories: IStory[] };

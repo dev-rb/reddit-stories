@@ -53,7 +53,7 @@ const CommentsContainer = ({ postId }: Props) => {
     const postInfo = useSelector((state: PostsState) => postSelector(state, postId))
 
     const { data: storiesData } = trpc.useQuery(['story.forPost', { id: postId, userId: session.data?.user?.id }], {
-        onSuccess: (data) => console.log(data),
+        // onSuccess: (data) => console.log(data),
         initialData: () => {
             if (postInfo === undefined) {
                 return;
