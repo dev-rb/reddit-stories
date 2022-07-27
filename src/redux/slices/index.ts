@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import { PromptAndStoriesWithExtendedReplies } from "src/interfaces/db";
 import { persistor } from "../store";
 
+export type PostStatus = 'liked' | 'readLater' | 'saved'
+
 interface PostStateItem extends PromptAndStoriesWithExtendedReplies {
     sortType: string,
     timeSort?: string,
@@ -21,6 +23,25 @@ const PostsSlice = createSlice({
     name: 'PostsSlice',
     initialState: initialState,
     reducers: {
+        updatePostStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, storyId?: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
+            state.posts = state.posts.map((val) => {
+                if (val.id === payload.postId) {
+                    if (payload.storyId !== undefined) {
+                        val.stories = val.stories.map((story) => {
+                            if (story.id === payload.storyId) {
+                                story[payload.statusToUpdate] = payload.newStatusValue;
+                            }
+
+                            return story;
+
+                        })
+                    } else {
+                        val[payload.statusToUpdate] = payload.newStatusValue;
+                    }
+                }
+                return val;
+            })
+        },
         downloadPost: (state: PostsState, { payload }: PayloadAction<{ post: PromptAndStoriesWithExtendedReplies, sortType: string, timeSort?: string }>) => {
             console.log("Download post called")
             state.posts.push({ ...payload.post, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
@@ -75,7 +96,8 @@ const PostsSlice = createSlice({
 export const {
     downloadPost,
     downloadPosts,
-    clearDownloadedPosts
+    clearDownloadedPosts,
+    updatePostStatus
 } = PostsSlice.actions
 
 export const PostsReducer = PostsSlice.reducer;

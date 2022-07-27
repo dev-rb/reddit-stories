@@ -106,7 +106,7 @@ const CommentsContainer = ({ postId }: Props) => {
                                 <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Stories Yet</Title>
                             </Center>
                             :
-                            isLoadingStories ? <Loader /> :
+                            isLoadingStories ? <Center><Loader /></Center> :
                                 <ListVirtualizer
                                     data={storiesData ?? []}
                                     renderItem={(item) => {

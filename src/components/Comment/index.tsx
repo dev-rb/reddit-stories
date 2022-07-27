@@ -1,7 +1,7 @@
 import * as React from 'react';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
-import { createStyles, Group, Stack, Text, Title, UnstyledButton, useMantineTheme } from '@mantine/core';
+import { Button, createStyles, Group, Stack, Text, Title, UnstyledButton, useMantineTheme } from '@mantine/core';
 import { MdBookmark, MdFileDownload } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { BsClockFill, BsClockHistory } from 'react-icons/bs';
@@ -13,17 +13,21 @@ import { ExtendedReply, IStory } from 'src/interfaces/db';
 import PostControls from '../PostControls';
 
 dayjs.extend(RelativeTime);
-const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: boolean, replyIndex: number }) => ({
+const useCommentStyles = createStyles((theme, { liked, replyIndex, collapsed }: { liked: boolean, replyIndex: number, collapsed: boolean }) => ({
     rootContainer: {
         position: 'relative',
         marginLeft: replyIndex > 0 && replyIndex < 12 ? 8 : 0,
-        borderLeft: replyIndex > 0 ? `1px solid ${theme.colors.dark[4]}` : 'unset'
+        borderLeft: replyIndex > 0 ? `1px solid ${theme.colors.dark[4]}` : 'unset',
+        height: collapsed ? 100 : 'unset',
+        overflow: collapsed ? 'hidden' : 'unset'
     },
     commentContainer: {
         borderBottom: '1px solid',
         borderTop: '1px solid',
         borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
-        userSelect: 'none'
+        userSelect: 'none',
+        height: collapsed ? 100 : 'unset',
+        overflow: collapsed ? 'hidden' : 'unset'
     },
     commentDetails: {
         color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[5]
@@ -35,14 +39,47 @@ const useCommentStyles = createStyles((theme, { liked, replyIndex }: { liked: bo
         [`#root-container > div:is(#parent-reply)`]: {
             borderLeft: `2px solid ${theme.colors[nestedColors[replyIndex] ?? 'indigo'][5]}`
         }
+    },
+    collapsedReadButton: {
+        height: 60,
+        position: 'absolute',
+        bottom: 0,
+        background: 'linear-gradient(transparent 10%, black)',
+        width: '100%',
+        zIndex: 99
     }
 }));
 
-const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, permalink, postId, postAuthor, replyIndex, liked: storyLiked, saved: storySaved, readLater: storyReadLater }: IStory & { replies: ExtendedReply[], postAuthor: string, replyIndex: number }) => {
+interface CommentDisplayProps extends IStory {
+    replies: ExtendedReply[],
+    postAuthor: string,
+    replyIndex: number,
+    isCollapsed?: boolean
+}
+
+const CommentDisplay = ({
+    body,
+    bodyHtml,
+    author,
+    created,
+    id, score,
+    replies,
+    permalink,
+    postId,
+    postAuthor,
+    replyIndex,
+    liked: storyLiked,
+    saved: storySaved,
+    readLater: storyReadLater,
+    isCollapsed
+}: CommentDisplayProps) => {
     const [liked, setLiked] = React.useState(storyLiked ?? false);
     const [saved, setSaved] = React.useState(storySaved ?? false);
     const [later, setLater] = React.useState(storyReadLater ?? false);
-    const { classes } = useCommentStyles({ liked, replyIndex });
+
+    const [collapsed, setCollapsed] = React.useState(isCollapsed ?? false);
+
+    const { classes } = useCommentStyles({ liked, replyIndex, collapsed });
 
     const commentRef = React.useRef<HTMLDivElement>(null);
 
@@ -103,6 +140,7 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
                     />
                 </Stack>
 
+
             </Stack>
             {replies.length > 0 &&
 
@@ -114,6 +152,11 @@ const CommentDisplay = ({ body, bodyHtml, author, created, id, score, replies, p
                         )
                     })}
                 </Stack>
+            }
+            {collapsed &&
+                <Group className={classes.collapsedReadButton} align='center' position='center'>
+                    <Button sx={{ backgroundColor: theme.colors.blue[9] }} onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); e.stopPropagation(); setCollapsed(false); }}> Read </Button>
+                </Group>
             }
         </Stack>
     );

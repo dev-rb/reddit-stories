@@ -7,9 +7,11 @@ import { Prompt, StoryAndExtendedReplies } from 'src/interfaces/db';
 import { trpc } from 'src/utils/trpc';
 import { useSession } from 'next-auth/react';
 import { useUser } from 'src/hooks/useUser';
+import { useDispatch } from 'react-redux';
+import { PostStatus, updatePostStatus } from 'src/redux/slices';
 
 type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>
-type NeededStoryValues = Pick<StoryAndExtendedReplies, 'replies' | 'liked' | 'score' | 'id'>
+type NeededStoryValues = Pick<StoryAndExtendedReplies, 'replies' | 'liked' | 'score' | 'id' | 'postId'>
 type PostOrComment = NeededPromptValues | NeededStoryValues
 
 interface PostControlsProps<TData extends PostOrComment> {
@@ -33,68 +35,76 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
 
     const { userId, isAuthenticated } = useUser();
 
-    const likePost = () => {
-        if (isAuthenticated) {
-            toggleLiked();
-            if ((postInfo as NeededStoryValues).replies) {
-                console.log("Is story")
-                likeStoryMutation({ liked: !liked, commentId: postInfo.id, userId: userId! })
-            } else {
-                console.log("Is prompt")
-                likePostMutation({ liked: !liked, postId: postInfo.id, userId: userId! })
+    const dispatch = useDispatch();
 
-            }
-        } else {
-            console.log("Unauthenticated")
-        }
+    const isStory = "replies" in postInfo;
+
+    const updateLocalState = (status: PostStatus, newValue: boolean) => {
+        const storyIdAvailable = "replies" in postInfo ? postInfo.id : undefined;
+        const postId = "replies" in postInfo ? (postInfo as NeededStoryValues).postId : postInfo.id;
+        dispatch(updatePostStatus({ postId: postId!, storyId: storyIdAvailable, newStatusValue: newValue, statusToUpdate: status }))
     }
 
-    const savePost = () => {
-        if (isAuthenticated) {
-            toggleSaved();
-            if ((postInfo as NeededStoryValues).replies) {
-                console.log("Is story")
-            } else {
-                console.log("Is prompt")
-                savePostMutation({ favorited: !favorited, postId: postInfo.id, userId: userId! })
+    const updatePost = (status: PostStatus) => {
+        if (!isAuthenticated) return;
+        switch (status) {
+            case 'liked': {
+                toggleLiked();
+                if (isStory) {
+                    console.log("Is story")
+                    likeStoryMutation({ liked: !liked, commentId: postInfo.id, userId: userId! })
+                } else {
+                    console.log("Is prompt")
+                    likePostMutation({ liked: !liked, postId: postInfo.id, userId: userId! })
 
+                }
+                updateLocalState("liked", !liked);
+                break;
             }
-        } else {
-            console.log("Unauthenticated")
-        }
-    }
+            case 'readLater': {
+                toggleReadLater();
+                if (isStory) {
+                    console.log("Is story")
+                } else {
+                    console.log("Is prompt")
+                    readLaterPostMutation({ readLater: !readLater, postId: postInfo.id, userId: userId! })
 
-    const readLaterPost = () => {
-        if (isAuthenticated) {
-            toggleReadLater();
-            if ((postInfo as NeededStoryValues).replies) {
-                console.log("Is story")
-            } else {
-                console.log("Is prompt")
-                readLaterPostMutation({ readLater: !readLater, postId: postInfo.id, userId: userId! })
-
+                }
+                updateLocalState("readLater", !readLater);
+                break;
             }
-        } else {
-            console.log("Unauthenticated")
+            case 'saved': {
+                toggleSaved();
+                if (isStory) {
+                    console.log("Is story")
+                    likeStoryMutation({ liked: !liked, commentId: postInfo.id, userId: userId! })
+                } else {
+                    console.log("Is prompt")
+                    savePostMutation({ favorited: !favorited, postId: postInfo.id, userId: userId! })
+
+                }
+                updateLocalState("saved", !favorited);
+                break;
+            }
         }
     }
 
     const handleSavedPress = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         e.preventDefault();
-        savePost();
+        updatePost('saved');
     }
 
     const handleLikePress = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         e.preventDefault();
-        likePost();
+        updatePost('liked');
     }
 
     const handleReadLaterPress = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         e.preventDefault();
-        readLaterPost();
+        updatePost('readLater');
     }
 
     return (

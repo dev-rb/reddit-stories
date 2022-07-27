@@ -3,6 +3,7 @@ import Post from '../Post';
 import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual';
 import { get } from 'idb-keyval';
 import { PromptAndStoriesWithExtendedReplies } from 'src/interfaces/db';
+import { Center, Title } from '@mantine/core';
 
 type Key = number | string
 interface Item {
@@ -23,6 +24,13 @@ interface ListVirtualizerProps<TItem, TItemElement> {
 }
 
 const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtualizerProps<TItem, TItemElement>) => {
+    if (!data) {
+        return (
+            <Center>
+                <Title> No Data </Title>
+            </Center>
+        )
+    }
     const rowVirtualizer = useWindowVirtualizer({
         count: data.length,
         getScrollElement: () => window,
