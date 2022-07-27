@@ -20,7 +20,7 @@ interface VirtualItem<TItemElement> extends Item {
 
 interface ListVirtualizerProps<TItem, TItemElement> {
     data: TItem[],
-    renderItem: (item: VirtualItem<TItemElement>, index: number) => React.ReactNode
+    renderItem: (item: VirtualItem<TItemElement>, index: number, remeasure: () => void) => React.ReactNode
 }
 
 const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtualizerProps<TItem, TItemElement>) => {
@@ -39,6 +39,10 @@ const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtuali
         enableSmoothScroll: true
     });
 
+    const remeasure = () => {
+        rowVirtualizer.measure();
+    }
+
     React.useEffect(() => {
         rowVirtualizer.measure();
     }, [data])
@@ -55,7 +59,7 @@ const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtuali
             >
                 {/* Only the visible items in the virtualizer, manually positioned to be in view */}
                 {rowVirtualizer.getVirtualItems().map((virtualItem: VirtualItem<TItemElement>, index: number) => {
-                    return (renderItem(virtualItem, index))
+                    return (renderItem(virtualItem, index, remeasure))
                 })}
             </div>
         </>

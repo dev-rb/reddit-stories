@@ -1,16 +1,17 @@
 import * as React from 'react';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
-import { Button, createStyles, Group, Stack, Text, Title, UnstyledButton, useMantineTheme } from '@mantine/core';
+import { ActionIcon, Button, createStyles, Group, Stack, Text, Title, UnstyledButton, useMantineTheme } from '@mantine/core';
 import { MdBookmark, MdFileDownload } from 'react-icons/md';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
-import { BsClockFill, BsClockHistory } from 'react-icons/bs';
+import { BsChevronDown, BsChevronUp, BsClockFill, BsClockHistory, BsMenuDown } from 'react-icons/bs';
 import useLongPress from '../../hooks/useLongPress';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 import { nestedColors } from 'src/utils/nestedColors';
 import { ExtendedReply, IStory } from 'src/interfaces/db';
 import PostControls from '../PostControls';
+import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
 
 dayjs.extend(RelativeTime);
 const useCommentStyles = createStyles((theme, { liked, replyIndex, collapsed }: { liked: boolean, replyIndex: number, collapsed: boolean }) => ({
@@ -79,11 +80,20 @@ const CommentDisplay = ({
 
     const [collapsed, setCollapsed] = React.useState(isCollapsed ?? false);
 
+    const listContext = React.useContext(ListVirtualizerContext);
+
     const { classes } = useCommentStyles({ liked, replyIndex, collapsed });
 
     const commentRef = React.useRef<HTMLDivElement>(null);
 
     const theme = useMantineTheme();
+
+    const collapseComment = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCollapsed(!collapsed);
+        listContext?.remeasure();
+    }
 
     const minimizeComment = () => {
         console.log("Long press called")
@@ -114,6 +124,11 @@ const CommentDisplay = ({
             <Stack id={"parent-reply"} className={classes.commentContainer} spacing={0} px='lg' py='xs'>
                 <Group align='center' position='apart'>
                     <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
+                        {isCollapsed !== undefined &&
+                            <ActionIcon variant='filled' size='md' radius={'xl'} mr='sm' onClick={collapseComment}>
+                                {collapsed ? <BsChevronUp /> : <BsChevronDown />}
+                            </ActionIcon>
+                        }
                         <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>u/{author}</Title>
                         {postAuthor === author &&
                             <Text size='xs' color='blue'>OP</Text>
