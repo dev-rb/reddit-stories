@@ -12,6 +12,7 @@ import CommentDisplay from 'src/components/Comment';
 import { IStory, Prompt } from 'src/interfaces/db';
 import Link from 'next/link';
 import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
+import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
 
 const UserLikesPage = () => {
     const { colorScheme, toggleColorScheme } = useMantineColorScheme();
@@ -19,7 +20,7 @@ const UserLikesPage = () => {
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
     const { userId } = useUser();
-    const { data: userLikes, isLoading, isError, error } = trpc.useQuery(['user.getLikes', { userId, status: 'liked' }], {
+    const { data: userLikes, isLoading, isError, error, isFetching, isRefetching } = trpc.useQuery(['user.getLikes', { userId, status: 'liked' }], {
         refetchOnMount: 'always',
     })
 
@@ -52,60 +53,35 @@ const UserLikesPage = () => {
                         </ActionIcon>
                     </Group>
 
-                    {isLoading ?
-                        <Center>
-                            <Loader />
-                        </Center> :
-                        isError ?
-                            <Center>
-                                <Text> {error.message} </Text>
-                            </Center>
-                            :
-                            <ListVirtualizer data={userLikes!} renderItem={(item, index, remeasure) => {
-                                const currentItem = userLikes![item.index];
-                                return (
-                                    <ListVirtualizerContext.Provider key={item.index} value={{ remeasure: remeasure }}>
-                                        <div
-
-                                            ref={item.measureElement}
-                                            style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                width: '100%',
-                                                // height: `${item.size}px`,
-                                                transform: `translateY(${item.start}px)`,
-                                            }}
-                                        >
-                                            {(isStory(currentItem)) ?
-                                                <Anchor variant='text' component={Link} href={`/posts/${currentItem.postId}`} >
-                                                    <div>
-                                                        <CommentDisplay
-                                                            key={currentItem.id}
-                                                            {...currentItem as IStory}
-                                                            mainCommentId={''}
-                                                            replies={[]}
-                                                            postAuthor={''}
-                                                            replyIndex={0}
-                                                            isCollapsed={true}
-                                                        />
-                                                    </div>
-                                                </Anchor>
-                                                :
-                                                <Post
-                                                    key={currentItem.id}
-                                                    {...currentItem as Prompt}
-                                                    title={(currentItem as Prompt).title}
-                                                    index={index}
-                                                />
-
-                                            }
+                    <VirtualizedDataDisplay
+                        dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: userLikes }}
+                        renderItem={(currentItem: Prompt | IStory, index: number) => {
+                            return (
+                                (isStory(currentItem)) ?
+                                    <Anchor variant='text' component={Link} href={`/posts/${currentItem.postId}`} >
+                                        <div>
+                                            <CommentDisplay
+                                                key={currentItem.id}
+                                                {...currentItem as IStory}
+                                                mainCommentId={''}
+                                                replies={[]}
+                                                postAuthor={''}
+                                                replyIndex={0}
+                                                isCollapsed={true}
+                                            />
                                         </div>
-                                    </ListVirtualizerContext.Provider>
-                                )
-                            }}
-                            />
-                    }
+                                    </Anchor>
+                                    :
+                                    <Post
+                                        key={currentItem.id}
+                                        {...currentItem as Prompt}
+                                        title={(currentItem as Prompt).title}
+                                        index={index}
+                                    />
+
+                            )
+                        }}
+                    />
                 </Stack>
             </Stack>
         </Stack>
