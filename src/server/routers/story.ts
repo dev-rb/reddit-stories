@@ -174,117 +174,6 @@ export const storiesRouter = createRouter()
             return story;
         }
     })
-    .query("getLikes", {
-        input: z.object({
-            userId: z.string().optional()
-        }),
-        async resolve({ input }) {
-            const { userId } = input;
-
-            if (!userId) {
-                throw new TRPCError({
-                    cause: undefined,
-                    code: 'UNAUTHORIZED',
-                    message: 'User not authenticated'
-                })
-            }
-
-            const userLikes = await prisma.userCommentSaved.findMany({
-                where: {
-                    userId,
-                    liked: true
-                },
-                include: {
-                    comment: {
-                        include: {
-                            replies: {
-                                include: {
-                                    _count: true
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            const comments: IStory[] = userLikes.map((val) => ({ ...val.comment, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: val.comment.replies.length }));
-            return comments;
-        }
-    })
-    .query("getSaves", {
-        input: z.object({
-            userId: z.string().optional()
-        }),
-        async resolve({ input }) {
-            const { userId } = input;
-
-            if (!userId) {
-                throw new TRPCError({
-                    cause: undefined,
-                    code: 'UNAUTHORIZED',
-                    message: 'User not authenticated'
-                })
-            }
-
-            const userLikes = await prisma.userCommentSaved.findMany({
-                where: {
-                    userId,
-                    favorited: true
-                },
-                include: {
-                    comment: {
-                        include: {
-                            replies: {
-                                include: {
-                                    _count: true
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            const comments: IStory[] = userLikes.map((val) => ({ ...val.comment, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: val.comment.replies.length }));
-            return comments;
-        }
-    })
-    .query("getReadLaters", {
-        input: z.object({
-            userId: z.string().optional()
-        }),
-        async resolve({ input }) {
-            const { userId } = input;
-
-            if (!userId) {
-                throw new TRPCError({
-                    cause: undefined,
-                    code: 'UNAUTHORIZED',
-                    message: 'User not authenticated'
-                })
-            }
-
-            const userLikes = await prisma.userCommentSaved.findMany({
-                where: {
-                    userId,
-                    readLater: true
-                },
-                include: {
-                    comment: {
-                        include: {
-                            replies: {
-                                include: {
-                                    _count: true
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            const comments: IStory[] = userLikes.map((val) => ({ ...val.comment, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: val.comment.replies.length }));
-            return comments;
-        }
-    })
     .mutation("like", {
         input: z.object({
             userId: z.string(),
@@ -326,12 +215,13 @@ export const storiesRouter = createRouter()
     })
     .mutation("favorite", {
         input: z.object({
-            userId: z.string().uuid(),
+            userId: z.string(),
             commentId: z.string(),
             favorited: z.boolean()
         }),
         async resolve({ input, ctx }) {
             const { commentId, favorited, userId } = input;
+            console.log("Story favorited called")
             const comment = prisma.comment.update({
                 where: { id: commentId },
                 data: {
@@ -364,7 +254,7 @@ export const storiesRouter = createRouter()
     })
     .mutation("readLater", {
         input: z.object({
-            userId: z.string().uuid(),
+            userId: z.string(),
             commentId: z.string(),
             readLater: z.boolean()
         }),

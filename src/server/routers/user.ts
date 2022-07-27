@@ -8,10 +8,11 @@ import { getTotalCommentsForPost } from "src/utils/redditApi";
 export const userRouter = createRouter()
     .query("getLikes", {
         input: z.object({
-            userId: z.string().optional()
+            userId: z.string().optional(),
+            status: z.enum(['liked', 'favorited', 'readLater'])
         }),
         async resolve({ input }) {
-            const { userId } = input;
+            const { userId, status } = input;
 
             if (!userId) {
                 throw new TRPCError({
@@ -30,7 +31,7 @@ export const userRouter = createRouter()
                 select: {
                     savedComments: {
                         where: {
-                            liked: {
+                            [status]: {
                                 equals: true
                             }
                         },
@@ -48,7 +49,7 @@ export const userRouter = createRouter()
                     },
                     savedPosts: {
                         where: {
-                            liked: {
+                            [status]: {
                                 equals: true
                             }
                         },

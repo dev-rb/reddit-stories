@@ -19,7 +19,7 @@ const UserLikesPage = () => {
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
     const { userId } = useUser();
-    const { data: userLikes, isLoading, isError, error } = trpc.useQuery(['user.getLikes', { userId }], {
+    const { data: userLikes, isLoading, isError, error } = trpc.useQuery(['user.getLikes', { userId, status: 'liked' }], {
         refetchOnMount: 'always',
     })
 
@@ -64,9 +64,9 @@ const UserLikesPage = () => {
                             <ListVirtualizer data={userLikes!} renderItem={(item, index, remeasure) => {
                                 const currentItem = userLikes![item.index];
                                 return (
-                                    <ListVirtualizerContext.Provider value={{ remeasure: remeasure }}>
+                                    <ListVirtualizerContext.Provider key={item.index} value={{ remeasure: remeasure }}>
                                         <div
-                                            key={item.index}
+
                                             ref={item.measureElement}
                                             style={{
                                                 position: 'absolute',

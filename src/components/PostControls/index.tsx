@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react';
 import { useUser } from 'src/hooks/useUser';
 import { useDispatch } from 'react-redux';
 import { PostStatus, updatePostStatus } from 'src/redux/slices';
+import { useQueryClient } from 'react-query';
 
 type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>
 type NeededStoryValues = Pick<StoryAndExtendedReplies, 'replies' | 'liked' | 'score' | 'id' | 'postId'>
@@ -26,12 +27,16 @@ interface PostControlsProps<TData extends PostOrComment> {
 
 const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited, readLater, toggleLiked, toggleSaved, toggleReadLater }: PostControlsProps<TData>) => {
 
+    const queryClient = useQueryClient();
+
     const { mutate: likePostMutation } = trpc.useMutation('post.like');
     const { mutate: likeStoryMutation } = trpc.useMutation('story.like');
 
     const { mutate: savePostMutation } = trpc.useMutation('post.favorite');
+    const { mutate: saveStoryMutation } = trpc.useMutation('story.favorite');
 
     const { mutate: readLaterPostMutation } = trpc.useMutation('post.readLater');
+    const { mutate: readLaterStoryMutation } = trpc.useMutation('story.readLater');
 
     const { userId, isAuthenticated } = useUser();
 
@@ -56,7 +61,6 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
                 } else {
                     console.log("Is prompt")
                     likePostMutation({ liked: !liked, postId: postInfo.id, userId: userId! })
-
                 }
                 updateLocalState("liked", !liked);
                 break;
@@ -65,6 +69,7 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
                 toggleReadLater();
                 if (isStory) {
                     console.log("Is story")
+                    readLaterStoryMutation({ readLater: !readLater, commentId: postInfo.id, userId: userId! })
                 } else {
                     console.log("Is prompt")
                     readLaterPostMutation({ readLater: !readLater, postId: postInfo.id, userId: userId! })
@@ -77,7 +82,7 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
                 toggleSaved();
                 if (isStory) {
                     console.log("Is story")
-                    likeStoryMutation({ liked: !liked, commentId: postInfo.id, userId: userId! })
+                    saveStoryMutation({ favorited: !favorited, commentId: postInfo.id, userId: userId! })
                 } else {
                     console.log("Is prompt")
                     savePostMutation({ favorited: !favorited, postId: postInfo.id, userId: userId! })
