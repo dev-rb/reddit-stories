@@ -3,7 +3,7 @@ import { Group, UnstyledButton, Text } from '@mantine/core';
 import { BsClockFill } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { MdModeComment, MdBookmark } from 'react-icons/md';
-import { Prompt, StoryAndExtendedReplies } from 'src/interfaces/db';
+import { Prompt, StoryAndExtendedReplies, StoryAndNormalizedReplies } from 'src/interfaces/db';
 import { trpc } from 'src/utils/trpc';
 import { useSession } from 'next-auth/react';
 import { useUser } from 'src/hooks/useUser';
@@ -12,7 +12,7 @@ import { PostStatus, updatePostStatus } from 'src/redux/slices';
 import { useQueryClient } from 'react-query';
 
 type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>
-type NeededStoryValues = Pick<StoryAndExtendedReplies, 'replies' | 'liked' | 'score' | 'id' | 'postId'>
+type NeededStoryValues = Pick<StoryAndNormalizedReplies, 'replies' | 'liked' | 'score' | 'id' | 'postId'>
 type PostOrComment = NeededPromptValues | NeededStoryValues
 
 interface PostControlsProps<TData extends PostOrComment> {

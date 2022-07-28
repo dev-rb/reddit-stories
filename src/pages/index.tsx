@@ -15,7 +15,7 @@ import { SortType, TopTimeSort, RedditSortTypeConversion as SortTypeConversion, 
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
 import { useQueries, useQueryClient } from 'react-query';
-import { PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from 'src/interfaces/db';
+import { PromptAndStoriesWithExtendedReplies, PromptAndStoriesWithNormalizedReplies, StoryAndExtendedReplies } from 'src/interfaces/db';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { useSession } from 'next-auth/react';
 import { useUser } from 'src/hooks/useUser';
@@ -84,14 +84,14 @@ const Home = () => {
 
   const batchAllDownload = async () => {
     if (postsData) {
-      let allStories: Promise<PromptAndStoriesWithExtendedReplies>[] = postsData.map((post) => {
+      let allStories: Promise<PromptAndStoriesWithNormalizedReplies>[] = postsData.map((post) => {
         return trpcContext.fetchQuery(['story.forPost', { id: post.id }]).then((val) => {
           return { ...post, stories: val };
         });
       });
 
       const newPosts = (await Promise.all(allStories));
-      dispatch(downloadPosts({ posts: newPosts, sortType, timeSort }));
+      // dispatch(downloadPosts({ posts: newPosts, sortType, timeSort }));
     }
   }
 

@@ -6,6 +6,10 @@ export interface IStory extends Comment {
     readLater?: boolean
 }
 
+export interface NormalizedReplies {
+    [key: string]: IStory & { replies: string[] }
+}
+
 export interface ExtendedReply extends IStory {
     replies: ExtendedReply[]
 }
@@ -14,6 +18,7 @@ export type Replies = { replies: ExtendedReply[] }
 
 export type StoryAndReplies = IStory & { replies: Comment[] }
 export type StoryAndExtendedReplies = IStory & { replies: ExtendedReply[] }
+export type StoryAndNormalizedReplies = IStory & { replies: NormalizedReplies }
 
 export type StoriesAndReplies = { stories: StoryAndReplies[] }
 
@@ -30,3 +35,5 @@ export type PromptAndStories = Prompt & { stories: IStory[] };
 export type PromptAndStoriesWithReplies = (Prompt & StoriesAndReplies)
 
 export type PromptAndStoriesWithExtendedReplies = (Prompt & { stories: StoryAndExtendedReplies[] })
+
+export type PromptAndStoriesWithNormalizedReplies = (Prompt & { stories: StoryAndNormalizedReplies[] })

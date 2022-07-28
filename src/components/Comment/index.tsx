@@ -9,7 +9,7 @@ import useLongPress from '../../hooks/useLongPress';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 import { nestedColors } from 'src/utils/nestedColors';
-import { ExtendedReply, IStory } from 'src/interfaces/db';
+import { ExtendedReply, IStory, NormalizedReplies } from 'src/interfaces/db';
 import PostControls from '../PostControls';
 import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
 import { useSelector } from 'react-redux';
@@ -54,7 +54,8 @@ const useCommentStyles = createStyles((theme, { liked, replyIndex, collapsed }: 
 }));
 
 interface CommentDisplayProps extends IStory {
-    replies: ExtendedReply[],
+    allReplies: NormalizedReplies,
+    replies: string[],
     postAuthor: string,
     replyIndex: number,
     isCollapsed?: boolean,
@@ -68,6 +69,7 @@ const CommentDisplay = ({
     created,
     id,
     score,
+    allReplies,
     replies,
     permalink,
     postId,
@@ -96,6 +98,19 @@ const CommentDisplay = ({
     const commentRef = React.useRef<HTMLDivElement>(null);
 
     const theme = useMantineTheme();
+
+    const getCommentReplies = () => {
+
+        if (replies.length === 0) {
+            return;
+        }
+        const mapOfReplies = replies.map((val) => allReplies[val]);
+        // mapOfReplies.map((reply) => reply.replies.map((val) => ))
+        const listOfReplyIds = replies;
+        const commentReplies = listOfReplyIds!.map((val) => allReplies[val]);
+
+        return mapOfReplies;
+    }
 
     const collapseComment = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -173,16 +188,17 @@ const CommentDisplay = ({
 
 
             </Stack>
-            {replies.length > 0 &&
+            {(replies !== undefined) &&
 
                 <Stack id={"replies-container"} className={classes.repliesContainer} spacing={0}>
-                    {replies.map((reply, index) => {
+                    {getCommentReplies()?.map((reply, index) => {
                         return (
                             <CommentDisplay
                                 key={reply.id}
                                 {...reply}
                                 permalink={permalink}
                                 postId={postId}
+                                allReplies={allReplies}
                                 replies={reply.replies}
                                 replyIndex={replyIndex + 1}
                                 postAuthor={postAuthor}

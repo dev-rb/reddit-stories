@@ -1,6 +1,6 @@
 import { Post, Comment } from '@prisma/client';
 import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
-import { ExtendedReply, IStory, Prompt, StoryAndReplies } from '../interfaces/db';
+import { ExtendedReply, IStory, NormalizedReplies, Prompt, StoryAndReplies } from '../interfaces/db';
 import { Stream } from 'stream';
 
 interface RedditFetchOptions {
@@ -211,10 +211,6 @@ const recursiveFind = (start: ExtendedReply, findId: string, lookingForOriginId:
         }
     }
     return;
-}
-
-interface NormalizedReplies {
-    [key: string]: IStory & { replies: string[] }
 }
 
 export const normalizedReplies = (replies: Comment[]) => {

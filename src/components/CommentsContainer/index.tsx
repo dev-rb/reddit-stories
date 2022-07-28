@@ -70,10 +70,11 @@ const CommentsContainer = ({ postId }: Props) => {
         initialData: () => {
             if (postInfo === undefined) {
                 console.log("Empty state")
-                const queryCache = (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]);
+                const queryCache = (queryClient.getQueryCache().find(['post.sort'], { exact: false })?.state.data as Prompt[]);
                 if (queryCache !== undefined) {
                     const cacheInfo = queryCache.find((val) => val.id === postId);
                     if (cacheInfo) {
+                        console.log("Cached post: ", cacheInfo)
                         return cacheInfo;
                     }
                 }
@@ -95,7 +96,7 @@ const CommentsContainer = ({ postId }: Props) => {
                 {/* Post Details */}
                 {(postData) &&
                     <Box mt={60}>
-                        <Post {...postData} index={0} isDownloaded={postInfo?.downloaded} />
+                        <Post {...postData} totalComments={postData.totalComments} index={0} isDownloaded={postInfo?.downloaded} />
                     </Box>
                 }
                 <Stack spacing={0} pb={40}>
@@ -130,7 +131,8 @@ const CommentsContainer = ({ postId }: Props) => {
                                                 <CommentDisplay
                                                     key={currentItem.id}
                                                     {...currentItem}
-                                                    replies={currentItem.replies}
+                                                    allReplies={currentItem.replies}
+                                                    replies={[...Object.keys(currentItem.replies).filter((val) => currentItem.replies[val].replyId === null)]}
                                                     postId={postId}
                                                     postAuthor={postData!.author}
                                                     replyIndex={0}

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Prisma, Comment } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchCommentsForPost, getReplies, normalizedReplies } from "src/utils/redditApi";
-import { ExtendedReply, IStory } from "src/interfaces/db";
+import { ExtendedReply, IStory, NormalizedReplies } from "src/interfaces/db";
 
 const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
     id: true,
@@ -114,11 +114,11 @@ export const storiesRouter = createRouter()
 
             let newResult = stories.map((val) => {
                 let { replies, ...story } = val;
-                let newStory: IStory & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
+                let newStory: IStory & { replies: NormalizedReplies } = { ...story, replies: normalizedReplies(replies) }
                 return newStory;
             })
 
-            console.log("Normalized Replies: ", normalizedReplies(stories[0].replies).replies)
+            // console.log("Normalized Replies: ", normalizedReplies(stories[0].replies))
 
             if (userId) {
                 console.log("Find usercommentsaved")
