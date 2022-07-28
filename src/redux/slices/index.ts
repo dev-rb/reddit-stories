@@ -80,9 +80,14 @@ const PostsSlice = createSlice({
                 const isSameTimeSort = post.timeSort === payload.timeSort;
                 const isSaved = post.saved === true;
                 const isReadLater = post.readLater === true;
-
                 return !(isSameSort || isSameTimeSort || isSaved || isReadLater) && post.downloaded;
             })]
+
+            state.posts.forEach((post) => {
+                delete state.stories[post.id]
+
+            })
+
             //     if (payload.sortType === 'hot' || payload.sortType === 'new') {
             //     state[payload.sortType].posts = [];
             // } else {
@@ -127,7 +132,7 @@ export const postSelector = (state: PostsState, postId: string) => {
     const found = state.posts.find((post) => post.id === postId);
 
     if (found) {
-        return { ...found };
+        return found;
     }
 
 }
@@ -145,6 +150,9 @@ export const commentDownloadStatus = (state: PostsState, postId: string, comment
     const found = state.stories[postId];
 
     if (found !== undefined) {
-        return found.find((val) => val.id === commentId)?.downloaded;
+        const foundComment = found.find((val) => val.id === commentId)
+        if (foundComment) {
+            return foundComment.downloaded;
+        }
     }
 }

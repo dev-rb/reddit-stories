@@ -214,14 +214,14 @@ const recursiveFind = (start: ExtendedReply, findId: string, lookingForOriginId:
 }
 
 interface NormalizedReplies {
-    [key: string]: IStory
+    [key: string]: IStory & { replies: string[] }
 }
 
 export const normalizedReplies = (replies: Comment[]) => {
     let normalizedReplies: NormalizedReplies = {};
 
     replies.forEach((reply, index) => {
-        normalizedReplies[reply.id] = reply;
+        normalizedReplies[reply.id] = { ...reply, replies: [...replies.filter((val) => val.replyId === reply.id).map((val) => val.id)] };
     })
 
     return normalizedReplies;

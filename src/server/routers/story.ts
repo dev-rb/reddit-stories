@@ -118,7 +118,7 @@ export const storiesRouter = createRouter()
                 return newStory;
             })
 
-            // console.log("Normalized Replies: ", normalizedReplies(stories[0].replies))
+            console.log("Normalized Replies: ", normalizedReplies(stories[0].replies).replies)
 
             if (userId) {
                 console.log("Find usercommentsaved")
