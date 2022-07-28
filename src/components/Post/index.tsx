@@ -10,14 +10,18 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import PostControls from '../PostControls';
 import { Prompt } from 'src/interfaces/db';
 import { useQueryClient } from 'react-query';
+import { useSelector } from 'react-redux';
+import { postDownloadStatus, PostsState } from 'src/redux/slices';
 
 dayjs.extend(relativeTime)
 
 const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked, saved: postSaved, readLater: postReadLater }: Prompt & { index: number, isDownloaded?: boolean }) => {
 
+    const downloadStatusSelector = useSelector((state: PostsState) => postDownloadStatus(state, id));
+
     const [isRead, setIsRead] = React.useState(false);
 
-    const [downloadedStatus, setDownloadedStatus] = React.useState(false);
+    const [downloadedStatus, setDownloadedStatus] = React.useState(downloadStatusSelector ?? false);
 
     const [liked, setLiked] = React.useState(postLiked ?? false);
     const [saved, setSaved] = React.useState(postSaved ?? false);

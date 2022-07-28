@@ -3,7 +3,7 @@ import { prisma } from "../prisma";
 import { z } from 'zod';
 import { Prisma, Comment } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import { fetchCommentsForPost, getReplies } from "src/utils/redditApi";
+import { fetchCommentsForPost, getReplies, normalizedReplies } from "src/utils/redditApi";
 import { ExtendedReply, IStory } from "src/interfaces/db";
 
 const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
@@ -52,7 +52,6 @@ export const storiesRouter = createRouter()
             // console.log("Story For Post called")
             const { id, userId } = input;
             const stories = await fetchCommentsForPost('/r/writingprompts', id);
-
             for (const story of stories) {
                 const { liked, readLater, replies, saved, mainCommentId, ...restOfStory } = story;
                 await prisma.comment.upsert({
@@ -83,7 +82,7 @@ export const storiesRouter = createRouter()
                 });
 
                 if (userId) {
-                    for (let reply of replies) {
+                    story.replies = await Promise.all(replies.map(async (reply) => {
                         const userCommentSaved = await prisma.userCommentSaved.findUnique({
                             where: {
                                 userId_commentId: {
@@ -98,7 +97,9 @@ export const storiesRouter = createRouter()
                             reply.readLater = userCommentSaved.readLater;
                             reply.saved = userCommentSaved.favorited;
                         }
-                    }
+
+                        return reply;
+                    }))
                 }
 
                 await prisma.comment.createMany({
@@ -116,6 +117,8 @@ export const storiesRouter = createRouter()
                 let newStory: IStory & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)] }
                 return newStory;
             })
+
+            // console.log("Normalized Replies: ", normalizedReplies(stories[0].replies))
 
             if (userId) {
                 console.log("Find usercommentsaved")

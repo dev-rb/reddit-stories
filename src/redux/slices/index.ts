@@ -1,22 +1,30 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
-import { PromptAndStoriesWithExtendedReplies } from "src/interfaces/db";
+import { ExtendedReply, IStory, Prompt, PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from "src/interfaces/db";
 import { persistor } from "../store";
 
 export type PostStatus = 'liked' | 'readLater' | 'saved'
 
-interface PostStateItem extends PromptAndStoriesWithExtendedReplies {
+interface PostStateItem extends Prompt {
     sortType: string,
     timeSort?: string,
     downloaded: boolean,
 }
 
+interface CommentStateItem extends IStory {
+    downloaded: boolean
+}
+
+type CommentWithReplies = CommentStateItem & { replies: ExtendedReply[] }
+
 export interface PostsState {
-    posts: PostStateItem[]
+    posts: PostStateItem[],
+    stories: { [key: string]: CommentWithReplies[] }
 }
 
 const initialState: PostsState = {
-    posts: []
+    posts: [],
+    stories: {}
 }
 
 const PostsSlice = createSlice({
@@ -24,20 +32,21 @@ const PostsSlice = createSlice({
     initialState: initialState,
     reducers: {
         updatePostStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, storyId?: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
+            if (payload.storyId !== undefined) {
+                console.log(payload.storyId)
+                state.stories[payload.postId] = state.stories[payload.postId].map((story) => {
+                    if (story.id === payload.storyId) {
+                        story[payload.statusToUpdate] = payload.newStatusValue;
+                    }
+
+                    return story;
+
+                })
+                return;
+            }
             state.posts = state.posts.map((val) => {
                 if (val.id === payload.postId) {
-                    if (payload.storyId !== undefined) {
-                        val.stories = val.stories.map((story) => {
-                            if (story.id === payload.storyId) {
-                                story[payload.statusToUpdate] = payload.newStatusValue;
-                            }
-
-                            return story;
-
-                        })
-                    } else {
-                        val[payload.statusToUpdate] = payload.newStatusValue;
-                    }
+                    val[payload.statusToUpdate] = payload.newStatusValue;
                 }
                 return val;
             })
@@ -60,7 +69,9 @@ const PostsSlice = createSlice({
                 //         state.top['day'].posts.push({ ...post, downloaded: true });
                 //     }
                 // }
-                state.posts.push({ ...post, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
+                const { stories, ...rest } = post;
+                state.stories[rest.id] = [...stories.map((val) => ({ ...val, downloaded: true }))];
+                state.posts.push({ ...rest, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
             }
         },
         clearDownloadedPosts: (state: PostsState, { payload }: PayloadAction<{ sortType: string, timeSort?: string }>) => {
@@ -104,7 +115,7 @@ export const PostsReducer = PostsSlice.reducer;
 
 export const downloadedPostsSelector = createSelector(
     [
-        (state: PostsState) => state.posts,
+        ({ posts }: PostsState) => posts,
         (options: { sortType: string, timeSort?: string }) => options
     ],
     (items, options) => {
@@ -116,7 +127,24 @@ export const postSelector = (state: PostsState, postId: string) => {
     const found = state.posts.find((post) => post.id === postId);
 
     if (found) {
-        return found;
+        return { ...found };
     }
 
+}
+
+export const postDownloadStatus = (state: PostsState, postId: string) => {
+    const found = state.posts.find((post) => post.id === postId);
+
+    if (found) {
+        return found.downloaded;
+    }
+}
+
+
+export const commentDownloadStatus = (state: PostsState, postId: string, commentId: string) => {
+    const found = state.stories[postId];
+
+    if (found !== undefined) {
+        return found.find((val) => val.id === commentId)?.downloaded;
+    }
 }

@@ -54,13 +54,16 @@ const CommentsContainer = ({ postId }: Props) => {
 
     const postInfo = useSelector((state: PostsState) => postSelector(state, postId))
 
+    const storiesDownloaded = useSelector((state: PostsState) => state.stories[postId]);
+
     const { data: storiesData, isLoading: isLoadingStories } = trpc.useQuery(['story.forPost', { id: postId, userId: session.data?.user?.id }], {
         // onSuccess: (data) => console.log(data),
         initialData: () => {
-            if (postInfo === undefined) {
+            if (storiesDownloaded === undefined) {
+                console.log("storiesDownloaded undefined")
                 return;
             }
-            return postInfo.stories
+            return storiesDownloaded
         }
     });
     const { data: postData } = trpc.useQuery(['post.byId', { id: postId, userId: session.data?.user?.id }], {
@@ -127,9 +130,12 @@ const CommentsContainer = ({ postId }: Props) => {
                                                 <CommentDisplay
                                                     key={currentItem.id}
                                                     {...currentItem}
+                                                    replies={currentItem.replies}
                                                     postId={postId}
                                                     postAuthor={postData!.author}
-                                                    replyIndex={0} />
+                                                    replyIndex={0}
+                                                    isDownloaded={postInfo?.downloaded}
+                                                />
                                             </div>
                                         )
                                     }}

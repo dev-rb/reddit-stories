@@ -1,12 +1,10 @@
 import { createRouter } from ".";
 import { prisma } from "../prisma";
 import { z } from 'zod';
-import { Post, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import dayjs from "dayjs";
-import { fetchCommentsForPost, fetchSubredditPosts, getReplies, getTotalCommentsForPost } from "src/utils/redditApi";
-import { Prompt, PromptAndStoriesWithReplies, PromptAndStories, PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from "src/interfaces/db";
-import { addPosts, getPosts } from "src/utils/redis";
+import { fetchSubredditPosts, getTotalCommentsForPost } from "src/utils/redditApi";
+import { Prompt } from "src/interfaces/db";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     id: true,

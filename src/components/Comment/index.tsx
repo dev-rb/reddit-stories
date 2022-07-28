@@ -12,6 +12,8 @@ import { nestedColors } from 'src/utils/nestedColors';
 import { ExtendedReply, IStory } from 'src/interfaces/db';
 import PostControls from '../PostControls';
 import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
+import { useSelector } from 'react-redux';
+import { commentDownloadStatus, PostsState } from 'src/redux/slices';
 
 dayjs.extend(RelativeTime);
 const useCommentStyles = createStyles((theme, { liked, replyIndex, collapsed }: { liked: boolean, replyIndex: number, collapsed: boolean }) => ({
@@ -45,7 +47,7 @@ const useCommentStyles = createStyles((theme, { liked, replyIndex, collapsed }: 
         height: 60,
         position: 'absolute',
         bottom: 0,
-        background: 'linear-gradient(transparent 10%, black)',
+        background: `linear-gradient(transparent 10%, ${theme.colors.dark[theme.colorScheme === 'dark' ? 9 : 0]})`,
         width: '100%',
         zIndex: 99
     }
@@ -55,7 +57,8 @@ interface CommentDisplayProps extends IStory {
     replies: ExtendedReply[],
     postAuthor: string,
     replyIndex: number,
-    isCollapsed?: boolean
+    isCollapsed?: boolean,
+    isDownloaded?: boolean
 }
 
 const CommentDisplay = ({
@@ -63,7 +66,8 @@ const CommentDisplay = ({
     bodyHtml,
     author,
     created,
-    id, score,
+    id,
+    score,
     replies,
     permalink,
     postId,
@@ -72,11 +76,16 @@ const CommentDisplay = ({
     liked: storyLiked,
     saved: storySaved,
     readLater: storyReadLater,
-    isCollapsed
+    isCollapsed,
+    isDownloaded
 }: CommentDisplayProps) => {
     const [liked, setLiked] = React.useState(storyLiked ?? false);
     const [saved, setSaved] = React.useState(storySaved ?? false);
     const [later, setLater] = React.useState(storyReadLater ?? false);
+
+    const downloadStatusSelector = useSelector((state: PostsState) => commentDownloadStatus(state, postId!, id));
+
+    const [downloadedStatus, setDownloadedStatus] = React.useState(downloadStatusSelector ?? false);
 
     const [collapsed, setCollapsed] = React.useState(isCollapsed ?? false);
 
@@ -119,6 +128,12 @@ const CommentDisplay = ({
         onClick: expandComment
     }, { delay: 1000, shouldPreventDefault: false });
 
+    React.useEffect(() => {
+        if (isDownloaded !== undefined) {
+            setDownloadedStatus(isDownloaded)
+        }
+    }, [isDownloaded])
+
     return (
         <Stack ref={commentRef} id={'root-container'} className={classes.rootContainer} spacing={0} {...longPressEvent}>
             <Stack id={"parent-reply"} className={classes.commentContainer} spacing={0} px='lg' py='xs'>
@@ -137,8 +152,9 @@ const CommentDisplay = ({
                         <Text size='xs'>{(dayjs(created).fromNow())}</Text>
                     </Group>
                     <Group noWrap spacing={10}>
-                        <BsClockFill size={16} color={theme.colors.dark[4]} />
-                        <MdBookmark size={16} color={theme.colors.dark[4]} />
+                        <MdFileDownload size={16} color={downloadedStatus ? '#F84B30' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                        <BsClockFill size={16} color={later ? '#F8A130' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                        <MdBookmark size={16} color={saved ? '#30CFF8' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
                     </Group>
                 </Group>
                 <Stack spacing={0}>
@@ -161,16 +177,26 @@ const CommentDisplay = ({
 
                 <Stack id={"replies-container"} className={classes.repliesContainer} spacing={0}>
                     {replies.map((reply, index) => {
-
                         return (
-                            <CommentDisplay key={reply.id} {...reply} permalink={permalink} postId={postId} replies={reply.replies} replyIndex={replyIndex + 1} postAuthor={postAuthor} liked={reply.liked} />
+                            <CommentDisplay
+                                key={reply.id}
+                                {...reply}
+                                permalink={permalink}
+                                postId={postId}
+                                replies={reply.replies}
+                                replyIndex={replyIndex + 1}
+                                postAuthor={postAuthor}
+                                liked={reply.liked}
+                                readLater={reply.readLater}
+                                saved={reply.saved}
+                                isDownloaded={downloadedStatus} />
                         )
                     })}
                 </Stack>
             }
             {collapsed &&
                 <Group className={classes.collapsedReadButton} align='center' position='center'>
-                    <Button sx={{ backgroundColor: theme.colors.blue[9] }} onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); e.stopPropagation(); setCollapsed(false); }}> Read </Button>
+                    <Button sx={{ backgroundColor: theme.colors.blue[9] }} onClick={collapseComment}> Read </Button>
                 </Group>
             }
         </Stack>

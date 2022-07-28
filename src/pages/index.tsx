@@ -43,7 +43,7 @@ const Home = () => {
 
   const modals = useModals();
 
-  const selector = useSelector((state: PostsState) => downloadedPostsSelector({ posts: state.posts, sortType, timeSort }), shallowEqual);
+  const selector = useSelector((state: PostsState) => downloadedPostsSelector({ posts: state.posts, sortType, timeSort, stories: state.stories }), shallowEqual);
 
   const queryClient = useQueryClient();
   const trpcContext = trpc.useContext();

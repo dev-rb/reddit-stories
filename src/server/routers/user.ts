@@ -69,7 +69,6 @@ export const userRouter = createRouter()
                     ({ ...val.comment, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: val.comment.replies.length })),
                 ]
             );
-            console.log("All likes: ", posts);
             return posts;
         }
     })
