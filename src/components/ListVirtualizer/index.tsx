@@ -35,7 +35,7 @@ const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtuali
         count: data.length,
         getScrollElement: () => window,
         estimateSize: () => 150,
-        overscan: 5,
+        overscan: 3,
         enableSmoothScroll: true
     });
 

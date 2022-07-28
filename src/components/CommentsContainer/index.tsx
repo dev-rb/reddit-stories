@@ -96,7 +96,7 @@ const CommentsContainer = ({ postId }: Props) => {
                 {/* Post Details */}
                 {(postData) &&
                     <Box mt={60}>
-                        <Post {...postData} totalComments={postData.totalComments} index={0} isDownloaded={postInfo?.downloaded} />
+                        <Post {...postData} totalComments={postData.totalComments} index={0} isDownloaded={postInfo?.downloaded} liked={postData.liked} />
                     </Box>
                 }
                 <Stack spacing={0} pb={40}>

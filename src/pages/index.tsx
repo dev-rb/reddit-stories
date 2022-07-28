@@ -91,7 +91,7 @@ const Home = () => {
       });
 
       const newPosts = (await Promise.all(allStories));
-      // dispatch(downloadPosts({ posts: newPosts, sortType, timeSort }));
+      dispatch(downloadPosts({ posts: newPosts, sortType, timeSort }));
     }
   }
 

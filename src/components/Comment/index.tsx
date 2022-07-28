@@ -9,7 +9,7 @@ import useLongPress from '../../hooks/useLongPress';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 import { nestedColors } from 'src/utils/nestedColors';
-import { ExtendedReply, IStory, NormalizedReplies } from 'src/interfaces/db';
+import { ExtendedReply, IStory, NormalizedReplies, StoryAndNormalizedReplies } from 'src/interfaces/db';
 import PostControls from '../PostControls';
 import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
 import { useSelector } from 'react-redux';
@@ -68,6 +68,7 @@ const CommentDisplay = ({
     author,
     created,
     id,
+    mainCommentId,
     score,
     allReplies,
     replies,
@@ -100,14 +101,10 @@ const CommentDisplay = ({
     const theme = useMantineTheme();
 
     const getCommentReplies = () => {
-
         if (replies.length === 0) {
             return;
         }
         const mapOfReplies = replies.map((val) => allReplies[val]);
-        // mapOfReplies.map((reply) => reply.replies.map((val) => ))
-        const listOfReplyIds = replies;
-        const commentReplies = listOfReplyIds!.map((val) => allReplies[val]);
 
         return mapOfReplies;
     }
@@ -175,8 +172,8 @@ const CommentDisplay = ({
                 <Stack spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
 
-                    <PostControls
-                        postInfo={{ body, bodyHtml, author, created, id, score, postId, replies, totalComments: replies.length }}
+                    <PostControls<Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & { mainCommentId: string | null, replies: string[] }>
+                        postInfo={{ id, score, postId, replies, liked, mainCommentId }}
                         liked={liked}
                         toggleLiked={() => setLiked((prev) => !prev)}
                         favorited={saved}
@@ -205,7 +202,7 @@ const CommentDisplay = ({
                                 liked={reply.liked}
                                 readLater={reply.readLater}
                                 saved={reply.saved}
-                                isDownloaded={downloadedStatus} />
+                            />
                         )
                     })}
                 </Stack>

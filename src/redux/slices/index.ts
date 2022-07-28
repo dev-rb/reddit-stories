@@ -1,6 +1,6 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
-import { ExtendedReply, IStory, Prompt, PromptAndStoriesWithExtendedReplies, StoryAndExtendedReplies } from "src/interfaces/db";
+import { ExtendedReply, IStory, NormalizedReplies, Prompt, PromptAndStoriesWithExtendedReplies, PromptAndStoriesWithNormalizedReplies, StoryAndExtendedReplies, StoryAndNormalizedReplies } from "src/interfaces/db";
 import { persistor } from "../store";
 
 export type PostStatus = 'liked' | 'readLater' | 'saved'
@@ -15,7 +15,22 @@ interface CommentStateItem extends IStory {
     downloaded: boolean
 }
 
-type CommentWithReplies = CommentStateItem & { replies: ExtendedReply[] }
+interface NormalizedRepliesDownload {
+    [key: string]: CommentStateItem & { replies: string[] }
+}
+
+type ReplyStateItem = NormalizedRepliesDownload & { downloaded: boolean }
+
+type CommentWithReplies = CommentStateItem & { replies: NormalizedRepliesDownload }
+
+const downloadReplies = (replies: NormalizedReplies) => {
+    const newReplies: NormalizedRepliesDownload = {}
+    Object.keys(replies).forEach((key) => {
+        newReplies[key] = { ...replies[key], downloaded: true };
+    })
+
+    return newReplies;
+}
 
 export interface PostsState {
     posts: PostStateItem[],
@@ -31,8 +46,24 @@ const PostsSlice = createSlice({
     name: 'PostsSlice',
     initialState: initialState,
     reducers: {
-        updatePostStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, storyId?: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
+        updateReplyStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, storyId: string, replyId: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
             if (payload.storyId !== undefined) {
+                console.log("Update reply local called")
+                console.log(payload.storyId)
+                state.stories[payload.postId] = state.stories[payload.postId].map((story) => {
+                    if (story.id === payload.storyId) {
+                        story.replies[payload.replyId][payload.statusToUpdate] = payload.newStatusValue;
+                    }
+
+                    return story;
+
+                })
+                return;
+            }
+        },
+        updateStoryStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, storyId: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
+            if (payload.storyId !== undefined) {
+                console.log("Update story local called")
                 console.log(payload.storyId)
                 state.stories[payload.postId] = state.stories[payload.postId].map((story) => {
                     if (story.id === payload.storyId) {
@@ -44,6 +75,9 @@ const PostsSlice = createSlice({
                 })
                 return;
             }
+        },
+        updatePostStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
+
             state.posts = state.posts.map((val) => {
                 if (val.id === payload.postId) {
                     val[payload.statusToUpdate] = payload.newStatusValue;
@@ -51,11 +85,11 @@ const PostsSlice = createSlice({
                 return val;
             })
         },
-        downloadPost: (state: PostsState, { payload }: PayloadAction<{ post: PromptAndStoriesWithExtendedReplies, sortType: string, timeSort?: string }>) => {
+        downloadPost: (state: PostsState, { payload }: PayloadAction<{ post: PromptAndStoriesWithNormalizedReplies, sortType: string, timeSort?: string }>) => {
             console.log("Download post called")
             state.posts.push({ ...payload.post, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
         },
-        downloadPosts: (state: PostsState, { payload }: PayloadAction<{ posts: PromptAndStoriesWithExtendedReplies[], sortType: string, timeSort?: string }>) => {
+        downloadPosts: (state: PostsState, { payload }: PayloadAction<{ posts: PromptAndStoriesWithNormalizedReplies[], sortType: string, timeSort?: string }>) => {
             for (const post of payload.posts) {
                 // if (payload.sortType === 'hot') {
                 //     state.hot.posts.push({ ...post, downloaded: true });
@@ -70,7 +104,8 @@ const PostsSlice = createSlice({
                 //     }
                 // }
                 const { stories, ...rest } = post;
-                state.stories[rest.id] = [...stories.map((val) => ({ ...val, downloaded: true }))];
+
+                state.stories[rest.id] = [...stories.map((val, index) => ({ ...val, downloaded: true, replies: { ...downloadReplies(val.replies), } }))];
                 state.posts.push({ ...rest, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
             }
         },
@@ -113,7 +148,9 @@ export const {
     downloadPost,
     downloadPosts,
     clearDownloadedPosts,
-    updatePostStatus
+    updatePostStatus,
+    updateReplyStatus,
+    updateStoryStatus
 } = PostsSlice.actions
 
 export const PostsReducer = PostsSlice.reducer;
@@ -153,6 +190,16 @@ export const commentDownloadStatus = (state: PostsState, postId: string, comment
         const foundComment = found.find((val) => val.id === commentId)
         if (foundComment) {
             return foundComment.downloaded;
+        } else {
+            const foundInReplies = found.find((val) => {
+                const found = Object.keys(val.replies).find((replyId) => val.replies[replyId].downloaded)
+
+                return found;
+            })
+
+            if (foundInReplies) {
+                return foundInReplies;
+            }
         }
     }
 }
