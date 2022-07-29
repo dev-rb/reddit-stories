@@ -23,6 +23,7 @@ export default NextAuth({
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!
         })
     ],
+    secret: process.env.NEXTAUTH_SECRET,
     adapter: PrismaAdapter(prisma),
     callbacks: {
         session: async ({ session, user }) => {
