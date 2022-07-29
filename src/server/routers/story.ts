@@ -21,9 +21,9 @@ export const storiesRouter = createRouter()
         input: z.object({
             postId: z.string()
         }),
-        async resolve({ input }) {
+        async resolve({ input, ctx }) {
             const { postId } = input;
-            const result = await prisma.comment.findMany({
+            const result = await ctx.prisma.comment.findMany({
                 where: {
                     postId: postId
                 },
@@ -48,13 +48,13 @@ export const storiesRouter = createRouter()
             id: z.string(),
             userId: z.string().optional()
         }),
-        async resolve({ input }) {
+        async resolve({ input, ctx }) {
             // console.log("Story For Post called")
             const { id, userId } = input;
             const stories = await fetchCommentsForPost('/r/writingprompts', id);
             for (const story of stories) {
                 const { liked, readLater, replies, saved, mainCommentId, ...restOfStory } = story;
-                await prisma.comment.upsert({
+                await ctx.prisma.comment.upsert({
                     create: {
                         author: restOfStory.author,
                         body: restOfStory.body,
@@ -83,7 +83,7 @@ export const storiesRouter = createRouter()
 
                 if (userId) {
                     story.replies = await Promise.all(replies.map(async (reply) => {
-                        const userCommentSaved = await prisma.userCommentSaved.findUnique({
+                        const userCommentSaved = await ctx.prisma.userCommentSaved.findUnique({
                             where: {
                                 userId_commentId: {
                                     commentId: reply.id,
@@ -102,7 +102,7 @@ export const storiesRouter = createRouter()
                     }))
                 }
 
-                await prisma.comment.createMany({
+                await ctx.prisma.comment.createMany({
                     data: [...replies.map((val) => {
                         const { mainCommentId, replyId, liked, readLater, saved, ...rest } = val;
                         // console.log("Reply: ", rest)
@@ -123,7 +123,7 @@ export const storiesRouter = createRouter()
             if (userId) {
                 console.log("Find usercommentsaved")
                 for (const story of newResult) {
-                    const userStory = await prisma.userCommentSaved.findUnique({
+                    const userStory = await ctx.prisma.userCommentSaved.findUnique({
                         where: {
                             userId_commentId: {
                                 commentId: story.id,
@@ -154,10 +154,10 @@ export const storiesRouter = createRouter()
         input: z.object({
             id: z.string()
         }),
-        async resolve({ input }) {
+        async resolve({ input, ctx }) {
             const { id } = input;
 
-            const story = await prisma.comment.findUnique({
+            const story = await ctx.prisma.comment.findUnique({
                 where: {
                     id: id
                 },
@@ -185,7 +185,7 @@ export const storiesRouter = createRouter()
         }),
         async resolve({ input, ctx }) {
             const { commentId, liked, userId } = input;
-            const comment = prisma.comment.update({
+            const comment = ctx.prisma.comment.update({
                 where: { id: commentId },
                 data: {
                     userCommentSaved: {
@@ -225,7 +225,7 @@ export const storiesRouter = createRouter()
         async resolve({ input, ctx }) {
             const { commentId, favorited, userId } = input;
             console.log("Story favorited called")
-            const comment = prisma.comment.update({
+            const comment = ctx.prisma.comment.update({
                 where: { id: commentId },
                 data: {
                     userCommentSaved: {
@@ -263,7 +263,7 @@ export const storiesRouter = createRouter()
         }),
         async resolve({ input, ctx }) {
             const { commentId, readLater, userId } = input;
-            const comment = prisma.comment.update({
+            const comment = ctx.prisma.comment.update({
                 where: { id: commentId },
                 data: {
                     userCommentSaved: {

@@ -18,35 +18,13 @@ const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
 });
 
 export const postRouter = createRouter()
-    .mutation('create', {
-        input: z.object({
-            id: z.string(),
-            title: z.string(),
-            author: z.string(),
-
-        }),
-        async resolve({ input }) {
-            const { author, id, title } = input;
-            console.log("Mutate called")
-            return prisma.post.create({
-                data: {
-                    author,
-                    id,
-                    title,
-                    created: new Date(Date.now()),
-                    permalink: 'https://google.com',
-                    score: 120
-                }
-            })
-        }
-    })
     .query('sort', {
         input: z.object({
             sortType: z.enum(['hot', 'top', 'new']),
             timeSort: z.enum(['day', 'week', 'month', 'year', 'all']).nullish(),
             userId: z.string().optional()
         }),
-        async resolve({ input }) {
+        async resolve({ input, ctx }) {
             console.log("Sort called in backend: ", input);
             if (input.sortType === 'hot' || input.sortType === 'new' || input.sortType.includes('top')) {
                 // const posts = await getPosts(input.sortType, input.timeSort);
@@ -56,7 +34,7 @@ export const postRouter = createRouter()
                 // }
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
-                await prisma.post.createMany({
+                await ctx.prisma.post.createMany({
                     data: [...prompts.map((val) => {
                         const { totalComments, liked, readLater, saved, ...rest } = val;
                         return { ...rest }
@@ -67,7 +45,7 @@ export const postRouter = createRouter()
 
                 if (input.userId !== undefined) {
                     prompts = await Promise.all(prompts.map(async (prompt) => {
-                        const dbPost = await prisma.userPostSaved.findFirst({
+                        const dbPost = await ctx.prisma.userPostSaved.findFirst({
                             where: {
                                 userId: input.userId!,
                                 postId: prompt.id
@@ -94,12 +72,12 @@ export const postRouter = createRouter()
             id: z.string(),
             userId: z.string().optional()
         }),
-        async resolve({ input }) {
+        async resolve({ input, ctx }) {
             const { id, userId } = input;
 
             console.log("backend called")
 
-            const post = await prisma.post.findUnique({
+            const post = await ctx.prisma.post.findUnique({
                 where: {
                     id: id
                 },
@@ -109,7 +87,7 @@ export const postRouter = createRouter()
             let prompt: Prompt = { ...post, totalComments: await getTotalCommentsForPost('/r/writingprompts', post.id) }
 
             if (userId) {
-                const userPrompt = await prisma.userPostSaved.findUnique({
+                const userPrompt = await ctx.prisma.userPostSaved.findUnique({
                     where: {
                         userId_postId: {
                             userId,
@@ -138,93 +116,6 @@ export const postRouter = createRouter()
             return prompt;
         }
     })
-    .query("getLikes", {
-        input: z.object({
-            userId: z.string().optional()
-        }),
-        async resolve({ input }) {
-            const { userId } = input;
-
-            if (!userId) {
-                throw new TRPCError({
-                    cause: undefined,
-                    code: 'UNAUTHORIZED',
-                    message: 'User not authenticated'
-                })
-            }
-
-            const userLikes = await prisma.userPostSaved.findMany({
-                where: {
-                    userId,
-                    liked: true
-                },
-                include: {
-                    post: true
-                }
-            });
-
-            const posts: Prompt[] = await Promise.all(userLikes.map(async (val) => ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })));
-            return posts;
-        }
-    })
-    .query("getSaves", {
-        input: z.object({
-            userId: z.string().optional()
-        }),
-        async resolve({ input }) {
-            const { userId } = input;
-
-            if (!userId) {
-                throw new TRPCError({
-                    cause: undefined,
-                    code: 'UNAUTHORIZED',
-                    message: 'User not authenticated'
-                })
-            }
-
-            const userLikes = await prisma.userPostSaved.findMany({
-                where: {
-                    userId,
-                    favorited: true
-                },
-                include: {
-                    post: true
-                }
-            });
-
-            const posts: Prompt[] = await Promise.all(userLikes.map(async (val) => ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })));
-            return posts;
-        }
-    })
-    .query("getReadLaters", {
-        input: z.object({
-            userId: z.string().optional()
-        }),
-        async resolve({ input }) {
-            const { userId } = input;
-
-            if (!userId) {
-                throw new TRPCError({
-                    cause: undefined,
-                    code: 'UNAUTHORIZED',
-                    message: 'User not authenticated'
-                })
-            }
-
-            const userLikes = await prisma.userPostSaved.findMany({
-                where: {
-                    userId,
-                    readLater: true
-                },
-                include: {
-                    post: true
-                }
-            });
-
-            const posts: Prompt[] = await Promise.all(userLikes.map(async (val) => ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })));
-            return posts;
-        }
-    })
     .mutation("like", {
         input: z.object({
             userId: z.string(),
@@ -233,7 +124,7 @@ export const postRouter = createRouter()
         }),
         async resolve({ input, ctx }) {
             const { postId, liked, userId } = input;
-            const post = prisma.post.update({
+            const post = ctx.prisma.post.update({
                 where: { id: postId },
                 data: {
                     userPostSaved: {
@@ -271,7 +162,7 @@ export const postRouter = createRouter()
         }),
         async resolve({ input, ctx }) {
             const { postId, favorited, userId } = input;
-            const post = prisma.post.update({
+            const post = ctx.prisma.post.update({
                 where: { id: postId },
                 data: {
                     userPostSaved: {
@@ -309,7 +200,7 @@ export const postRouter = createRouter()
         }),
         async resolve({ input, ctx }) {
             const { postId, readLater, userId } = input;
-            const post = prisma.post.update({
+            const post = ctx.prisma.post.update({
                 where: { id: postId },
                 data: {
                     userPostSaved: {

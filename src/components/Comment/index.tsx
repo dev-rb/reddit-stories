@@ -100,6 +100,8 @@ const CommentDisplay = ({
                         }
                         <Text size='lg'>·</Text>
                         <Text size='xs'>{(dayjs(created).fromNow())}</Text>
+                        {/* <Text size='lg'>·</Text>
+                        <Text size='lg'>{replyIndex}</Text> */}
                     </Group>
                     <Group noWrap spacing={10}>
                         <MdFileDownload size={16} color={downloadedStatus ? '#F84B30' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
