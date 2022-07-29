@@ -1,5 +1,3 @@
-import { Reply } from '@prisma/client';
-
 export type RedditSortType = 'hot' | 'new' | 'top';
 
 export interface IPost {

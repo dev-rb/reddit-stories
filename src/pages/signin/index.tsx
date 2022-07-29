@@ -83,11 +83,7 @@ const schema = z.object({
     email: z.string().email({ message: 'Invalid email address' })
 })
 
-interface SignInProps {
-    providers: Record<LiteralUnion<BuiltInProviderType, string>, ClientSafeProvider> | null
-}
-
-const SignIn = ({ providers }: SignInProps) => {
+const SignIn = () => {
 
     const router = useRouter();
 
@@ -196,10 +192,3 @@ const SignIn = ({ providers }: SignInProps) => {
 }
 
 export default SignIn;
-
-export async function getServerSideProps(context: any) {
-    const providers = await getProviders()
-    return {
-        props: { providers },
-    }
-}
