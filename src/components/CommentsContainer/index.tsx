@@ -8,7 +8,6 @@ import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import Post from '../Post';
 import { useMediaQuery } from '@mantine/hooks';
-import MobileSelect from '../MobileSelect';
 import { useQueryClient } from 'react-query';
 import ListVirtualizer from '../ListVirtualizer';
 import { useSelector } from 'react-redux';

@@ -1,17 +1,14 @@
 import * as React from 'react';
-import { ActionIcon, Anchor, Avatar, Center, Group, Loader, Stack, Text, Title, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, Anchor, Avatar, Group, Stack, Title, useMantineColorScheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload } from 'react-icons/md';
-import SortSelect from 'src/components/MobileSelect/SortSelect';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { trpc } from 'src/utils/trpc';
 import { useUser } from 'src/hooks/useUser';
 import Post from 'src/components/Post';
-import ListVirtualizer from 'src/components/ListVirtualizer';
 import CommentDisplay from 'src/components/Comment';
 import { IStory, Prompt } from 'src/interfaces/db';
 import Link from 'next/link';
-import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
 import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
 
 const UserLikesPage = () => {
@@ -63,12 +60,12 @@ const UserLikesPage = () => {
                                             <CommentDisplay
                                                 key={currentItem.id}
                                                 {...currentItem as IStory}
-                                                mainCommentId={''}
+                                                allReplies={{}}
+                                                mainCommentId={currentItem.mainCommentId}
                                                 replies={[]}
                                                 postAuthor={''}
                                                 replyIndex={0}
-                                                isCollapsed={true}
-                                            />
+                                                isCollapsed={true} />
                                         </div>
                                     </Anchor>
                                     :

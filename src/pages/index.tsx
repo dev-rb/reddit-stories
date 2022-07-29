@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title, useMantineColorScheme, Text, Button } from '@mantine/core';
-import { useDidUpdate, useMediaQuery } from '@mantine/hooks';
+import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload, MdRefresh, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
 import { trpc } from '../utils/trpc';
@@ -8,16 +8,15 @@ import ListVirtualizer from '../components/ListVirtualizer';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { useRouter } from 'next/router';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { downloadedPostsSelector, downloadPost, downloadPosts, PostsState } from 'src/redux/slices';
+import { downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
 import { useModals } from '@mantine/modals';
 import { clearStorePosts } from 'src/redux/store';
 import { SortType, TopTimeSort, RedditSortTypeConversion as SortTypeConversion, TopSorts } from 'src/interfaces/sorts';
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
-import { useQueries, useQueryClient } from 'react-query';
-import { PromptAndStoriesWithExtendedReplies, PromptAndStoriesWithNormalizedReplies, StoryAndExtendedReplies } from 'src/interfaces/db';
+import { useQueryClient } from 'react-query';
+import { PromptAndStoriesWithNormalizedReplies } from 'src/interfaces/db';
 import AccountDrawer from 'src/components/AccountDrawer';
-import { useSession } from 'next-auth/react';
 import { useUser } from 'src/hooks/useUser';
 
 const Home = () => {

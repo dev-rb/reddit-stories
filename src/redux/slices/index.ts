@@ -19,8 +19,6 @@ interface NormalizedRepliesDownload {
     [key: string]: CommentStateItem & { replies: string[] }
 }
 
-type ReplyStateItem = NormalizedRepliesDownload & { downloaded: boolean }
-
 type CommentWithReplies = CommentStateItem & { replies: NormalizedRepliesDownload }
 
 const downloadReplies = (replies: NormalizedReplies) => {
@@ -91,18 +89,6 @@ const PostsSlice = createSlice({
         },
         downloadPosts: (state: PostsState, { payload }: PayloadAction<{ posts: PromptAndStoriesWithNormalizedReplies[], sortType: string, timeSort?: string }>) => {
             for (const post of payload.posts) {
-                // if (payload.sortType === 'hot') {
-                //     state.hot.posts.push({ ...post, downloaded: true });
-                // } else if (payload.sortType === 'new') {
-                //     state.new.posts.push({ ...post, downloaded: true });
-
-                // } else {
-                //     if (payload.timeSort) {
-                //         state.top[payload.timeSort].posts.push({ ...post, downloaded: true });
-                //     } else {
-                //         state.top['day'].posts.push({ ...post, downloaded: true });
-                //     }
-                // }
                 const { stories, ...rest } = post;
 
                 state.stories[rest.id] = [...stories.map((val, index) => ({ ...val, downloaded: true, replies: { ...downloadReplies(val.replies), } }))];
@@ -122,23 +108,6 @@ const PostsSlice = createSlice({
                 delete state.stories[post.id]
 
             })
-
-            //     if (payload.sortType === 'hot' || payload.sortType === 'new') {
-            //     state[payload.sortType].posts = [];
-            // } else {
-            //     if (payload.timeSort) {
-            //         state.top[payload.timeSort].posts = [];
-            //     } else {
-            //         state.top['day'].posts = [];
-            //     }
-            // }
-            // state.hot.posts = state.hot.posts.filter((val) => (val.isReadLater || val.isSaved));
-            // state.new.posts = state.new.posts.filter((val) => (val.isReadLater || val.isSaved));
-            // const topKeys = Object.keys(state.top)
-            // for (const key of topKeys) {
-            //     state.top[key].posts = state.top[key].posts.filter((post) => post.isReadLater || post.isSaved);
-
-            // }
         }
     }
 

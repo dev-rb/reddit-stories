@@ -1,57 +1,19 @@
 import * as React from 'react';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
-import { ActionIcon, Button, createStyles, Group, Stack, Text, Title, UnstyledButton, useMantineTheme } from '@mantine/core';
+import { ActionIcon, Group, Stack, Text, Title, useMantineTheme } from '@mantine/core';
 import { MdBookmark, MdFileDownload } from 'react-icons/md';
-import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
-import { BsChevronDown, BsChevronUp, BsClockFill, BsClockHistory, BsMenuDown } from 'react-icons/bs';
-import useLongPress from '../../hooks/useLongPress';
+import { BsChevronDown, BsChevronUp, BsClockFill } from 'react-icons/bs';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
-import { nestedColors } from 'src/utils/nestedColors';
-import { ExtendedReply, IStory, NormalizedReplies, StoryAndNormalizedReplies } from 'src/interfaces/db';
+import { IStory, NormalizedReplies } from 'src/interfaces/db';
 import PostControls from '../PostControls';
 import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
 import { useSelector } from 'react-redux';
 import { commentDownloadStatus, PostsState } from 'src/redux/slices';
+import { useCommentStyles } from './comment.styles';
 
 dayjs.extend(RelativeTime);
-const useCommentStyles = createStyles((theme, { liked, replyIndex, collapsed }: { liked: boolean, replyIndex: number, collapsed: boolean }) => ({
-    rootContainer: {
-        position: 'relative',
-        marginLeft: replyIndex > 0 && replyIndex < 12 ? 8 : 0,
-        borderLeft: replyIndex > 0 ? `1px solid ${theme.colors.dark[4]}` : 'unset',
-        height: collapsed ? 100 : 'unset',
-        overflow: collapsed ? 'hidden' : 'unset'
-    },
-    commentContainer: {
-        borderBottom: '1px solid',
-        borderTop: '1px solid',
-        borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
-        userSelect: 'none',
-        height: collapsed ? 100 : 'unset',
-        overflow: collapsed ? 'hidden' : 'unset'
-    },
-    commentDetails: {
-        color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[5]
-    },
-    likeButton: {
-        color: liked ? theme.colors.orange[4] : theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]
-    },
-    repliesContainer: {
-        [`#root-container > div:is(#parent-reply)`]: {
-            borderLeft: `2px solid ${theme.colors[nestedColors[replyIndex] ?? 'indigo'][5]}`
-        }
-    },
-    collapsedReadButton: {
-        height: 60,
-        position: 'absolute',
-        bottom: 0,
-        background: `linear-gradient(transparent 10%, ${theme.colors.dark[theme.colorScheme === 'dark' ? 9 : 0]})`,
-        width: '100%',
-        zIndex: 99
-    }
-}));
 
 interface CommentDisplayProps extends IStory {
     allReplies: NormalizedReplies,
@@ -116,30 +78,6 @@ const CommentDisplay = ({
         listContext?.remeasure();
     }
 
-    const minimizeComment = () => {
-        console.log("Long press called")
-        const comment = commentRef.current;
-
-        if (comment) {
-            comment.style.height = '40px';
-            comment.style.overflow = 'hidden'
-        }
-    }
-
-    const expandComment = () => {
-        const comment = commentRef.current;
-
-        if (comment) {
-            comment.style.height = '100%';
-            comment.style.overflow = 'unset'
-        }
-    }
-
-    const longPressEvent = useLongPress<HTMLDivElement>({
-        onLongPress: minimizeComment,
-        onClick: expandComment
-    }, { delay: 1000, shouldPreventDefault: false });
-
     React.useEffect(() => {
         if (isDownloaded !== undefined) {
             setDownloadedStatus(isDownloaded)
@@ -147,7 +85,7 @@ const CommentDisplay = ({
     }, [isDownloaded])
 
     return (
-        <Stack ref={commentRef} id={'root-container'} className={classes.rootContainer} spacing={0} {...longPressEvent}>
+        <Stack ref={commentRef} id={'root-container'} className={classes.rootContainer} spacing={0}>
             <Stack id={"parent-reply"} className={classes.commentContainer} spacing={0} px='lg' py='xs'>
                 <Group align='center' position='apart'>
                     <Group className={classes.commentDetails} noWrap spacing={4} align='center'>
@@ -207,11 +145,7 @@ const CommentDisplay = ({
                     })}
                 </Stack>
             }
-            {collapsed &&
-                <Group className={classes.collapsedReadButton} align='center' position='center'>
-                    <Button sx={{ backgroundColor: theme.colors.blue[9] }} onClick={collapseComment}> Read </Button>
-                </Group>
-            }
+
         </Stack>
     );
 }

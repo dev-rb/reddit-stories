@@ -60,12 +60,12 @@ const UserSavedPage = () => {
                                             <CommentDisplay
                                                 key={currentItem.id}
                                                 {...currentItem as IStory}
-                                                mainCommentId={''}
+                                                allReplies={{}}
+                                                mainCommentId={currentItem.mainCommentId}
                                                 replies={[]}
                                                 postAuthor={''}
                                                 replyIndex={0}
-                                                isCollapsed={true}
-                                            />
+                                                isCollapsed={true} />
                                         </div>
                                     </Anchor>
                                     :

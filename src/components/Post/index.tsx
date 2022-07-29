@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { MdBookmark, MdFileDownload, MdModeComment } from 'react-icons/md';
-import { BsCheck, BsClock, BsClockFill, BsClockHistory } from 'react-icons/bs';
-import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
-import { Anchor, Box, Group, Stack, Text, Title, UnstyledButton, useMantineTheme } from '@mantine/core';
-import { useDidUpdate, useMediaQuery } from '@mantine/hooks';
+import { MdBookmark, MdFileDownload } from 'react-icons/md';
+import { BsClockFill } from 'react-icons/bs';
+import { Anchor, Box, Group, Stack, Text, Title, useMantineTheme } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
