@@ -110,9 +110,7 @@ model Comment {
 
   mainCommentId String?
 
-  replies      Comment[] @relation("replies")
-  replyComment Comment?  @relation(name: "replies", fields: [replyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replyId      String?
+  replyId String?
 
   // @@unique([id, author])
 }

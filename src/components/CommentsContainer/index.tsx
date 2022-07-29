@@ -133,7 +133,7 @@ const CommentsContainer = ({ postId }: Props) => {
                                                     allReplies={currentItem.replies}
                                                     replies={[...Object.keys(currentItem.replies).filter((val) => currentItem.replies[val].replyId === null)]}
                                                     postId={postId}
-                                                    postAuthor={postData!.author}
+                                                    postAuthor={postData?.author ?? ''}
                                                     replyIndex={0}
                                                     isDownloaded={postInfo?.downloaded}
                                                 />

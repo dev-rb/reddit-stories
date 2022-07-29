@@ -4,6 +4,17 @@ import { z } from 'zod';
 import { TRPCError } from "@trpc/server";
 import { IStory, Prompt } from "src/interfaces/db";
 import { getTotalCommentsForPost } from "src/utils/redditApi";
+import { Prisma } from "@prisma/client";
+
+const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
+    id: true,
+    score: true,
+    author: true,
+    permalink: true,
+    body: true,
+    bodyHtml: true,
+    created: true,
+});
 
 export const userRouter = createRouter()
     .query("getLikes", {
@@ -11,7 +22,7 @@ export const userRouter = createRouter()
             userId: z.string().optional(),
             status: z.enum(['liked', 'favorited', 'readLater'])
         }),
-        async resolve({ input }) {
+        async resolve({ input, ctx }) {
             const { userId, status } = input;
 
             if (!userId) {
@@ -22,7 +33,7 @@ export const userRouter = createRouter()
                 })
             }
 
-            const userLikes = await prisma.user.findFirst({
+            const userLikes = await ctx.prisma.user.findFirst({
                 where: {
                     id: userId,
 
@@ -37,12 +48,12 @@ export const userRouter = createRouter()
                         },
                         include: {
                             comment: {
-                                include: {
-                                    replies: {
-                                        include: {
-                                            _count: true
-                                        }
-                                    }
+                                select: {
+                                    ...defaultStorySelect,
+                                    mainCommentId: true,
+                                    updatedAt: true,
+                                    replyId: true,
+                                    postId: true,
                                 }
                             }
                         }
@@ -66,7 +77,7 @@ export const userRouter = createRouter()
                 [...userLikes.savedPosts.map(async (val) =>
                     ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })),
                 ...userLikes.savedComments.map(async (val) =>
-                    ({ ...val.comment, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: val.comment.replies.length })),
+                    ({ ...val.comment, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: (await ctx.prisma.comment.findMany({ where: { mainCommentId: val.comment.id } })).length })),
                 ]
             );
             return posts;

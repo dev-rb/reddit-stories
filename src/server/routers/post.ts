@@ -34,27 +34,58 @@ export const postRouter = createRouter()
                 // }
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
-                await ctx.prisma.post.createMany({
-                    data: [...prompts.map((val) => {
-                        const { totalComments, liked, readLater, saved, ...rest } = val;
-                        return { ...rest }
-                    })],
-                    skipDuplicates: true
-                })
-                // Check if user has saved or liked any of the posts
+                const createPosts = [...prompts.map((prompt) => {
+                    const { totalComments, liked, readLater, saved, ...rest } = prompt;
+                    return ctx.prisma.post.upsert({
+                        create: {
+                            ...rest
+                        },
+                        update: {
+                            ...rest
+                        },
+                        where: {
+                            id: prompt.id
+                        },
+                        include: {
+                            userPostSaved: {
+                                where: {
+                                    userId: input.userId,
+                                    postId: prompt.id
+                                },
+                            },
+                            comments: {
+                                where: {
+                                    postId: prompt.id
+                                }
+                            }
+                        },
+                    })
+                })];
+
+
+                const results = await Promise.all(createPosts);
 
                 if (input.userId !== undefined) {
-                    prompts = await Promise.all(prompts.map(async (prompt) => {
-                        const dbPost = await ctx.prisma.userPostSaved.findFirst({
-                            where: {
-                                userId: input.userId!,
-                                postId: prompt.id
-                            }
-                        });
-
-                        return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, saved: dbPost?.favorited };
-                    }))
+                    prompts = results.map((val) => {
+                        const dbPost = val.userPostSaved[0];
+                        return { ...val, liked: dbPost?.liked, readLater: dbPost?.readLater, saved: dbPost?.favorited, totalComments: val.comments.length };
+                    })
                 }
+
+                // Check if user has saved or liked any of the posts
+
+                // if (input.userId !== undefined) {
+                //     prompts = await Promise.all(prompts.map(async (prompt) => {
+                //         const dbPost = await ctx.prisma.userPostSaved.findFirst({
+                //             where: {
+                //                 userId: input.userId!,
+                //                 postId: prompt.id
+                //             }
+                //         });
+
+                //         return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, saved: dbPost?.favorited };
+                //     }))
+                // }
 
                 // await addPosts(prompts, input.sortType, input.timeSort)
 

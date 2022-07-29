@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Prisma, Comment } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchCommentsForPost, getReplies, normalizedReplies } from "src/utils/redditApi";
-import { ExtendedReply, IStory, NormalizedReplies } from "src/interfaces/db";
+import { ExtendedReply, IStory, NormalizedReplies, StoryAndReplies } from "src/interfaces/db";
 
 const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
     id: true,
@@ -17,32 +17,6 @@ const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
 });
 
 export const storiesRouter = createRouter()
-    .query("all", {
-        input: z.object({
-            postId: z.string()
-        }),
-        async resolve({ input, ctx }) {
-            const { postId } = input;
-            const result = await ctx.prisma.comment.findMany({
-                where: {
-                    postId: postId
-                },
-                select: {
-                    ...defaultStorySelect,
-                    replies: true,
-                    updatedAt: true,
-                    postId: true
-                },
-
-            });
-            let newResult = result.map((val) => {
-                let { replies, ...story } = val;
-                let newStory: Comment & { replies: ExtendedReply[] } = { ...story, replies: [...getReplies(replies)], mainCommentId: null, replyId: null }
-                return newStory;
-            })
-            return newResult;
-        }
-    })
     .query("forPost", {
         input: z.object({
             id: z.string(),
@@ -63,7 +37,11 @@ export const storiesRouter = createRouter()
                         id: restOfStory.id,
                         permalink: restOfStory.permalink,
                         score: restOfStory.score,
-                        postId: restOfStory.postId,
+                        Post: {
+                            connect: {
+                                id: restOfStory.postId!
+                            }
+                        },
                     },
                     update: {
                         author: restOfStory.author,
@@ -73,7 +51,11 @@ export const storiesRouter = createRouter()
                         id: restOfStory.id,
                         permalink: restOfStory.permalink,
                         score: restOfStory.score,
-                        postId: restOfStory.postId,
+                        Post: {
+                            connect: {
+                                id: restOfStory.postId!
+                            }
+                        },
                     },
                     where: {
                         id: restOfStory.id
@@ -104,7 +86,7 @@ export const storiesRouter = createRouter()
 
                 await ctx.prisma.comment.createMany({
                     data: [...replies.map((val) => {
-                        const { mainCommentId, replyId, liked, readLater, saved, ...rest } = val;
+                        const { liked, readLater, saved, ...rest } = val;
                         // console.log("Reply: ", rest)
                         return rest;
                     })],
@@ -150,33 +132,36 @@ export const storiesRouter = createRouter()
             return newResult;
         }
     })
-    .query("byId", {
-        input: z.object({
-            id: z.string()
-        }),
-        async resolve({ input, ctx }) {
-            const { id } = input;
+    // .query("byId", {
+    //     input: z.object({
+    //         id: z.string()
+    //     }),
+    //     async resolve({ input, ctx }) {
+    //         const { id } = input;
 
-            const story = await ctx.prisma.comment.findUnique({
-                where: {
-                    id: id
-                },
-                select: {
-                    ...defaultStorySelect,
-                    replies: true
-                },
-            });
+    //         const story = await ctx.prisma.comment.findUnique({
+    //             where: {
+    //                 id: id
+    //             },
+    //             select: {
+    //                 ...defaultStorySelect,
+    //                 mainCommentId: true,
+    //                 replyId: true
+    //             },
+    //         });
 
-            if (!story) {
-                throw new TRPCError({
-                    cause: undefined,
-                    code: 'NOT_FOUND',
-                    message: `No story with id '${id}'`,
-                });
-            }
-            return story;
-        }
-    })
+    //         const storyWithReplies: StoryAndReplies =
+
+    //         if (!story) {
+    //             throw new TRPCError({
+    //                 cause: undefined,
+    //                 code: 'NOT_FOUND',
+    //                 message: `No story with id '${id}'`,
+    //             });
+    //         }
+    //         return story;
+    //     }
+    // })
     .mutation("like", {
         input: z.object({
             userId: z.string(),
