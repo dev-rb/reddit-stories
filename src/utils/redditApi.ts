@@ -67,7 +67,7 @@ export const fetchSubredditPosts = async (subreddit: string, options: RedditFetc
         data = removeUnwantedPosts(removeDuplicates(allData));
     } else {
         const singleData: Posts = await (await fetch(`https://www.reddit.com${subreddit}/${options.sortType?.toString()}.json?${options.timeSort ? 't=' + options.timeSort + '&' : ''}limit=${options.count ?? 100}&raw_json=1`)).json();
-        data = removeUnwantedPosts(removeDuplicates(singleData.data.children));
+        data = removeUnwantedPosts(singleData.data.children);
     }
 
     return data.map((val) => extractPostDetails(val));

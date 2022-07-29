@@ -34,33 +34,31 @@ export const postRouter = createRouter()
                 // }
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
-                const createPosts = [...prompts.map((prompt) => {
-                    const { totalComments, liked, readLater, saved, ...rest } = prompt;
-                    return ctx.prisma.post.upsert({
-                        create: {
-                            ...rest
-                        },
-                        update: {
-                            ...rest
-                        },
-                        where: {
-                            id: prompt.id
-                        },
-                        include: {
-                            userPostSaved: {
-                                where: {
-                                    userId: input.userId,
-                                    postId: prompt.id
-                                },
+                const createPosts = await prisma.$transaction(
+                    prompts.map((prompt) => {
+                        const { totalComments, liked, readLater, saved, userRead, ...rest } = prompt;
+                        return ctx.prisma.post.upsert({
+                            create: rest,
+                            update: rest,
+                            where: {
+                                id: prompt.id
                             },
-                            comments: {
-                                where: {
-                                    postId: prompt.id
+                            include: {
+                                userPostSaved: {
+                                    where: {
+                                        userId: input.userId,
+                                        postId: prompt.id
+                                    },
+                                },
+                                comments: {
+                                    where: {
+                                        postId: prompt.id
+                                    }
                                 }
-                            }
-                        },
+                            },
+                        })
                     })
-                })];
+                );
 
 
                 const results = await Promise.all(createPosts);
