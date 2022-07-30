@@ -3,7 +3,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useRef } from "react";
-import { BsChevronDoubleUp, BsClockHistory } from "react-icons/bs";
+import { BsChevronDoubleUp, BsClockHistory, BsHeartFill } from "react-icons/bs";
 import { MdHome, MdBookmarks } from "react-icons/md";
 import useScrollDownHide from "src/hooks/useScrollDownHide";
 
@@ -32,6 +32,10 @@ const navLinks: NavLinkProps[] = [
         icon: <MdHome size={25} />
     },
     {
+        pathTo: '/likes',
+        icon: <BsHeartFill size={25} />
+    },
+    {
         pathTo: '/saved',
         icon: <MdBookmarks size={25} />
     },
@@ -45,10 +49,10 @@ const BottomNavigationBar = () => {
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     const ref = useRef<HTMLDivElement>(null);
-    useScrollDownHide({ ref, animateOut: true, enter: (element) => { element.style.transform = 'translate(-50%, 0)' }, exit: (element) => { element.style.transform = 'translate(-50%, 60px)' } });
+    useScrollDownHide({ ref, animateOut: true, enter: (element) => { element.style.transform = 'translate(-50%, 0)' }, exit: (element) => { element.style.transform = 'translate(-50%, 40px)' } });
 
     return (
-        <Group ref={ref} noWrap px={40} py='sm' align='center' position='apart' sx={(theme) => ({ background: theme.colorScheme === 'dark' ? 'white' : theme.colors.dark[8], position: 'fixed', bottom: 20, borderRadius: 10, width: largeScreen ? '20vw' : '70vw', left: '50%', transform: 'translate(-50%, 0)', transition: '0.35s ease' })}>
+        <Group ref={ref} noWrap px={40} py='sm' align='center' position='apart' sx={(theme) => ({ background: theme.colorScheme === 'dark' ? 'white' : theme.colors.dark[8], position: 'fixed', bottom: 0, borderRadius: '10px 10px 0 0', width: largeScreen ? '40vw' : '100%', left: '50%', transform: 'translate(-50%, 0)', transition: '0.35s ease' })}>
             {navLinks.map((navLink) => <NavLink key={navLink.pathTo} {...navLink} />)}
         </Group>
     )

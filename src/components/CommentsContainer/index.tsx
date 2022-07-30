@@ -45,7 +45,6 @@ const CommentsContainer = ({ postId }: Props) => {
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
-    const headerRef = React.useRef(null);
     const router = useRouter();
 
     const session = useSession();
@@ -69,7 +68,7 @@ const CommentsContainer = ({ postId }: Props) => {
         initialData: () => {
             if (postInfo === undefined) {
                 console.log("Empty state")
-                const queryCache = (queryClient.getQueryCache().find(['post.sort'], { exact: false })?.state.data as Prompt[]);
+                const queryCache = (queryClient.getQueryData(['post.sort']) as Prompt[]);
                 if (queryCache !== undefined) {
                     const cacheInfo = queryCache.find((val) => val.id === postId);
                     if (cacheInfo) {
@@ -84,12 +83,11 @@ const CommentsContainer = ({ postId }: Props) => {
         }
     });
     const { classes } = useStyles();
-    useFixedNavbar(headerRef, true);
 
     return (
         <Stack align='center'>
             <Stack spacing={0} sx={(theme) => ({ width: largeScreen ? '40vw' : '100%', borderLeft: largeScreen ? '2px solid' : 'unset', borderRight: largeScreen ? '2px solid' : 'unset', borderColor: theme.colors.dark[4] })}>
-                <Paper ref={headerRef} px='lg' py='xs' className={classes.header}>
+                <Paper px='lg' py='xs' className={classes.header}>
                     <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
                 </Paper>
                 {/* Post Details */}

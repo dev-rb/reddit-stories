@@ -31,7 +31,7 @@ const useScrollDownHide = ({ ref, animateOut, exit, enter }: Options) => {
                     }
                 }
             }
-            pageYOffset = currentOffset;
+            pageYOffset = currentOffset > 0 ? currentOffset : 0;
         });
 
         return () => {

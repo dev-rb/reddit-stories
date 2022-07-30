@@ -41,7 +41,7 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
     }, [isDownloaded])
 
     const markAsRead = () => {
-        const queryCache = (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]);
+        const queryCache = (queryClient.getQueryData(['post.sort']) as Prompt[]);
         if (queryCache) {
             queryCache.forEach((val) => {
                 if (val.id === id) {
@@ -52,7 +52,7 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
     }
 
     React.useEffect(() => {
-        const queryCache = (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]);
+        const queryCache = (queryClient.getQueryData(['post.sort']) as Prompt[]);
         if (queryCache) {
             queryCache.forEach((val) => {
                 if (val.id === id) {

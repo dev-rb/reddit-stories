@@ -15,7 +15,7 @@ import { SortType, TopTimeSort, RedditSortTypeConversion as SortTypeConversion, 
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
 import { useQueryClient } from 'react-query';
-import { PromptAndStoriesWithNormalizedReplies } from 'src/interfaces/db';
+import { Prompt, PromptAndStoriesWithNormalizedReplies } from 'src/interfaces/db';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { useUser } from 'src/hooks/useUser';
 
@@ -55,14 +55,12 @@ const Home = () => {
       context: {
         skipBatch: true
       },
-      // queryFn: async ({ queryKey, signal }) => {
-
-      //   return (await fetch(queryKey[0], { signal })).json()
-      // },
-      // onSuccess: (data) => console.log(`Data: `, data),
+      onSuccess: (data) => {
+        queryClient.setQueryData(['post.sort'], () => data)
+      },
       initialData: () => {
         if (selector.length === 0) {
-          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId }]);
+          const cacheData = (queryClient.getQueryData(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId }]) as Prompt[]);
           if (cacheData) {
             return cacheData
           }
@@ -141,7 +139,7 @@ const Home = () => {
             <Avatar radius={'xl'} onClick={() => { setDrawerOpen(true) }} />
             <AccountDrawer opened={drawerOpen} closeDrawer={() => setDrawerOpen(false)} />
           </Group>
-
+          {/* 
           <TextInput variant='filled' size='lg' mt={40} icon={<MdSearch size={25} />} placeholder='Search Stories' sx={{ width: '100%' }} />
           <Box
             mt={'lg'}
@@ -157,7 +155,7 @@ const Home = () => {
             )}
           >
             <Text> Test </Text>
-          </Box>
+          </Box> */}
         </Stack>
         <Stack spacing={0} sx={{ width: '100%' }}>
           <Group px='lg' pb='sm' pt='sm' noWrap align='center' position='apart'>
