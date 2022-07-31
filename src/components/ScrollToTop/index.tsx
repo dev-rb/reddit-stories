@@ -5,7 +5,7 @@ import useScrollDownHide from 'src/hooks/useScrollDownHide';
 
 const ScrollToTopButton = () => {
     const ref = React.useRef<HTMLButtonElement>(null);
-    useScrollDownHide({ ref, animateOut: true })
+    useScrollDownHide({ ref, animateOut: true, hideAtTop: true })
 
     const scrollToTop = () => {
         document.scrollingElement?.scrollTo({ top: 0 });
