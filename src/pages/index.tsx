@@ -48,13 +48,10 @@ const Home = () => {
   const trpcContext = trpc.useContext();
 
   const { userId } = useUser();
-  console.log("Client userId: ", userId)
+
   const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
     ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId: userId }],
     {
-      context: {
-        skipBatch: true
-      },
       onSuccess: (data) => {
         queryClient.setQueryData(['post.sort'], () => data)
       },
@@ -67,7 +64,7 @@ const Home = () => {
           return
         }
         return selector.map((val) => {
-          const { downloaded, ...rest } = val;
+          const { userRead, sortType, timeSort, ...rest } = val;
           return rest;
         });
       },
@@ -75,8 +72,7 @@ const Home = () => {
 
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
-    setTimeSort(timeSort)
-
+    setTimeSort(timeSort);
   }
 
   const batchAllDownload = async () => {
@@ -92,7 +88,7 @@ const Home = () => {
     }
   }
 
-  const downloadPostsAndStories = async () => {
+  const downloadPostsAndStories = () => {
     if (postsData) {
       setIsDownloading(true);
       batchAllDownload();
@@ -208,6 +204,9 @@ const Home = () => {
                     {...currentItem}
                     index={index}
                     isDownloaded={selector.find((val) => val.id === currentItem.id) !== undefined}
+                    liked={currentItem.liked}
+                    readLater={currentItem.readLater}
+                    saved={currentItem.saved}
                   />
 
                 </div>

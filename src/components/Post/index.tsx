@@ -59,6 +59,15 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
                     if (val.userRead) {
                         setIsRead(val.userRead);
                     }
+                    if (val.liked) {
+                        setLiked(val.liked);
+                    }
+                    if (val.readLater) {
+                        setLater(val.readLater);
+                    }
+                    if (val.saved) {
+                        setSaved(val.saved);
+                    }
                 }
             })
         }
