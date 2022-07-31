@@ -86,6 +86,7 @@ const PostsSlice = createSlice({
         downloadPost: (state: PostsState, { payload }: PayloadAction<{ post: PromptAndStoriesWithNormalizedReplies, sortType: string, timeSort?: string }>) => {
             console.log("Download post called")
             state.posts.push({ ...payload.post, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
+            state.stories[payload.post.id] = [...payload.post.stories.map((val, index) => ({ ...val, downloaded: true, replies: { ...downloadReplies(val.replies), } }))];
         },
         downloadPosts: (state: PostsState, { payload }: PayloadAction<{ posts: PromptAndStoriesWithNormalizedReplies[], sortType: string, timeSort?: string }>) => {
             for (const post of payload.posts) {
@@ -96,18 +97,19 @@ const PostsSlice = createSlice({
             }
         },
         clearDownloadedPosts: (state: PostsState, { payload }: PayloadAction<{ sortType: string, timeSort?: string }>) => {
-            state.posts = [...state.posts.filter((post) => {
+            const filteredPosts = [...state.posts.filter((post) => {
                 const isSameSort = post.sortType === payload.sortType;
                 const isSameTimeSort = post.timeSort === payload.timeSort;
                 const isSaved = post.saved === true;
                 const isReadLater = post.readLater === true;
                 return !(isSameSort || isSameTimeSort || isSaved || isReadLater) && post.downloaded;
             })]
-
-            state.posts.forEach((post) => {
-                delete state.stories[post.id]
-
-            })
+            state.posts = filteredPosts;
+            const filteredStories = Object.keys(state.stories).filter((key) => filteredPosts.some((val) => val.id === key)).reduce((prev: { [key: string]: any }, key) => {
+                prev[key] = state.stories[key];
+                return prev;
+            }, {})
+            state.stories = filteredStories
         }
     }
 
@@ -167,7 +169,7 @@ export const commentDownloadStatus = (state: PostsState, postId: string, comment
             })
 
             if (foundInReplies) {
-                return foundInReplies;
+                return foundInReplies.downloaded;
             }
         }
     }

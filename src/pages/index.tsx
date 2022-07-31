@@ -133,8 +133,8 @@ const Home = () => {
         <Stack p='lg' sx={{ width: '100%' }}>
           <Group noWrap align='start' position='apart' sx={{ width: '100%' }}>
             <Stack spacing={0}>
-              <Title sx={{ fontWeight: 200 }}>Explore</Title>
-              <Title >Stories</Title>
+              <Title sx={{ fontWeight: 200 }}>Tavern</Title>
+              <Title >Tales</Title>
             </Stack>
             <Avatar radius={'xl'} onClick={() => { setDrawerOpen(true) }} />
             <AccountDrawer opened={drawerOpen} closeDrawer={() => setDrawerOpen(false)} />
