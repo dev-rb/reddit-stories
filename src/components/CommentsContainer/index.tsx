@@ -78,7 +78,7 @@ const CommentsContainer = ({ postId }: Props) => {
                 }
                 return
             }
-            const { downloaded, ...rest } = postInfo;
+            const { ...rest } = postInfo;
             return rest;
         }
     });
@@ -134,6 +134,9 @@ const CommentsContainer = ({ postId }: Props) => {
                                                     postAuthor={postData?.author ?? ''}
                                                     replyIndex={0}
                                                     isDownloaded={postInfo?.downloaded}
+                                                    liked={postInfo?.liked}
+                                                    favorited={postInfo?.favorited}
+                                                    readLater={postInfo?.readLater}
                                                 />
                                             </div>
                                         )
