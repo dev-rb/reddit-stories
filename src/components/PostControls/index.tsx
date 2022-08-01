@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux';
 import { updatePostStatus, updateReplyStatus, updateStoryStatus } from 'src/redux/slices';
 import { useQueryClient } from 'react-query';
 import { PostStatus } from 'src/server/routers/post';
+import { showPostStatusNotification, showUnauthenticatedNotification } from 'src/utils/notifications';
 
 type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>
 type NeededStoryValues = Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & { mainCommentId: string | null, replies: string[] }
@@ -48,12 +49,15 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
             }
         } else {
             dispatch(updatePostStatus({ postId: postInfo.id!, newStatusValue: newValue, statusToUpdate: status }))
-
         }
     }
 
     const updatePost = (status: PostStatus) => {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated) {
+            showUnauthenticatedNotification();
+            return;
+        }
+        showPostStatusNotification(status);
         let newValue = false;
         switch (status) {
             case 'liked':

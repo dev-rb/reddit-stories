@@ -17,6 +17,7 @@ import { httpBatchLink } from '@trpc/client/links/httpBatchLink';
 import { httpLink } from '@trpc/client/links/httpLink';
 import { splitLink } from '@trpc/client/links/splitLink';
 import { SessionProvider } from 'next-auth/react';
+import { NotificationsProvider } from '@mantine/notifications';
 
 const url = process.env.NEXT_PUBLIC_VERCEL_URL
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/trpc`
@@ -114,12 +115,14 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                                         withGlobalStyles
                                         withNormalizeCSS
                                     >
-                                        <ModalsProvider>
-                                            <AppLayout>
-                                                <Component {...pageProps} />
+                                        <NotificationsProvider position='bottom-center' limit={3}>
+                                            <ModalsProvider>
+                                                <AppLayout>
+                                                    <Component {...pageProps} />
 
-                                            </AppLayout>
-                                        </ModalsProvider>
+                                                </AppLayout>
+                                            </ModalsProvider>
+                                        </NotificationsProvider>
                                     </MantineProvider>
                                 </ColorSchemeProvider>
                             </PersistGate>
