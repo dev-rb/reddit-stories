@@ -5,6 +5,7 @@ import { Prisma, Comment } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchCommentsForPost, getReplies, normalizedReplies } from "src/utils/redditApi";
 import { ExtendedReply, IStory, NormalizedReplies, StoryAndReplies } from "src/interfaces/db";
+import { PostStatus } from "./post";
 
 const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
     id: true,
@@ -14,7 +15,10 @@ const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
     body: true,
     bodyHtml: true,
     created: true,
+    userCommentSaved: true
 });
+const postStatusTypeSchema = z.enum(['liked', 'favorited', 'readLater']);
+const POST_STATUSES = ['liked', 'favorited', 'readLater'];
 
 export const storiesRouter = createRouter()
     .query("forPost", {
@@ -27,7 +31,7 @@ export const storiesRouter = createRouter()
             const { id, userId } = input;
             const stories = await fetchCommentsForPost('/r/writingprompts', id);
             for (const story of stories) {
-                const { liked, readLater, replies, saved, mainCommentId, ...restOfStory } = story;
+                const { liked, readLater, replies, favorited, mainCommentId, ...restOfStory } = story;
                 await ctx.prisma.comment.upsert({
                     create: {
                         author: restOfStory.author,
@@ -77,7 +81,7 @@ export const storiesRouter = createRouter()
                             console.log("Found info for reply")
                             reply.liked = userCommentSaved.liked;
                             reply.readLater = userCommentSaved.readLater;
-                            reply.saved = userCommentSaved.favorited;
+                            reply.favorited = userCommentSaved.favorited;
                         }
 
                         return reply;
@@ -86,7 +90,7 @@ export const storiesRouter = createRouter()
 
                 await ctx.prisma.comment.createMany({
                     data: [...replies.map((val) => {
-                        const { liked, readLater, saved, ...rest } = val;
+                        const { liked, readLater, favorited, ...rest } = val;
                         // console.log("Reply: ", rest)
                         return rest;
                     })],
@@ -116,7 +120,7 @@ export const storiesRouter = createRouter()
                     if (userStory) {
                         story.liked = userStory.liked;
                         story.readLater = userStory.readLater;
-                        story.saved = userStory.favorited;
+                        story.favorited = userStory.favorited;
                     }
                 }
 
@@ -162,28 +166,34 @@ export const storiesRouter = createRouter()
     //         return story;
     //     }
     // })
-    .mutation("like", {
+    .mutation("updatePostStatus", {
         input: z.object({
             userId: z.string(),
             commentId: z.string(),
-            liked: z.boolean()
+            status: postStatusTypeSchema,
+            newValue: z.boolean(),
         }),
         async resolve({ input, ctx }) {
-            const { commentId, liked, userId } = input;
-            const comment = ctx.prisma.comment.update({
+            const { commentId, status, newValue, userId } = input;
+            const others: PostStatus[] = POST_STATUSES.filter((val) => val !== status) as PostStatus[];
+            let othersObj = {
+                [status]: newValue,
+                userId,
+                [others[0]]: false,
+                [others[1]]: false,
+            };
+
+            const comment = await ctx.prisma.comment.update({
                 where: { id: commentId },
                 data: {
                     userCommentSaved: {
                         upsert: {
                             create: {
-                                userId,
-                                liked,
-                                favorited: false,
-                                readLater: false
+                                [status]: newValue,
+                                ...othersObj as any,
                             },
                             update: {
-                                liked,
-                                userId
+                                [status]: newValue,
                             },
                             where: {
                                 userId_commentId: {
@@ -191,84 +201,6 @@ export const storiesRouter = createRouter()
                                     userId
                                 }
                             }
-                        }
-                    }
-                },
-                select: defaultStorySelect
-            });
-
-            return comment;
-        }
-
-    })
-    .mutation("favorite", {
-        input: z.object({
-            userId: z.string(),
-            commentId: z.string(),
-            favorited: z.boolean()
-        }),
-        async resolve({ input, ctx }) {
-            const { commentId, favorited, userId } = input;
-            console.log("Story favorited called")
-            const comment = ctx.prisma.comment.update({
-                where: { id: commentId },
-                data: {
-                    userCommentSaved: {
-                        upsert: {
-                            create: {
-                                favorited,
-                                userId,
-                                liked: false,
-                                readLater: false,
-                            },
-                            update: {
-                                favorited,
-                                userId
-                            },
-                            where: {
-                                userId_commentId: {
-                                    userId,
-                                    commentId
-                                }
-                            },
-                        }
-                    }
-                },
-                select: defaultStorySelect
-            });
-
-            return comment;
-        }
-    })
-    .mutation("readLater", {
-        input: z.object({
-            userId: z.string(),
-            commentId: z.string(),
-            readLater: z.boolean()
-        }),
-        async resolve({ input, ctx }) {
-            const { commentId, readLater, userId } = input;
-            const comment = ctx.prisma.comment.update({
-                where: { id: commentId },
-                data: {
-                    userCommentSaved: {
-                        upsert: {
-                            create: {
-                                readLater,
-                                userId,
-                                liked: false,
-                                favorited: false,
-                            },
-                            update: {
-                                readLater,
-                                userId
-                            },
-                            where: {
-                                userId_commentId: {
-                                    userId,
-                                    commentId
-                                }
-                            },
                         }
                     }
                 },

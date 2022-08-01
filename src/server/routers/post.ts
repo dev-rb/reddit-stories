@@ -17,6 +17,11 @@ const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     userPostSaved: true
 });
 
+const postStatusTypeSchema = z.enum(['liked', 'favorited', 'readLater']);
+export type PostStatus = z.TypeOf<typeof postStatusTypeSchema>
+
+const POST_STATUSES = ['liked', 'favorited', 'readLater'];
+
 export const postRouter = createRouter()
     .query('sort', {
         input: z.object({
@@ -35,7 +40,7 @@ export const postRouter = createRouter()
                 let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
 
                 const createPosts = [...prompts.map((prompt) => {
-                    const { totalComments, liked, readLater, saved, userRead, ...rest } = prompt;
+                    const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
                     return ctx.prisma.post.upsert({
                         create: rest,
                         update: rest,
@@ -106,7 +111,7 @@ export const postRouter = createRouter()
                 if (userPrompt) {
                     prompt.liked = userPrompt.liked;
                     prompt.readLater = userPrompt.readLater;
-                    prompt.saved = userPrompt.favorited;
+                    prompt.favorited = userPrompt.favorited;
                 }
             }
 
@@ -123,28 +128,34 @@ export const postRouter = createRouter()
             return prompt;
         }
     })
-    .mutation("like", {
+    .mutation("updatePostStatus", {
         input: z.object({
             userId: z.string(),
             postId: z.string(),
-            liked: z.boolean()
+            status: postStatusTypeSchema,
+            newValue: z.boolean(),
         }),
         async resolve({ input, ctx }) {
-            const { postId, liked, userId } = input;
-            const post = ctx.prisma.post.update({
+            const { postId, status, newValue, userId } = input;
+            const others: PostStatus[] = POST_STATUSES.filter((val) => val !== status) as PostStatus[];
+            let othersObj = {
+                [status]: newValue,
+                userId,
+                [others[0]]: false,
+                [others[1]]: false,
+            };
+
+            const post = await ctx.prisma.post.update({
                 where: { id: postId },
                 data: {
                     userPostSaved: {
                         upsert: {
                             create: {
-                                userId,
-                                liked,
-                                favorited: false,
-                                readLater: false
+                                [status]: newValue,
+                                ...othersObj as any
                             },
                             update: {
-                                liked,
-                                userId
+                                [status]: newValue,
                             },
                             where: {
                                 userId_postId: {
@@ -157,83 +168,6 @@ export const postRouter = createRouter()
                 },
                 select: defaultPostSelect
             });
-
-            return post;
-        }
-    })
-    .mutation("favorite", {
-        input: z.object({
-            userId: z.string(),
-            postId: z.string(),
-            favorited: z.boolean()
-        }),
-        async resolve({ input, ctx }) {
-            const { postId, favorited, userId } = input;
-            const post = ctx.prisma.post.update({
-                where: { id: postId },
-                data: {
-                    userPostSaved: {
-                        upsert: {
-                            create: {
-                                favorited,
-                                userId,
-                                liked: false,
-                                readLater: false,
-                            },
-                            update: {
-                                favorited,
-                                userId
-                            },
-                            where: {
-                                userId_postId: {
-                                    userId,
-                                    postId
-                                }
-                            },
-                        }
-                    }
-                },
-                select: defaultPostSelect
-            });
-
-            return post;
-        }
-    })
-    .mutation("readLater", {
-        input: z.object({
-            userId: z.string(),
-            postId: z.string(),
-            readLater: z.boolean()
-        }),
-        async resolve({ input, ctx }) {
-            const { postId, readLater, userId } = input;
-            const post = ctx.prisma.post.update({
-                where: { id: postId },
-                data: {
-                    userPostSaved: {
-                        upsert: {
-                            create: {
-                                readLater,
-                                userId,
-                                liked: false,
-                                favorited: false,
-                            },
-                            update: {
-                                readLater,
-                                userId
-                            },
-                            where: {
-                                userId_postId: {
-                                    userId,
-                                    postId
-                                }
-                            },
-                        }
-                    }
-                },
-                select: defaultPostSelect
-            });
-
             return post;
         }
     })

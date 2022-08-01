@@ -1,9 +1,6 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
-import { ExtendedReply, IStory, NormalizedReplies, Prompt, PromptAndStoriesWithExtendedReplies, PromptAndStoriesWithNormalizedReplies, StoryAndExtendedReplies, StoryAndNormalizedReplies } from "src/interfaces/db";
-import { persistor } from "../store";
-
-export type PostStatus = 'liked' | 'readLater' | 'saved'
+import { IStory, NormalizedReplies, Prompt, PromptAndStoriesWithNormalizedReplies } from "src/interfaces/db";
+import { PostStatus } from "src/server/routers/post";
 
 interface PostStateItem extends Prompt {
     sortType: string,
@@ -48,6 +45,7 @@ const PostsSlice = createSlice({
             if (payload.storyId !== undefined) {
                 console.log("Update reply local called")
                 console.log(payload.storyId)
+                if (state.stories[payload.postId] === undefined) return;
                 state.stories[payload.postId] = state.stories[payload.postId].map((story) => {
                     if (story.id === payload.storyId) {
                         story.replies[payload.replyId][payload.statusToUpdate] = payload.newStatusValue;
@@ -63,6 +61,7 @@ const PostsSlice = createSlice({
             if (payload.storyId !== undefined) {
                 console.log("Update story local called")
                 console.log(payload.storyId)
+                if (state.stories[payload.postId] === undefined) return;
                 state.stories[payload.postId] = state.stories[payload.postId].map((story) => {
                     if (story.id === payload.storyId) {
                         story[payload.statusToUpdate] = payload.newStatusValue;
@@ -100,7 +99,7 @@ const PostsSlice = createSlice({
             const filteredPosts = [...state.posts.filter((post) => {
                 const isSameSort = post.sortType === payload.sortType;
                 const isSameTimeSort = post.timeSort === payload.timeSort;
-                const isSaved = post.saved === true;
+                const isSaved = post.favorited === true;
                 const isReadLater = post.readLater === true;
                 return !(isSameSort || isSameTimeSort || isSaved || isReadLater) && post.downloaded;
             })]

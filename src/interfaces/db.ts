@@ -2,7 +2,7 @@ import { Post, Comment } from '@prisma/client';
 
 export interface IStory extends Comment {
     liked?: boolean,
-    saved?: boolean
+    favorited?: boolean
     readLater?: boolean
 }
 
@@ -25,7 +25,7 @@ export type StoriesAndReplies = { stories: StoryAndReplies[] }
 export interface Prompt extends Post {
     totalComments: number,
     liked?: boolean,
-    saved?: boolean
+    favorited?: boolean
     readLater?: boolean,
     userRead?: boolean
 }

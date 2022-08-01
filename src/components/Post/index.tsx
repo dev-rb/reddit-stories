@@ -14,7 +14,7 @@ import { postDownloadStatus, PostsState } from 'src/redux/slices';
 
 dayjs.extend(relativeTime)
 
-const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked, saved: postSaved, readLater: postReadLater }: Prompt & { index: number, isDownloaded?: boolean }) => {
+const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked, favorited: postSaved, readLater: postReadLater }: Prompt & { index: number, isDownloaded?: boolean }) => {
 
     const downloadStatusSelector = useSelector((state: PostsState) => postDownloadStatus(state, id));
 
@@ -65,8 +65,8 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
                     if (val.readLater) {
                         setLater(val.readLater);
                     }
-                    if (val.saved) {
-                        setSaved(val.saved);
+                    if (val.favorited) {
+                        setSaved(val.favorited);
                     }
                 }
             })
