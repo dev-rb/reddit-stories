@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title, useMantineColorScheme, Text, Button } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { MdDownload, MdRefresh, MdSearch } from 'react-icons/md';
+import { MdCheckCircle, MdDownload, MdRefresh, MdSearch } from 'react-icons/md';
 import Post from '../components/Post';
 import { trpc } from '../utils/trpc';
 import ListVirtualizer from '../components/ListVirtualizer';
@@ -18,6 +18,7 @@ import { useQueryClient } from 'react-query';
 import { Prompt, PromptAndStoriesWithNormalizedReplies } from 'src/interfaces/db';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { useUser } from 'src/hooks/useUser';
+import { showDownloadNotification, showSigninNotification, updateDownloadNotification } from 'src/utils/notifications';
 
 const Home = () => {
 
@@ -59,7 +60,10 @@ const Home = () => {
         if (selector.length === 0) {
           const cacheData = (queryClient.getQueryData(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId }]) as Prompt[]);
           if (cacheData) {
-            return cacheData
+            return cacheData.map((val) => {
+              const { userRead, ...rest } = val;
+              return rest;
+            })
           }
           return
         }
@@ -91,6 +95,7 @@ const Home = () => {
   const downloadPostsAndStories = () => {
     if (postsData) {
       setIsDownloading(true);
+      showDownloadNotification(true);
       batchAllDownload();
     }
   }
@@ -118,6 +123,7 @@ const Home = () => {
     if (selector.length !== 0) {
       setTimeout(() => {
         setIsDownloading(false);
+        updateDownloadNotification(<MdCheckCircle />)
       }, 1500)
     }
   }, [selector])
@@ -206,7 +212,7 @@ const Home = () => {
                     isDownloaded={selector.find((val) => val.id === currentItem.id) !== undefined}
                     liked={currentItem.liked}
                     readLater={currentItem.readLater}
-                    saved={currentItem.saved}
+                    favorited={currentItem.favorited}
                   />
 
                 </div>
