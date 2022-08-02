@@ -57,7 +57,6 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
             showUnauthenticatedNotification();
             return;
         }
-        showPostStatusNotification(status);
         let newValue = false;
         switch (status) {
             case 'liked':
@@ -82,7 +81,8 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
             updatePostMutation({ postId: postInfo.id, userId: userId!, status, newValue: !newValue })
         }
 
-        updateLocalState(status, newValue);
+        showPostStatusNotification(status, !newValue);
+        updateLocalState(status, !newValue);
     }
 
     const handleActionPress = (e: React.MouseEvent<HTMLButtonElement>, status: PostStatus) => {
