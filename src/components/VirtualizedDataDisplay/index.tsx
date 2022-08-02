@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Center, Loader, Text } from '@mantine/core';
 import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
-import ListVirtualizer from '../ListVirtualizer';
+import ListVirtualizer from './ListVirtualizer';
 import { TRPCClientErrorLike } from '@trpc/client';
 import { AppRouter } from 'src/server/routers';
 

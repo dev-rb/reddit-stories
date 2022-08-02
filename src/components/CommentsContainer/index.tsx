@@ -2,19 +2,18 @@ import * as React from 'react';
 import { IPost } from '../../interfaces/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
-import useFixedNavbar from '../../hooks/useFixedNavbar';
-import { createStyles, Group, Paper, Stack, Box, Title, Center, Loader } from '@mantine/core';
+import { createStyles, Group, Paper, Stack, Box, Title, Center } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import Post from '../Post';
 import { useMediaQuery } from '@mantine/hooks';
 import { useQueryClient } from 'react-query';
-import ListVirtualizer from '../ListVirtualizer';
 import { useSelector } from 'react-redux';
 import { postSelector, PostsState } from 'src/redux/slices';
 import SortSelect from '../MobileSelect/SortSelect';
 import { useSession } from 'next-auth/react';
-import { Prompt } from 'src/interfaces/db';
+import { Prompt, StoryAndNormalizedReplies } from 'src/interfaces/db';
+import VirtualizedDataDisplay from '../VirtualizedDataDisplay';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -54,7 +53,7 @@ const CommentsContainer = ({ postId }: Props) => {
 
     const storiesDownloaded = useSelector((state: PostsState) => state.stories[postId]);
 
-    const { data: storiesData, isLoading: isLoadingStories } = trpc.useQuery(['story.forPost', { id: postId, userId: session.data?.user?.id }], {
+    const { data: storiesData, isLoading, isFetching, isRefetching, isError, error } = trpc.useQuery(['story.forPost', { id: postId, userId: session.data?.user?.id }], {
         // onSuccess: (data) => console.log(data),
         initialData: () => {
             if (storiesDownloaded === undefined) {
@@ -107,42 +106,24 @@ const CommentsContainer = ({ postId }: Props) => {
                                 <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Stories Yet</Title>
                             </Center>
                             :
-                            isLoadingStories ? <Center><Loader /></Center> :
-                                <ListVirtualizer
-                                    data={storiesData ?? []}
-                                    renderItem={(item) => {
-                                        const currentItem = storiesData![item.index]
-                                        return (
-                                            <div
-                                                key={item.index}
-                                                ref={item.measureElement}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    width: '100%',
-                                                    // height: `${item.size}px`,
-                                                    transform: `translateY(${item.start}px)`,
-                                                }}
-                                            >
-                                                <CommentDisplay
-                                                    key={currentItem.id}
-                                                    {...currentItem}
-                                                    allReplies={currentItem.replies}
-                                                    replies={[...Object.keys(currentItem.replies).filter((val) => currentItem.replies[val].replyId === null)]}
-                                                    postId={postId}
-                                                    postAuthor={postData?.author ?? ''}
-                                                    replyIndex={0}
-                                                    isDownloaded={postInfo?.downloaded}
-                                                    liked={postInfo?.liked}
-                                                    favorited={postInfo?.favorited}
-                                                    readLater={postInfo?.readLater}
-                                                />
-                                            </div>
-                                        )
-                                    }}
-
-                                />
+                            <VirtualizedDataDisplay
+                                dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: storiesData }}
+                                renderItem={(item: StoryAndNormalizedReplies) => {
+                                    return <CommentDisplay
+                                        key={item.id}
+                                        {...item}
+                                        allReplies={item.replies}
+                                        replies={[...Object.keys(item.replies).filter((val) => item.replies[val].replyId === null)]}
+                                        postId={postId}
+                                        postAuthor={postData?.author ?? ''}
+                                        replyIndex={0}
+                                        isDownloaded={postInfo?.downloaded}
+                                        liked={postInfo?.liked}
+                                        favorited={postInfo?.favorited}
+                                        readLater={postInfo?.readLater}
+                                    />;
+                                }}
+                            />
 
                     }
                 </Stack>

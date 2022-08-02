@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title, useMantineColorScheme, Text, Button } from '@mantine/core';
+import { ActionIcon, Avatar, Group, Stack, Title, useMantineColorScheme, Text, Button } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { MdCheckCircle, MdDownload, MdRefresh, MdSearch } from 'react-icons/md';
+import { MdCheckCircle, MdDownload, MdRefresh } from 'react-icons/md';
 import Post from '../components/Post';
 import { trpc } from '../utils/trpc';
-import ListVirtualizer from '../components/ListVirtualizer';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { useRouter } from 'next/router';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
@@ -18,7 +17,8 @@ import { useQueryClient } from 'react-query';
 import { Prompt, PromptAndStoriesWithNormalizedReplies } from 'src/interfaces/db';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { useUser } from 'src/hooks/useUser';
-import { showDownloadNotification, showSigninNotification, updateDownloadNotification } from 'src/utils/notifications';
+import { showDownloadNotification, updateDownloadNotification } from 'src/utils/notifications';
+import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
 
 const Home = () => {
 
@@ -50,7 +50,7 @@ const Home = () => {
 
   const { userId } = useUser();
 
-  const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
+  const { data: postsData, isLoading, isFetching, isRefetching, refetch, error, isError } = trpc.useQuery(
     ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId: userId }],
     {
       onSuccess: (data) => {
@@ -175,51 +175,19 @@ const Home = () => {
           </Group>
           <Button radius={0} rightIcon={<MdRefresh size={18} />} color='gray' fullWidth onClick={handleRefresh} sx={{ alignSelf: 'center' }}> Refresh </Button>
 
-          {(isLoading || isFetching || isRefetching) ?
-            <Center>
-              <Loader />
-            </Center> :
-            // <Stack spacing={0}>
-            //   {postsData?.map((post, index) => {
-            //     return (<Post key={post.id}
-            //       {...post}
-            //       created={post.created}
-            //       totalStories={post.totalComments}
-            //       index={index}
-            //       isDownloaded={selector.find((val) => val.id === post.id) !== undefined}
-            //     />)
-            //   })}
-            // </Stack>
-            <ListVirtualizer data={postsData!} renderItem={(item, index) => {
-              const currentItem = postsData![item.index];
-              return (
-                <div
-                  key={item.index}
-                  ref={item.measureElement}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    // height: `${item.size}px`,
-                    transform: `translateY(${item.start}px)`,
-                  }}
-                >
-                  <Post
-                    key={currentItem.id}
-                    {...currentItem}
-                    index={index}
-                    isDownloaded={selector.find((val) => val.id === currentItem.id) !== undefined}
-                    liked={currentItem.liked}
-                    readLater={currentItem.readLater}
-                    favorited={currentItem.favorited}
-                  />
-
-                </div>
-              )
+          <VirtualizedDataDisplay
+            dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: postsData }}
+            renderItem={(item: Prompt, index: number) => {
+              return <Post
+                key={item.id}
+                {...item}
+                index={index}
+                isDownloaded={selector.find((val) => val.id === item.id) !== undefined}
+                liked={item.liked}
+                readLater={item.readLater}
+                favorited={item.favorited} />;
             }}
-            />
-          }
+          />
 
         </Stack>
       </Stack>
