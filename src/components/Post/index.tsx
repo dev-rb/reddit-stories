@@ -9,22 +9,22 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import PostControls from '../PostControls';
 import { Prompt } from 'src/interfaces/db';
 import { useQueryClient } from 'react-query';
-import { useSelector } from 'react-redux';
-import { postDownloadStatus, PostsState } from 'src/redux/slices';
+import { useDispatch, useSelector } from 'react-redux';
+import { getPostStatuses, PostsState, updatePostStatus } from 'src/redux/slices';
 
 dayjs.extend(relativeTime)
 
 const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked, favorited: postSaved, readLater: postReadLater }: Prompt & { index: number, isDownloaded?: boolean }) => {
 
-    const downloadStatusSelector = useSelector((state: PostsState) => postDownloadStatus(state, id));
+    const localPostStatus = useSelector((state: PostsState) => getPostStatuses(state, id))
 
-    const [isRead, setIsRead] = React.useState(false);
+    const [isRead, setIsRead] = React.useState(localPostStatus?.userRead ?? false);
 
-    const [downloadedStatus, setDownloadedStatus] = React.useState(downloadStatusSelector ?? false);
+    const [downloadedStatus, setDownloadedStatus] = React.useState(localPostStatus?.downloaded ?? false);
 
-    const [liked, setLiked] = React.useState(postLiked ?? false);
-    const [saved, setSaved] = React.useState(postSaved ?? false);
-    const [later, setLater] = React.useState(postReadLater ?? false);
+    const [liked, setLiked] = React.useState(postLiked ?? localPostStatus?.liked ?? false);
+    const [saved, setSaved] = React.useState(postSaved ?? localPostStatus?.favorited ?? false);
+    const [later, setLater] = React.useState(postReadLater ?? localPostStatus?.readLater ?? false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
@@ -34,6 +34,8 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
 
     const queryClient = useQueryClient();
 
+    const dispatch = useDispatch();
+
     React.useEffect(() => {
         if (isDownloaded !== undefined) {
             setDownloadedStatus(isDownloaded)
@@ -41,6 +43,7 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
     }, [isDownloaded])
 
     const markAsRead = () => {
+        dispatch(updatePostStatus({ postId: id, newStatusValue: true, statusToUpdate: 'userRead' }))
         const queryCache = (queryClient.getQueryData(['post.sort']) as Prompt[]);
         if (queryCache) {
             queryCache.forEach((val) => {

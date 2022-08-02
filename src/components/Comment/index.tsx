@@ -39,7 +39,7 @@ const CommentDisplay = ({
     postAuthor,
     replyIndex,
     liked: storyLiked,
-    saved: storySaved,
+    favorited: storySaved,
     readLater: storyReadLater,
     isCollapsed,
     isDownloaded
@@ -141,7 +141,7 @@ const CommentDisplay = ({
                                 postAuthor={postAuthor}
                                 liked={reply.liked}
                                 readLater={reply.readLater}
-                                saved={reply.saved}
+                                favorited={reply.favorited}
                             />
                         )
                     })}

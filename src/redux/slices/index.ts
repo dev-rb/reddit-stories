@@ -73,7 +73,7 @@ const PostsSlice = createSlice({
                 return;
             }
         },
-        updatePostStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
+        updatePostStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, statusToUpdate: PostStatus | 'userRead', newStatusValue: boolean }>) => {
 
             state.posts = state.posts.map((val) => {
                 if (val.id === payload.postId) {
@@ -144,14 +144,13 @@ export const postSelector = (state: PostsState, postId: string) => {
 
 }
 
-export const postDownloadStatus = (state: PostsState, postId: string) => {
+export const getPostStatuses = (state: PostsState, postId: string) => {
     const found = state.posts.find((post) => post.id === postId);
-
     if (found) {
-        return found.downloaded;
+        const { downloaded, liked, readLater, userRead, favorited } = found;
+        return { downloaded, liked, readLater, userRead, favorited } as const;
     }
 }
-
 
 export const commentDownloadStatus = (state: PostsState, postId: string, commentId: string) => {
     const found = state.stories[postId];
