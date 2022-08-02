@@ -1,5 +1,7 @@
 import { NotificationProps, showNotification, updateNotification } from "@mantine/notifications";
+import { nanoid } from "@reduxjs/toolkit";
 import { MdCheckCircle } from 'react-icons/md';
+import { negativeStatusIconMap, negativeStatusTextMap, positiveStatusIconMap, positiveStatusTextMap } from "src/constants/notificationConstants";
 import { PostStatus } from "src/server/routers/post";
 
 const commonProps: Omit<NotificationProps, 'message'> = {
@@ -24,10 +26,18 @@ const showDownloadNotification = (isLoading: boolean) => showNotification({
     loading: isLoading,
 })
 
-const showPostStatusNotification = (status: PostStatus) => showNotification({
-    id: 'post-status-update',
-    message: `${status.toString()}`,
-    ...commonProps
+const getNotificationStatusTitle = (status: PostStatus) => {
+    return status.toString().charAt(0).toUpperCase() + status.toString().slice(1);
+}
+
+const showPostStatusNotification = (status: PostStatus, newValue: boolean) => showNotification({
+    id: 'post-status-update' + nanoid(),
+    title: `${getNotificationStatusTitle(status)}`,
+    message: `${newValue === false ? negativeStatusTextMap[status] : positiveStatusTextMap[status]}`,
+    ...commonProps,
+    icon: newValue === false ? negativeStatusIconMap[status] : positiveStatusIconMap[status],
+    color: newValue === false ? 'red' : 'green',
+    autoClose: 1500,
 })
 
 const showSigninNotification = (userName?: string | null) => showNotification({
