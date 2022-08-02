@@ -152,13 +152,14 @@ export const getPostStatuses = (state: PostsState, postId: string) => {
     }
 }
 
-export const commentDownloadStatus = (state: PostsState, postId: string, commentId: string) => {
+export const getCommentStatuses = (state: PostsState, postId: string, commentId: string) => {
     const found = state.stories[postId];
 
     if (found !== undefined) {
         const foundComment = found.find((val) => val.id === commentId)
         if (foundComment) {
-            return foundComment.downloaded;
+            const { downloaded, liked, readLater, favorited } = foundComment;
+            return { downloaded, liked, readLater, favorited } as const;
         } else {
             const foundInReplies = found.find((val) => {
                 const found = Object.keys(val.replies).find((replyId) => val.replies[replyId].downloaded)
@@ -167,7 +168,8 @@ export const commentDownloadStatus = (state: PostsState, postId: string, comment
             })
 
             if (foundInReplies) {
-                return foundInReplies.downloaded;
+                const { downloaded, liked, readLater, favorited } = foundInReplies;
+                return { downloaded, liked, readLater, favorited } as const;
             }
         }
     }

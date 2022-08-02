@@ -10,7 +10,7 @@ import { IStory, NormalizedReplies } from 'src/interfaces/db';
 import PostControls from '../PostControls';
 import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
 import { useSelector } from 'react-redux';
-import { commentDownloadStatus, PostsState } from 'src/redux/slices';
+import { getCommentStatuses, PostsState } from 'src/redux/slices';
 import { useCommentStyles } from './comment.styles';
 
 dayjs.extend(RelativeTime);
@@ -44,13 +44,13 @@ const CommentDisplay = ({
     isCollapsed,
     isDownloaded
 }: CommentDisplayProps) => {
-    const [liked, setLiked] = React.useState(storyLiked ?? false);
-    const [saved, setSaved] = React.useState(storySaved ?? false);
-    const [later, setLater] = React.useState(storyReadLater ?? false);
+    const commentStatus = useSelector((state: PostsState) => getCommentStatuses(state, postId!, id));
 
-    const downloadStatusSelector = useSelector((state: PostsState) => commentDownloadStatus(state, postId!, id));
+    const [liked, setLiked] = React.useState(storyLiked ?? commentStatus?.liked ?? false);
+    const [saved, setSaved] = React.useState(storySaved ?? commentStatus?.favorited ?? false);
+    const [later, setLater] = React.useState(storyReadLater ?? commentStatus?.readLater ?? false);
 
-    const [downloadedStatus, setDownloadedStatus] = React.useState(downloadStatusSelector ?? false);
+    const [downloadedStatus, setDownloadedStatus] = React.useState(commentStatus?.downloaded ?? false);
 
     const [collapsed, setCollapsed] = React.useState(isCollapsed ?? false);
 
