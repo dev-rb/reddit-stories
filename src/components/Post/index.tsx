@@ -10,25 +10,21 @@ import PostControls from '../PostControls';
 import { Prompt } from 'src/interfaces/db';
 import { useQueryClient } from 'react-query';
 import { useDispatch, useSelector } from 'react-redux';
-import { getPostStatus, postDownloadStatus, PostsState, updatePostStatus } from 'src/redux/slices';
+import { getPostStatuses, PostsState, updatePostStatus } from 'src/redux/slices';
 
 dayjs.extend(relativeTime)
 
 const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked, favorited: postSaved, readLater: postReadLater }: Prompt & { index: number, isDownloaded?: boolean }) => {
 
-    const downloadStatusSelector = useSelector((state: PostsState) => postDownloadStatus(state, id));
-    const isReadStatusSelector = useSelector((state: PostsState) => getPostStatus(state, id, 'userRead'))
-    const likedStatusSelector = useSelector((state: PostsState) => getPostStatus(state, id, 'liked'))
-    const favoritedStatusSelector = useSelector((state: PostsState) => getPostStatus(state, id, 'favorited'))
-    const readLaterStatusSelector = useSelector((state: PostsState) => getPostStatus(state, id, 'readLater'))
+    const localPostStatus = useSelector((state: PostsState) => getPostStatuses(state, id))
 
-    const [isRead, setIsRead] = React.useState(isReadStatusSelector ?? false);
+    const [isRead, setIsRead] = React.useState(localPostStatus?.userRead ?? false);
 
-    const [downloadedStatus, setDownloadedStatus] = React.useState(downloadStatusSelector ?? false);
+    const [downloadedStatus, setDownloadedStatus] = React.useState(localPostStatus?.downloaded ?? false);
 
-    const [liked, setLiked] = React.useState(postLiked ?? likedStatusSelector ?? false);
-    const [saved, setSaved] = React.useState(postSaved ?? favoritedStatusSelector ?? false);
-    const [later, setLater] = React.useState(postReadLater ?? readLaterStatusSelector ?? false);
+    const [liked, setLiked] = React.useState(postLiked ?? localPostStatus?.liked ?? false);
+    const [saved, setSaved] = React.useState(postSaved ?? localPostStatus?.favorited ?? false);
+    const [later, setLater] = React.useState(postReadLater ?? localPostStatus?.readLater ?? false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 

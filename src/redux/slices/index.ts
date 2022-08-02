@@ -144,21 +144,13 @@ export const postSelector = (state: PostsState, postId: string) => {
 
 }
 
-export const getPostStatus = (state: PostsState, postId: string, status: PostStatus | 'userRead') => {
+export const getPostStatuses = (state: PostsState, postId: string) => {
     const found = state.posts.find((post) => post.id === postId);
     if (found) {
-        return found[status];
+        const { downloaded, liked, readLater, userRead, favorited } = found;
+        return { downloaded, liked, readLater, userRead, favorited } as const;
     }
 }
-
-export const postDownloadStatus = (state: PostsState, postId: string) => {
-    const found = state.posts.find((post) => post.id === postId);
-
-    if (found) {
-        return found.downloaded;
-    }
-}
-
 
 export const commentDownloadStatus = (state: PostsState, postId: string, commentId: string) => {
     const found = state.stories[postId];
