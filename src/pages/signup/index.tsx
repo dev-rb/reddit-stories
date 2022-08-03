@@ -83,7 +83,7 @@ const schema = z.object({
     email: z.string().email({ message: 'Invalid email address' })
 })
 
-const SignIn = () => {
+const SignUp = () => {
 
     const router = useRouter();
 
@@ -100,10 +100,11 @@ const SignIn = () => {
         },
     });
 
-    const emailSignIn = async ({ email }: { email: string }) => {
+    const emailSignUp = async ({ email }: { email: string }) => {
         const res = await signIn('email', { email, callbackUrl: '/', redirect: false });
-        if (res?.error?.includes('Invalid Email')) {
-            form.setFieldError('email', 'Invalid Email')
+        console.log(res)
+        if (res?.error?.includes('Email already in use')) {
+            form.setFieldError('email', 'Email already in use')
         }
     }
 
@@ -124,26 +125,26 @@ const SignIn = () => {
                     </ActionIcon>
 
                     <Stack spacing={'sm'} py={40}>
-                        <Title> SIGN IN </Title>
-                        <Text> Sign in to access your saved prompts, stories, and likes. </Text>
+                        <Title> SIGN UP </Title>
+                        <Text> Sign up to save prompts and stories </Text>
                     </Stack>
 
                     <Stack align='center' sx={{ width: '100%' }}>
-                        <form onSubmit={form.onSubmit((values) => emailSignIn(values))}>
+                        <form onSubmit={form.onSubmit((values) => emailSignUp(values))}>
                             <TextInput
                                 // variant='filled'
                                 type='email'
                                 label='Email Address'
                                 placeholder='Your Email'
                                 required sx={{ width: '100%' }}
-                                description='You only need your email to sign in. A link will be sent to your email for verification.'
+                                description='You only need your email to sign up. A link will be sent to your email for verification.'
                                 {...form.getInputProps('email')}
                             />
                             {/* <PasswordInput label='Password' placeholder='Your Password' required sx={{ width: '100%' }} />
                         <Group position='right' sx={{ width: '100%' }}> 
                             <Anchor> Forgot Password? </Anchor>
                         </Group> */}
-                            <Button mt={50} fullWidth sx={{ height: '40px' }} type='submit'> Sign In </Button>
+                            <Button mt={50} fullWidth sx={{ height: '40px' }} type='submit'> Sign Up </Button>
                         </form>
 
                         <Stack sx={{ width: '100%' }}>
@@ -155,16 +156,16 @@ const SignIn = () => {
                                 sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}
                                 onClick={googleSignIn}
                             >
-                                Sign in with Google
+                                Sign up with Google
                             </Button>
                             <Button variant='outline' color={theme.colorScheme === 'dark' ? 'dark' : 'gray'} fullWidth leftIcon={<BsReddit color='#F8A130' />} sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}>
-                                Sign in with Reddit
+                                Sign up with Reddit
                             </Button>
                         </Stack>
 
                         <Text mt={100}>
-                            Don't Have an Account?
-                            <Anchor> Sign Up </Anchor>
+                            Already Have an Account?
+                            <Anchor> Sign In </Anchor>
                         </Text>
                     </Stack>
                 </Stack>
@@ -194,4 +195,4 @@ const SignIn = () => {
     );
 }
 
-export default SignIn;
+export default SignUp;
