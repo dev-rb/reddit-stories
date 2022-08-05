@@ -8,6 +8,7 @@ import { ClientSafeProvider, getProviders, LiteralUnion, signIn } from 'next-aut
 import { BuiltInProviderType } from 'next-auth/providers';
 import { useForm, zodResolver } from '@mantine/form';
 import { z } from 'zod';
+import { signUp } from 'src/utils/signup';
 
 const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
     mainContainer: {
@@ -101,7 +102,7 @@ const SignUp = () => {
     });
 
     const emailSignUp = async ({ email }: { email: string }) => {
-        const res = await signIn('email', { email, callbackUrl: '/', redirect: false });
+        const res = await signUp('email', { email, callbackUrl: '/', redirect: false });
         console.log(res)
         if (res?.error?.includes('Email already in use')) {
             form.setFieldError('email', 'Email already in use')
