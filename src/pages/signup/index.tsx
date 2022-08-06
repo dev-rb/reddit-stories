@@ -9,6 +9,7 @@ import { BuiltInProviderType } from 'next-auth/providers';
 import { useForm, zodResolver } from '@mantine/form';
 import { z } from 'zod';
 import { signUp } from 'src/utils/signup';
+import { useModals } from '@mantine/modals';
 
 const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
     mainContainer: {
@@ -88,6 +89,8 @@ const SignUp = () => {
 
     const router = useRouter();
 
+    const modals = useModals();
+
     const theme = useMantineTheme();
 
     const largeScreen = useMediaQuery('(min-width: 1000px)');
@@ -101,11 +104,30 @@ const SignUp = () => {
         },
     });
 
+    const openConfirmationModal = () => {
+        const requestSent = modals.openConfirmModal({
+            title: 'A verification email was sent to your email',
+            children: (
+                <Text size="sm">
+                    Follow the sign in button on the email to finish signing up to your account.
+                </Text>
+            ),
+            centered: true,
+            labels: { confirm: 'Okay', cancel: 'Close' },
+            onCancel: () => modals.closeModal(requestSent, true),
+            onConfirm: () => modals.closeModal(requestSent, true),
+        });
+    }
+
     const emailSignUp = async ({ email }: { email: string }) => {
         const res = await signUp('email', { email, callbackUrl: '/', redirect: false });
         console.log(res)
         if (res?.error?.includes('Email already in use')) {
             form.setFieldError('email', 'Email already in use')
+        }
+
+        if (res?.error === null) {
+            openConfirmationModal();
         }
     }
 
@@ -166,7 +188,7 @@ const SignUp = () => {
 
                         <Text mt={100}>
                             Already Have an Account?
-                            <Anchor> Sign In </Anchor>
+                            <Anchor href='/signin'> Sign In </Anchor>
                         </Text>
                     </Stack>
                 </Stack>

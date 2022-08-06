@@ -8,6 +8,7 @@ import { ClientSafeProvider, getProviders, LiteralUnion, signIn } from 'next-aut
 import { BuiltInProviderType } from 'next-auth/providers';
 import { useForm, zodResolver } from '@mantine/form';
 import { z } from 'zod';
+import { useModals } from '@mantine/modals';
 
 const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
     mainContainer: {
@@ -87,6 +88,8 @@ const SignIn = () => {
 
     const router = useRouter();
 
+    const modals = useModals();
+
     const theme = useMantineTheme();
 
     const largeScreen = useMediaQuery('(min-width: 1000px)');
@@ -100,10 +103,30 @@ const SignIn = () => {
         },
     });
 
+    const openConfirmationModal = () => {
+        const requestSent = modals.openConfirmModal({
+            title: 'A verification email was sent to your email',
+            children: (
+                <Text size="sm">
+                    Follow the sign in button on the email to sign in to your account.
+                </Text>
+            ),
+            centered: true,
+            labels: { confirm: 'Okay', cancel: 'Close' },
+            onCancel: () => modals.closeModal(requestSent, true),
+            onConfirm: () => modals.closeModal(requestSent, true),
+        });
+    }
+
     const emailSignIn = async ({ email }: { email: string }) => {
         const res = await signIn('email', { email, callbackUrl: '/', redirect: false });
+        console.log(res)
         if (res?.error?.includes('Invalid Email')) {
             form.setFieldError('email', 'Invalid Email')
+        }
+
+        if (res?.error === null) {
+            openConfirmationModal();
         }
     }
 
@@ -164,7 +187,7 @@ const SignIn = () => {
 
                         <Text mt={100}>
                             Don't Have an Account?
-                            <Anchor> Sign Up </Anchor>
+                            <Anchor href='/signup'> Sign Up </Anchor>
                         </Text>
                     </Stack>
                 </Stack>

@@ -89,8 +89,7 @@ export async function signUp<
     const isEmail = providers[provider].type === "email"
     const isSupportingReturn = isCredentials || isEmail
 
-    const signUpUrl = `${baseUrl}/${isCredentials ? "callback" : "signup"
-        }/${provider}`
+    const signUpUrl = `${baseUrl}/${isCredentials ? "callback" : "signup"}/${provider}`
 
     const _signUpUrl = `${signUpUrl}?${new URLSearchParams(authorizationParams)}`
 

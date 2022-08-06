@@ -6,7 +6,7 @@ import { prisma } from "src/server/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function auth(req: NextApiRequest, res: NextApiResponse) {
-    console.log(req.query.nextauth)
+
     if (req.query.nextauth.includes('signup')) {
         const requestEmail = req.body.email;
         console.log("Has signup in request")
@@ -21,9 +21,10 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
         }
     }
 
-    const indexOfSignUp = req.query.nextauth.indexOf('signup');
+    console.log(req.query.nextauth)
 
-    if (typeof req.query.nextauth === 'object') {
+    const indexOfSignUp = req.query.nextauth.indexOf('signup');
+    if (typeof req.query.nextauth === 'object' && indexOfSignUp) {
         req.query.nextauth[indexOfSignUp] = 'signin'
     }
 
@@ -52,6 +53,20 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
             session: async ({ session, user }) => {
                 return { ...session, user: user };
             },
+            signIn: async ({ user }) => {
+                if (user.id) {
+                    const validEmail = await prisma.user.findUnique({
+                        where: {
+                            id: user.id
+                        }
+                    });
+
+                    if (validEmail) {
+                        return true;
+                    }
+                }
+                throw new Error('Invalid Email')
+            }
         },
         session: {
             strategy: 'database'
