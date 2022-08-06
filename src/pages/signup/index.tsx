@@ -1,15 +1,16 @@
 import * as React from 'react';
-import { ActionIcon, Anchor, Blockquote, Button, createStyles, Group, Image, PasswordInput, Stack, Text, TextInput, Title, useMantineTheme } from '@mantine/core';
-import { useColorScheme, useMediaQuery } from '@mantine/hooks';
+import { ActionIcon, Anchor, Blockquote, Button, createStyles, Group, Stack, Text, TextInput, Title, useMantineTheme } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useRouter } from 'next/router';
 import { BsGoogle, BsReddit } from 'react-icons/bs';
 import { MdKeyboardBackspace } from 'react-icons/md';
-import { ClientSafeProvider, getProviders, LiteralUnion, signIn } from 'next-auth/react';
-import { BuiltInProviderType } from 'next-auth/providers';
+import { signIn } from 'next-auth/react';
 import { useForm, zodResolver } from '@mantine/form';
 import { z } from 'zod';
 import { signUp } from 'src/utils/signup';
 import { useModals } from '@mantine/modals';
+import { useUser } from 'src/hooks/useUser';
+import SignedInCard from 'src/components/SignedInCard';
 
 const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
     mainContainer: {
@@ -91,6 +92,8 @@ const SignUp = () => {
 
     const modals = useModals();
 
+    const user = useUser();
+
     const theme = useMantineTheme();
 
     const largeScreen = useMediaQuery('(min-width: 1000px)');
@@ -141,8 +144,11 @@ const SignUp = () => {
 
     return (
         <Group className={classes.mainContainer} noWrap spacing={0} align={largeScreen ? 'center' : undefined} position={largeScreen ? 'apart' : 'center'}>
-            <Stack spacing={0} justify='center' align='center' sx={{ width: '100%' }}>
-                <Stack spacing={0} p='lg' className={classes.formContainer}>
+            <Stack spacing={'sm'} align='center' sx={{ width: '100%', height: '100%' }}>
+                {
+                    user.isAuthenticated && <SignedInCard />
+                }
+                <Stack spacing={0} p='lg' pb={50} className={classes.formContainer}>
                     <ActionIcon size='xl'>
                         <MdKeyboardBackspace size={50} onClick={() => { router.back() }} />
                     </ActionIcon>
@@ -152,8 +158,8 @@ const SignUp = () => {
                         <Text> Sign up to save prompts and stories </Text>
                     </Stack>
 
-                    <Stack align='center' sx={{ width: '100%' }}>
-                        <form onSubmit={form.onSubmit((values) => emailSignUp(values))}>
+                    <Stack align='start' sx={{ width: '100%' }}>
+                        <form onSubmit={form.onSubmit((values) => emailSignUp(values))} style={{ width: '100%' }}>
                             <TextInput
                                 // variant='filled'
                                 type='email'
