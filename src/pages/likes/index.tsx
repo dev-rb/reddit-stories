@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ActionIcon, Anchor, Avatar, Group, Stack, Title, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, Anchor, Avatar, Center, Group, Stack, Title, useMantineColorScheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload } from 'react-icons/md';
 import AccountDrawer from 'src/components/AccountDrawer';
@@ -55,40 +55,44 @@ const UserLikesPage = () => {
                             <MdDownload />
                         </ActionIcon>
                     </Group>
-
-                    <VirtualizedDataDisplay
-                        dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: userLikes }}
-                        renderItem={(currentItem: Prompt | IStory, index: number) => {
-                            return (
-                                (isStory(currentItem)) ?
-                                    <Anchor variant='text' component={Link} href={`/posts/${currentItem.postId}`} >
-                                        <div>
-                                            <CommentDisplay
-                                                key={currentItem.id}
-                                                {...currentItem as IStory}
-                                                allReplies={{}}
-                                                mainCommentId={currentItem.mainCommentId}
-                                                replies={[]}
-                                                postAuthor={''}
-                                                replyIndex={0}
-                                                isCollapsed={true} />
-                                        </div>
-                                    </Anchor>
-                                    :
-                                    <Post
-                                        key={currentItem.id}
-                                        {...currentItem as Prompt}
-                                        title={(currentItem as Prompt).title}
-                                        index={index}
-                                        favorited={currentItem.favorited}
-                                        liked={currentItem.liked}
-                                        readLater={currentItem.readLater}
-                                        userRead={currentItem.userRead}
-                                    />
-
-                            )
-                        }}
-                    />
+                    {userLikes?.length === 0 ?
+                        <Center sx={{ height: '50vh' }}>
+                            <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Likes</Title>
+                        </Center>
+                        :
+                        <VirtualizedDataDisplay
+                            dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: userLikes }}
+                            renderItem={(currentItem: Prompt | IStory, index: number) => {
+                                return (
+                                    (isStory(currentItem)) ?
+                                        <Anchor variant='text' component={Link} href={`/posts/${currentItem.postId}`} >
+                                            <div>
+                                                <CommentDisplay
+                                                    key={currentItem.id}
+                                                    {...currentItem as IStory}
+                                                    allReplies={{}}
+                                                    mainCommentId={currentItem.mainCommentId}
+                                                    replies={[]}
+                                                    postAuthor={''}
+                                                    replyIndex={0}
+                                                    isCollapsed={true} />
+                                            </div>
+                                        </Anchor>
+                                        :
+                                        <Post
+                                            key={currentItem.id}
+                                            {...currentItem as Prompt}
+                                            title={(currentItem as Prompt).title}
+                                            index={index}
+                                            favorited={currentItem.favorited}
+                                            liked={currentItem.liked}
+                                            readLater={currentItem.readLater}
+                                            userRead={currentItem.userRead}
+                                        />
+                                )
+                            }}
+                        />
+                    }
                 </Stack>
             </Stack>
         </Stack>
