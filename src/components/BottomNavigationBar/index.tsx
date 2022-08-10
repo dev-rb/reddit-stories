@@ -26,9 +26,10 @@ const NavLink = ({ icon, pathTo, label }: NavLinkProps) => {
                 <ActionIcon variant='transparent' size='lg' sx={{ color: isActive ? (theme.colorScheme === 'dark' ? theme.black : 'white') : theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.dark[4] }}>
                     {icon}
                 </ActionIcon>
-                {isActive &&
+                <Text color={isActive ? (theme.colorScheme === 'dark' ? theme.black : 'white') : theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.dark[4]} weight={600} size='sm'> {label} </Text>
+                {/* {isActive &&
                     <Text color={isActive ? (theme.colorScheme === 'dark' ? theme.black : 'white') : theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.dark[4]} weight={600} size='sm'> {label} </Text>
-                }
+                } */}
             </Stack>
         </Link>
     )

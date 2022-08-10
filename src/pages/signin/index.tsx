@@ -97,6 +97,8 @@ const SignIn = () => {
 
     const largeScreen = useMediaQuery('(min-width: 1000px)');
 
+    const [emailSent, setEmailSent] = React.useState(false);
+
     const { classes } = useStyles({ largeScreen });
 
     const form = useForm({
@@ -130,6 +132,7 @@ const SignIn = () => {
 
         if (res?.error === null) {
             openConfirmationModal();
+            setEmailSent(true);
         }
     }
 
@@ -143,7 +146,7 @@ const SignIn = () => {
 
     return (
         <Group className={classes.mainContainer} noWrap spacing={0} align={largeScreen ? 'center' : undefined} position={largeScreen ? 'apart' : 'center'}>
-            <Stack spacing={'sm'} align='center' sx={{ width: '100%', height: '100%' }}>
+            <Stack spacing={'sm'} align='center' justify={'center'} sx={{ width: '100%', height: '100%' }}>
                 {
                     user.isAuthenticated && <SignedInCard />
                 }

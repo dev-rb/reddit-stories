@@ -10,22 +10,23 @@ import CommentDisplay from 'src/components/Comment';
 import { IStory, Prompt } from 'src/interfaces/db';
 import Link from 'next/link';
 import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
+import TypeSelect, { StatusTypeSort } from 'src/components/MobileSelect/TypeSelect';
+import { useUserSavedQuery } from 'src/hooks/useUserSavedQuery';
 
 const UserReadLaterPage = () => {
-    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
     const [drawerOpen, setDrawerOpen] = React.useState(false);
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
-    const { userId } = useUser();
-    const { data: userLikes, isLoading, isError, error, isFetching, isRefetching } = trpc.useQuery(['user.getLikes', { userId, status: 'readLater' }], {
-        refetchOnMount: 'always',
-    })
+    const [typeSort, setTypeSort] = React.useState<StatusTypeSort>('All');
+
+    const { data: userLikes, isLoading, isError, error, isFetching, isRefetching } = useUserSavedQuery({ statusToGet: 'readLater', filter: typeSort });
 
     const isStory = (object: any): object is IStory => {
         return "mainCommentId" in object;
     }
 
-    const onSortChange = (newValue: string) => {
+    const onSortChange = (newValue: StatusTypeSort) => {
+        setTypeSort(newValue);
     }
 
     return (
@@ -45,6 +46,7 @@ const UserReadLaterPage = () => {
                 <Stack spacing={0} pb={40} sx={{ width: '100%' }}>
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
+                        <TypeSelect onChange={onSortChange} />
                         <ActionIcon variant='filled' color='gray' ml={'auto'}>
                             <MdDownload />
                         </ActionIcon>
@@ -74,6 +76,10 @@ const UserReadLaterPage = () => {
                                         {...currentItem as Prompt}
                                         title={(currentItem as Prompt).title}
                                         index={index}
+                                        favorited={currentItem.favorited}
+                                        liked={currentItem.liked}
+                                        readLater={currentItem.readLater}
+                                        userRead={currentItem.userRead}
                                     />
 
                             )

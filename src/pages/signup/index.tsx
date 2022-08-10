@@ -144,7 +144,7 @@ const SignUp = () => {
 
     return (
         <Group className={classes.mainContainer} noWrap spacing={0} align={largeScreen ? 'center' : undefined} position={largeScreen ? 'apart' : 'center'}>
-            <Stack spacing={'sm'} align='center' sx={{ width: '100%', height: '100%' }}>
+            <Stack spacing={'sm'} align='center' justify={'center'} sx={{ width: '100%', height: '100%' }}>
                 {
                     user.isAuthenticated && <SignedInCard />
                 }
