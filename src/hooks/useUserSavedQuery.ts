@@ -10,13 +10,14 @@ interface Options {
 }
 
 export const useUserSavedQuery = ({ filter, statusToGet }: Options) => {
-    const { userId } = useUser();
+    const { userId, isAuthenticated } = useUser();
 
     const isStory = (object: any): object is IStory => {
         return "mainCommentId" in object;
     }
 
     return trpc.useQuery(['user.getLikes', { userId, status: statusToGet }], {
+        enabled: isAuthenticated,
         refetchOnMount: 'always',
         select: (data) => {
             const filterValue = (val: Prompt | IStory) => filter === 'All' ? (isStory(val) || !isStory(val)) : filter === 'Prompts' ? (!isStory(val)) : (isStory(val));
