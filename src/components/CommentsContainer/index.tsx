@@ -28,7 +28,7 @@ const useStyles = createStyles((theme) => ({
         transition: '0.5s ease-out',
 
         ['@media screen and (min-width: 900px)']: {
-            width: '40vw',
+            width: '40%',
             left: '50%',
             right: '50%',
             transform: 'translateX(-50%)'
@@ -85,7 +85,7 @@ const CommentsContainer = ({ postId }: Props) => {
 
     return (
         <Stack align='center'>
-            <Stack spacing={0} sx={(theme) => ({ width: largeScreen ? '40vw' : '100%', borderLeft: largeScreen ? '2px solid' : 'unset', borderRight: largeScreen ? '2px solid' : 'unset', borderColor: theme.colors.dark[4] })}>
+            <Stack spacing={0} sx={(theme) => ({ width: largeScreen ? '40%' : '100%', borderLeft: largeScreen ? '2px solid' : 'unset', borderRight: largeScreen ? '2px solid' : 'unset', borderColor: theme.colors.dark[4] })}>
                 <Paper px='lg' py='xs' className={classes.header}>
                     <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
                 </Paper>
