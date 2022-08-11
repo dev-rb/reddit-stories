@@ -75,9 +75,9 @@ export const userRouter = createRouter()
 
             const posts: (Prompt | IStory)[] = await Promise.all(
                 [...userLikes.savedPosts.map(async (val) =>
-                    ({ ...val.post, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })),
+                    ({ ...val.post, liked: val.liked, readLater: val.readLater, favorited: val.favorited, totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId) })),
                 ...userLikes.savedComments.map(async (val) =>
-                    ({ ...val.comment, liked: val.liked, readLater: val.readLater, saved: val.favorited, totalComments: (await ctx.prisma.comment.findMany({ where: { mainCommentId: val.comment.id } })).length })),
+                    ({ ...val.comment, liked: val.liked, readLater: val.readLater, favorited: val.favorited, totalComments: (await ctx.prisma.comment.findMany({ where: { mainCommentId: val.comment.id } })).length })),
                 ]
             );
             return posts;
