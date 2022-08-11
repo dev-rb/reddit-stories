@@ -2,6 +2,10 @@ import { useRouter } from "next/router";
 import React from "react";
 import BottomNavigationBar from "../BottomNavigationBar";
 
+const blacklistRoutes = [
+    '/signin', '/signup', '/signin/confirmation'
+]
+
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
     const [hasMounted, setHasMounted] = React.useState(false);
 
@@ -17,7 +21,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <>
             <main> {children} </main>
-            {router.pathname !== '/signin' && <BottomNavigationBar />}
+            {!blacklistRoutes.includes(router.pathname) && <BottomNavigationBar />}
         </>
     );
 }
