@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE `Post` MODIFY `title` LONGTEXT NOT NULL;
+
+-- AlterTable
+ALTER TABLE `Story` MODIFY `body` LONGTEXT NOT NULL,
+    MODIFY `bodyHtml` LONGTEXT NOT NULL;

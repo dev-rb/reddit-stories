@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider             = "mysql"
+  url                  = env("DEV_DATABASE_URL")
+  referentialIntegrity = "prisma"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String             @id @default(cuid())
+  name          String?
+  email         String?            @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  savedPosts    UserPostSaved[]
+  savedComments UserCommentSaved[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model UserPostSaved {
+  liked     Boolean
+  favorited Boolean
+  readLater Boolean
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post    @relation(fields: [postId], references: [id])
+  postId    String
+
+  @@unique([userId, postId])
+}
+
+model Post {
+  id            String          @id
+  title         String          @db.LongText
+  created       DateTime
+  updatedAt     DateTime?       @updatedAt
+  score         Int
+  author        String
+  permalink     String
+  comments      Comment[]
+  userPostSaved UserPostSaved[]
+}
+
+model UserCommentSaved {
+  liked     Boolean
+  favorited Boolean
+  readLater Boolean
+  comment   Comment @relation(fields: [commentId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  commentId String
+  userId    String
+
+  @@unique([userId, commentId])
+}
+
+model Comment {
+  id               String             @id
+  body             String             @db.LongText
+  bodyHtml         String             @db.LongText
+  permalink        String
+  score            Int
+  author           String
+  created          DateTime
+  updatedAt        DateTime?          @updatedAt
+  Post             Post?              @relation(fields: [postId], references: [id])
+  postId           String?
+  userCommentSaved UserCommentSaved[]
+
+  mainCommentId String?
+
+  replyId String?
+
+  // @@unique([id, author])
+}
+
+// model Reply {
+//   id            String    @id
+//   body          String    @db.LongText
+//   bodyHtml      String    @db.LongText
+//   author        String
+//   score         Int
+//   created       DateTime
+//   updatedAt     DateTime? @updatedAt
+//   parentComment Comment?    @relation(fields: [commentId], references: [id])
+//   commentId       String?
+
+//   replies Reply[] @relation("replies")
+//   Reply   Reply?  @relation(name: "replies", fields: [replyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+//   replyId String?
+// }
