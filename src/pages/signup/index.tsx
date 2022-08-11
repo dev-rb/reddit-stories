@@ -7,6 +7,7 @@ import { MdKeyboardBackspace } from 'react-icons/md';
 import { signIn } from 'next-auth/react';
 import { useForm, zodResolver } from '@mantine/form';
 import { z } from 'zod';
+import { signUp } from 'src/utils/signup';
 import { useModals } from '@mantine/modals';
 import { useUser } from 'src/hooks/useUser';
 import SignedInCard from 'src/components/SignedInCard';
@@ -85,19 +86,17 @@ const schema = z.object({
     email: z.string().email({ message: 'Invalid email address' })
 })
 
-const SignIn = () => {
+const SignUp = () => {
 
     const router = useRouter();
 
     const modals = useModals();
 
-    const theme = useMantineTheme();
-
     const user = useUser();
 
-    const largeScreen = useMediaQuery('(min-width: 1000px)');
+    const theme = useMantineTheme();
 
-    const [emailSent, setEmailSent] = React.useState(false);
+    const largeScreen = useMediaQuery('(min-width: 1000px)');
 
     const { classes } = useStyles({ largeScreen });
 
@@ -113,7 +112,7 @@ const SignIn = () => {
             title: 'A verification email was sent to your email',
             children: (
                 <Text size="sm">
-                    Follow the sign in button on the email to sign in to your account.
+                    Follow the sign in button on the email to finish signing up to your account.
                 </Text>
             ),
             centered: true,
@@ -123,16 +122,15 @@ const SignIn = () => {
         });
     }
 
-    const emailSignIn = async ({ email }: { email: string }) => {
-        const res = await signIn('email', { email, callbackUrl: '/', redirect: false });
+    const emailSignUp = async ({ email }: { email: string }) => {
+        const res = await signUp('email', { email, callbackUrl: '/', redirect: false });
         console.log(res)
-        if (res?.error?.includes('Invalid Email')) {
-            form.setFieldError('email', 'Invalid Email')
+        if (res?.error?.includes('Email already in use')) {
+            form.setFieldError('email', 'Email already in use')
         }
 
         if (res?.error === null) {
             openConfirmationModal();
-            setEmailSent(true);
         }
     }
 
@@ -156,26 +154,26 @@ const SignIn = () => {
                     </ActionIcon>
 
                     <Stack spacing={'sm'} py={40}>
-                        <Title> SIGN IN </Title>
-                        <Text> Sign in to access your saved prompts, stories, and likes. </Text>
+                        <Title> SIGN UP </Title>
+                        <Text> Sign up to save prompts and stories </Text>
                     </Stack>
 
-                    <Stack align='start' sx={{ width: '100%' }} >
-                        <form onSubmit={form.onSubmit((values) => emailSignIn(values))} style={{ width: '100%' }}>
+                    <Stack align='start' sx={{ width: '100%' }}>
+                        <form onSubmit={form.onSubmit((values) => emailSignUp(values))} style={{ width: '100%' }}>
                             <TextInput
                                 // variant='filled'
                                 type='email'
                                 label='Email Address'
                                 placeholder='Your Email'
                                 required sx={{ width: '100%' }}
-                                description='You only need your email to sign in. A link will be sent to your email for verification.'
+                                description='You only need your email to sign up. A link will be sent to your email for verification.'
                                 {...form.getInputProps('email')}
                             />
                             {/* <PasswordInput label='Password' placeholder='Your Password' required sx={{ width: '100%' }} />
                         <Group position='right' sx={{ width: '100%' }}> 
                             <Anchor> Forgot Password? </Anchor>
                         </Group> */}
-                            <Button mt={50} fullWidth sx={{ height: '40px' }} type='submit'> Sign In </Button>
+                            <Button mt={50} fullWidth sx={{ height: '40px' }} type='submit'> Sign Up </Button>
                         </form>
 
                         <Stack sx={{ width: '100%' }}>
@@ -187,16 +185,16 @@ const SignIn = () => {
                                 sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}
                                 onClick={googleSignIn}
                             >
-                                Sign in with Google
+                                Sign up with Google
                             </Button>
                             <Button variant='outline' color={theme.colorScheme === 'dark' ? 'dark' : 'gray'} fullWidth leftIcon={<BsReddit color='#F8A130' />} sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}>
-                                Sign in with Reddit
+                                Sign up with Reddit
                             </Button>
                         </Stack>
 
-                        <Text mt={50} sx={{ alignSelf: 'center' }}>
-                            Don't Have an Account?
-                            <Anchor href='/signup'> Sign Up </Anchor>
+                        <Text mt={100}>
+                            Already Have an Account?
+                            <Anchor href='/signin'> Sign In </Anchor>
                         </Text>
                     </Stack>
                 </Stack>
@@ -222,8 +220,8 @@ const SignIn = () => {
                 </Stack>
 
             </Stack>
-        </Group>
+        </Group >
     );
 }
 
-export default SignIn;
+export default SignUp;

@@ -1,7 +1,7 @@
 import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document'
 
-const APP_NAME = 'test'
-const APP_DESCRIPTION = 'This is an example of using next-pwa plugin'
+const APP_NAME = 'Tavern Tales'
+const APP_DESCRIPTION = 'Site and PWA for r/writingprompts'
 
 export default class extends Document {
 

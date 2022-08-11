@@ -9,22 +9,39 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import PostControls from '../PostControls';
 import { Prompt } from 'src/interfaces/db';
 import { useQueryClient } from 'react-query';
-import { useSelector } from 'react-redux';
-import { postDownloadStatus, PostsState } from 'src/redux/slices';
+import { useDispatch, useSelector } from 'react-redux';
+import { getPostStatuses, PostsState, updatePostStatus } from 'src/redux/slices';
 
 dayjs.extend(relativeTime)
 
-const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked, saved: postSaved, readLater: postReadLater }: Prompt & { index: number, isDownloaded?: boolean }) => {
+interface PostStatuses {
+    downloaded: boolean,
+    liked: boolean,
+    favorited: boolean,
+    readLater: boolean,
+    userRead: boolean,
+}
 
-    const downloadStatusSelector = useSelector((state: PostsState) => postDownloadStatus(state, id));
+const Post = ({ title, id, score, author, permalink, totalComments, created, index, isDownloaded, liked: postLiked, favorited: postSaved, readLater: postReadLater }: Prompt & { index: number, isDownloaded?: boolean }) => {
 
-    const [isRead, setIsRead] = React.useState(false);
+    const localPostStatus = useSelector((state: PostsState) => getPostStatuses(state, id))
 
-    const [downloadedStatus, setDownloadedStatus] = React.useState(downloadStatusSelector ?? false);
+    const [{ downloaded, favorited, liked, readLater, userRead }, setPostStatuses] = React.useState<PostStatuses>(
+        {
+            downloaded: localPostStatus?.downloaded ?? false,
+            liked: postLiked ?? localPostStatus?.liked ?? false,
+            favorited: postSaved ?? localPostStatus?.favorited ?? false,
+            readLater: postReadLater ?? localPostStatus?.readLater ?? false,
+            userRead: localPostStatus?.userRead ?? false,
+        }
+    );
+    // const [isRead, setIsRead] = React.useState(localPostStatus?.userRead ?? false);
 
-    const [liked, setLiked] = React.useState(postLiked ?? false);
-    const [saved, setSaved] = React.useState(postSaved ?? false);
-    const [later, setLater] = React.useState(postReadLater ?? false);
+    // const [downloadedStatus, setDownloadedStatus] = React.useState(localPostStatus?.downloaded ?? false);
+
+    // const [liked, setLiked] = React.useState(postLiked ?? localPostStatus?.liked ?? false);
+    // const [saved, setSaved] = React.useState(postSaved ?? localPostStatus?.favorited ?? false);
+    // const [later, setLater] = React.useState(postReadLater ?? localPostStatus?.readLater ?? false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
@@ -34,14 +51,17 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
 
     const queryClient = useQueryClient();
 
+    const dispatch = useDispatch();
+
     React.useEffect(() => {
         if (isDownloaded !== undefined) {
-            setDownloadedStatus(isDownloaded)
+            setPostStatuses((prev) => ({ ...prev, download: isDownloaded }))
         }
     }, [isDownloaded])
 
     const markAsRead = () => {
-        const queryCache = (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]);
+        dispatch(updatePostStatus({ postId: id, newStatusValue: true, statusToUpdate: 'userRead' }))
+        const queryCache = (queryClient.getQueryData(['post.sort']) as Prompt[]);
         if (queryCache) {
             queryCache.forEach((val) => {
                 if (val.id === id) {
@@ -52,12 +72,12 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
     }
 
     React.useEffect(() => {
-        const queryCache = (queryClient.getQueryCache().find('post.sort', { exact: false })?.state.data as Prompt[]);
+        const queryCache = (queryClient.getQueryData(['post.sort']) as Prompt[]);
         if (queryCache) {
             queryCache.forEach((val) => {
                 if (val.id === id) {
-                    if (val.userRead) {
-                        setIsRead(val.userRead);
+                    if (val.userRead || val.liked || val.readLater || val.favorited) {
+                        setPostStatuses((prev) => ({ ...prev, userRead: val.userRead ?? prev.userRead, liked: val.liked ?? prev.liked, favorited: val.favorited ?? prev.favorited, readLater: val.readLater ?? prev.readLater }));
                     }
                 }
             })
@@ -76,22 +96,22 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
                             <Text size='xs'>{dayjs(created).fromNow()}</Text>
                         </Group>
                         <Group noWrap spacing={10}>
-                            <MdFileDownload size={16} color={downloadedStatus ? '#F84B30' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
-                            <BsClockFill size={16} color={later ? '#F8A130' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
-                            <MdBookmark size={16} color={saved ? '#30CFF8' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                            <MdFileDownload size={16} color={downloaded ? '#F84B30' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                            <BsClockFill size={16} color={readLater ? '#F8A130' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
+                            <MdBookmark size={16} color={favorited ? '#30CFF8' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
                         </Group>
                     </Group>
-                    <Text size='sm' weight={600} color={isRead ? (theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]) : (theme.colorScheme === 'dark' ? theme.colors.gray[0] : theme.black)}>
+                    <Text size='sm' weight={600} color={userRead ? (theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]) : (theme.colorScheme === 'dark' ? theme.colors.gray[0] : theme.black)}>
                         {title.replace('[WP]', '').trim()}
                     </Text>
                     <PostControls
                         postInfo={{ title, id, score, author, created, totalComments }}
                         liked={liked}
-                        toggleLiked={() => setLiked((prev) => !prev)}
-                        favorited={saved}
-                        toggleSaved={() => setSaved((prev) => !prev)}
-                        readLater={later}
-                        toggleReadLater={() => setLater((prev) => !prev)}
+                        toggleLiked={() => setPostStatuses((prev) => ({ ...prev, liked: !liked }))}
+                        favorited={favorited}
+                        toggleSaved={() => setPostStatuses((prev) => ({ ...prev, favorited: !favorited }))}
+                        readLater={readLater}
+                        toggleReadLater={() => setPostStatuses((prev) => ({ ...prev, readLater: !readLater }))}
                     />
                 </Stack>
             </Box>

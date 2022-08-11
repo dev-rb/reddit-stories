@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { ActionIcon, Avatar, Box, Center, Group, Loader, Stack, TextInput, Title, useMantineColorScheme, Text, Button } from '@mantine/core';
+import { ActionIcon, Avatar, Group, Stack, Title, useMantineColorScheme, Text, Button } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { MdDownload, MdRefresh, MdSearch } from 'react-icons/md';
+import { MdCheckCircle, MdDownload, MdRefresh } from 'react-icons/md';
 import Post from '../components/Post';
 import { trpc } from '../utils/trpc';
-import ListVirtualizer from '../components/ListVirtualizer';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { useRouter } from 'next/router';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
@@ -15,9 +14,11 @@ import { SortType, TopTimeSort, RedditSortTypeConversion as SortTypeConversion, 
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
 import { useQueryClient } from 'react-query';
-import { PromptAndStoriesWithNormalizedReplies } from 'src/interfaces/db';
+import { Prompt, PromptAndStoriesWithNormalizedReplies } from 'src/interfaces/db';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { useUser } from 'src/hooks/useUser';
+import { showDownloadNotification, updateDownloadNotification } from 'src/utils/notifications';
+import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
 
 const Home = () => {
 
@@ -48,28 +49,26 @@ const Home = () => {
   const trpcContext = trpc.useContext();
 
   const { userId } = useUser();
-  console.log("Client userId: ", userId)
-  const { data: postsData, isLoading, isFetching, isRefetching, refetch } = trpc.useQuery(
+
+  const { data: postsData, isLoading, isFetching, isRefetching, refetch, error, isError } = trpc.useQuery(
     ['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId: userId }],
     {
-      context: {
-        skipBatch: true
+      onSuccess: (data) => {
+        queryClient.setQueryData(['post.sort'], () => data)
       },
-      // queryFn: async ({ queryKey, signal }) => {
-
-      //   return (await fetch(queryKey[0], { signal })).json()
-      // },
-      // onSuccess: (data) => console.log(`Data: `, data),
       initialData: () => {
         if (selector.length === 0) {
-          const cacheData = queryClient.getQueryCache().find(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId }]);
+          const cacheData = (queryClient.getQueryData(['post.sort', { sortType: sortType as SortTypeConversion, timeSort: timeSort as TopSorts, userId }]) as Prompt[]);
           if (cacheData) {
-            return cacheData
+            return cacheData.map((val) => {
+              const { userRead, ...rest } = val;
+              return rest;
+            })
           }
           return
         }
         return selector.map((val) => {
-          const { downloaded, ...rest } = val;
+          const { userRead, sortType, timeSort, ...rest } = val;
           return rest;
         });
       },
@@ -77,8 +76,7 @@ const Home = () => {
 
   const onSortChange = (newType: string, timeSort?: string) => {
     setSortType(newType);
-    setTimeSort(timeSort)
-
+    setTimeSort(timeSort);
   }
 
   const batchAllDownload = async () => {
@@ -94,9 +92,10 @@ const Home = () => {
     }
   }
 
-  const downloadPostsAndStories = async () => {
+  const downloadPostsAndStories = () => {
     if (postsData) {
       setIsDownloading(true);
+      showDownloadNotification(true);
       batchAllDownload();
     }
   }
@@ -124,6 +123,7 @@ const Home = () => {
     if (selector.length !== 0) {
       setTimeout(() => {
         setIsDownloading(false);
+        updateDownloadNotification(<MdCheckCircle />)
       }, 1500)
     }
   }, [selector])
@@ -135,13 +135,13 @@ const Home = () => {
         <Stack p='lg' sx={{ width: '100%' }}>
           <Group noWrap align='start' position='apart' sx={{ width: '100%' }}>
             <Stack spacing={0}>
-              <Title sx={{ fontWeight: 200 }}>Explore</Title>
-              <Title >Stories</Title>
+              <Title sx={{ fontWeight: 200 }}>Tavern</Title>
+              <Title >Tales</Title>
             </Stack>
             <Avatar radius={'xl'} onClick={() => { setDrawerOpen(true) }} />
             <AccountDrawer opened={drawerOpen} closeDrawer={() => setDrawerOpen(false)} />
           </Group>
-
+          {/* 
           <TextInput variant='filled' size='lg' mt={40} icon={<MdSearch size={25} />} placeholder='Search Stories' sx={{ width: '100%' }} />
           <Box
             mt={'lg'}
@@ -157,7 +157,7 @@ const Home = () => {
             )}
           >
             <Text> Test </Text>
-          </Box>
+          </Box> */}
         </Stack>
         <Stack spacing={0} sx={{ width: '100%' }}>
           <Group px='lg' pb='sm' pt='sm' noWrap align='center' position='apart'>
@@ -175,48 +175,19 @@ const Home = () => {
           </Group>
           <Button radius={0} rightIcon={<MdRefresh size={18} />} color='gray' fullWidth onClick={handleRefresh} sx={{ alignSelf: 'center' }}> Refresh </Button>
 
-          {(isLoading || isFetching || isRefetching) ?
-            <Center>
-              <Loader />
-            </Center> :
-            // <Stack spacing={0}>
-            //   {postsData?.map((post, index) => {
-            //     return (<Post key={post.id}
-            //       {...post}
-            //       created={post.created}
-            //       totalStories={post.totalComments}
-            //       index={index}
-            //       isDownloaded={selector.find((val) => val.id === post.id) !== undefined}
-            //     />)
-            //   })}
-            // </Stack>
-            <ListVirtualizer data={postsData!} renderItem={(item, index) => {
-              const currentItem = postsData![item.index];
-              return (
-                <div
-                  key={item.index}
-                  ref={item.measureElement}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    // height: `${item.size}px`,
-                    transform: `translateY(${item.start}px)`,
-                  }}
-                >
-                  <Post
-                    key={currentItem.id}
-                    {...currentItem}
-                    index={index}
-                    isDownloaded={selector.find((val) => val.id === currentItem.id) !== undefined}
-                  />
-
-                </div>
-              )
+          <VirtualizedDataDisplay
+            dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: postsData }}
+            renderItem={(item: Prompt, index: number) => {
+              return <Post
+                key={item.id}
+                {...item}
+                index={index}
+                isDownloaded={selector.find((val) => val.id === item.id) !== undefined}
+                liked={item.liked}
+                readLater={item.readLater}
+                favorited={item.favorited} />;
             }}
-            />
-          }
+          />
 
         </Stack>
       </Stack>

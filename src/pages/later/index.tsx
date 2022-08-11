@@ -1,33 +1,34 @@
 import * as React from 'react';
-import { ActionIcon, Anchor, Avatar, Center, Group, Loader, Stack, Text, Title, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, Anchor, Avatar, Center, Group, Stack, Title, useMantineColorScheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload } from 'react-icons/md';
-import SortSelect from 'src/components/MobileSelect/SortSelect';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { trpc } from 'src/utils/trpc';
 import { useUser } from 'src/hooks/useUser';
 import Post from 'src/components/Post';
-import ListVirtualizer from 'src/components/ListVirtualizer';
 import CommentDisplay from 'src/components/Comment';
 import { IStory, Prompt } from 'src/interfaces/db';
 import Link from 'next/link';
-import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
+import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
+import TypeSelect, { StatusTypeSort } from 'src/components/MobileSelect/TypeSelect';
+import { useUserSavedQuery } from 'src/hooks/useUserSavedQuery';
 
 const UserReadLaterPage = () => {
-    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
     const [drawerOpen, setDrawerOpen] = React.useState(false);
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
-    const { userId } = useUser();
-    const { data: userLikes, isLoading, isError, error } = trpc.useQuery(['user.getLikes', { userId, status: 'readLater' }], {
-        refetchOnMount: 'always',
-    })
+    const [typeSort, setTypeSort] = React.useState<StatusTypeSort>('All');
+
+    const user = useUser();
+
+    const { data: userLikes, isLoading, isError, error, isFetching, isRefetching } = useUserSavedQuery({ statusToGet: 'readLater', filter: typeSort });
 
     const isStory = (object: any): object is IStory => {
         return "mainCommentId" in object;
     }
 
-    const onSortChange = (newValue: string) => {
+    const onSortChange = (newValue: StatusTypeSort) => {
+        setTypeSort(newValue);
     }
 
     return (
@@ -47,36 +48,28 @@ const UserReadLaterPage = () => {
                 <Stack spacing={0} pb={40} sx={{ width: '100%' }}>
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
+                        <TypeSelect onChange={onSortChange} />
                         <ActionIcon variant='filled' color='gray' ml={'auto'}>
                             <MdDownload />
                         </ActionIcon>
                     </Group>
 
-                    {isLoading ?
-                        <Center>
-                            <Loader />
-                        </Center> :
-                        isError ?
-                            <Center>
-                                <Text> {error.message} </Text>
+                    {
+                        !user.isAuthenticated ?
+                            <Center sx={{ height: '50vh' }}>
+                                <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>You are not signed in!</Title>
                             </Center>
                             :
-                            <ListVirtualizer data={userLikes!} renderItem={(item, index, remeasure) => {
-                                const currentItem = userLikes![item.index];
-                                return (
-                                    <ListVirtualizerContext.Provider key={item.index} value={{ remeasure: remeasure }}>
-                                        <div
-                                            ref={item.measureElement}
-                                            style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                width: '100%',
-                                                // height: `${item.size}px`,
-                                                transform: `translateY(${item.start}px)`,
-                                            }}
-                                        >
-                                            {(isStory(currentItem)) ?
+                            userLikes?.length === 0 ?
+                                <Center sx={{ height: '50vh' }}>
+                                    <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Read Laters</Title>
+                                </Center>
+                                :
+                                <VirtualizedDataDisplay
+                                    dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: userLikes }}
+                                    renderItem={(currentItem: Prompt | IStory, index: number) => {
+                                        return (
+                                            (isStory(currentItem)) ?
                                                 <Anchor variant='text' component={Link} href={`/posts/${currentItem.postId}`} >
                                                     <div>
                                                         <CommentDisplay
@@ -96,14 +89,14 @@ const UserReadLaterPage = () => {
                                                     {...currentItem as Prompt}
                                                     title={(currentItem as Prompt).title}
                                                     index={index}
+                                                    favorited={currentItem.favorited}
+                                                    liked={currentItem.liked}
+                                                    readLater={currentItem.readLater}
+                                                    userRead={currentItem.userRead}
                                                 />
-
-                                            }
-                                        </div>
-                                    </ListVirtualizerContext.Provider>
-                                )
-                            }}
-                            />
+                                        )
+                                    }}
+                                />
                     }
                 </Stack>
             </Stack>

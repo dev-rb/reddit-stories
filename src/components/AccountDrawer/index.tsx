@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import * as React from 'react';
 import { BsBookmarkFill, BsClockFill, BsHeartFill } from 'react-icons/bs';
 import { MdHome } from 'react-icons/md';
-import NavLink from '../NavLink';
+import { showSignOutNotification } from 'src/utils/notifications';
 
 interface AccountDrawerProps {
     opened: boolean,
@@ -22,7 +22,8 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
     const router = useRouter();
 
     const signOutUser = () => {
-        signOut()
+        signOut();
+        showSignOutNotification();
     }
 
     const navigateToSignIn = () => {
@@ -81,3 +82,38 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
 }
 
 export default AccountDrawer;
+
+
+interface NavLinkProps {
+    icon?: React.ReactNode,
+    label: string,
+    href: string
+}
+
+const NavLink = ({ icon, label, href }: NavLinkProps) => {
+
+    const router = useRouter();
+
+    const navigate = () => {
+        router.push(href);
+    }
+
+    return (
+        <Button
+            variant={router.pathname === href ? 'light' : 'subtle'}
+            color={router.pathname === href ? 'blue' : 'dark'}
+            size={'md'}
+            fullWidth
+            leftIcon={icon}
+            sx={{ height: 46 }}
+            styles={{
+                inner: {
+                    justifyContent: 'start'
+                }
+            }}
+            onClick={navigate}
+        >
+            {label}
+        </Button>
+    );
+}

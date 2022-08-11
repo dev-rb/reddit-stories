@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ActionIcon, Anchor, Avatar, Group, Stack, Title, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, Anchor, Avatar, Center, Group, Stack, Title, useMantineColorScheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { MdDownload } from 'react-icons/md';
 import AccountDrawer from 'src/components/AccountDrawer';
@@ -10,22 +10,25 @@ import CommentDisplay from 'src/components/Comment';
 import { IStory, Prompt } from 'src/interfaces/db';
 import Link from 'next/link';
 import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
+import { useUserSavedQuery } from 'src/hooks/useUserSavedQuery';
+import TypeSelect, { StatusTypeSort } from 'src/components/MobileSelect/TypeSelect';
 
 const UserSavedPage = () => {
-    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
     const [drawerOpen, setDrawerOpen] = React.useState(false);
 
     const largeScreen = useMediaQuery('(min-width: 900px)');
-    const { userId } = useUser();
-    const { data: userLikes, isLoading, isFetching, isRefetching, isError, error } = trpc.useQuery(['user.getLikes', { userId, status: 'favorited' }], {
-        refetchOnMount: 'always',
-    })
+    const [typeSort, setTypeSort] = React.useState<StatusTypeSort>('All');
+
+    const user = useUser();
+
+    const { data: userLikes, isLoading, isError, error, isFetching, isRefetching } = useUserSavedQuery({ statusToGet: 'favorited', filter: typeSort });
 
     const isStory = (object: any): object is IStory => {
         return "mainCommentId" in object;
     }
 
-    const onSortChange = (newValue: string) => {
+    const onSortChange = (newValue: StatusTypeSort) => {
+        setTypeSort(newValue);
     }
 
     return (
@@ -45,39 +48,56 @@ const UserSavedPage = () => {
                 <Stack spacing={0} pb={40} sx={{ width: '100%' }}>
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
+                        <TypeSelect onChange={onSortChange} />
                         <ActionIcon variant='filled' color='gray' ml={'auto'}>
                             <MdDownload />
                         </ActionIcon>
                     </Group>
 
-                    <VirtualizedDataDisplay
-                        dataInfo={{ error, isError, isLoading, isFetching, isRefetching, data: userLikes }}
-                        renderItem={(currentItem: Prompt | IStory, index: number) => {
-                            return (
-                                (isStory(currentItem)) ?
-                                    <Anchor variant='text' component={Link} href={`/posts/${currentItem.postId}`} >
-                                        <div>
-                                            <CommentDisplay
-                                                key={currentItem.id}
-                                                {...currentItem as IStory}
-                                                allReplies={{}}
-                                                mainCommentId={currentItem.mainCommentId}
-                                                replies={[]}
-                                                postAuthor={''}
-                                                replyIndex={0}
-                                                isCollapsed={true} />
-                                        </div>
-                                    </Anchor>
-                                    :
-                                    <Post
-                                        key={currentItem.id}
-                                        {...currentItem as Prompt}
-                                        title={(currentItem as Prompt).title}
-                                        index={index}
-                                    />
-                            )
-                        }}
-                    />
+                    {
+                        !user.isAuthenticated ?
+                            <Center sx={{ height: '50vh' }}>
+                                <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>You are not signed in!</Title>
+                            </Center>
+                            :
+                            userLikes?.length === 0 ?
+                                <Center sx={{ height: '50vh' }}>
+                                    <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Favorites</Title>
+                                </Center>
+                                :
+                                <VirtualizedDataDisplay
+                                    dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: userLikes }}
+                                    renderItem={(currentItem: Prompt | IStory, index: number) => {
+                                        return (
+                                            (isStory(currentItem)) ?
+                                                <Anchor variant='text' component={Link} href={`/posts/${currentItem.postId}`} >
+                                                    <div>
+                                                        <CommentDisplay
+                                                            key={currentItem.id}
+                                                            {...currentItem as IStory}
+                                                            allReplies={{}}
+                                                            mainCommentId={currentItem.mainCommentId}
+                                                            replies={[]}
+                                                            postAuthor={''}
+                                                            replyIndex={0}
+                                                            isCollapsed={true} />
+                                                    </div>
+                                                </Anchor>
+                                                :
+                                                <Post
+                                                    key={currentItem.id}
+                                                    {...currentItem as Prompt}
+                                                    title={(currentItem as Prompt).title}
+                                                    index={index}
+                                                    favorited={currentItem.favorited}
+                                                    liked={currentItem.liked}
+                                                    readLater={currentItem.readLater}
+                                                    userRead={currentItem.userRead}
+                                                />
+                                        )
+                                    }}
+                                />
+                    }
                 </Stack>
             </Stack>
         </Stack>

@@ -4,16 +4,28 @@ interface Options {
     ref: React.RefObject<HTMLElement>,
     exit?: (element: HTMLElement) => void,
     enter?: (element: HTMLElement) => void,
+    hideAtTop?: boolean,
     animateOut?: boolean
 }
 
-const useScrollDownHide = ({ ref, animateOut, exit, enter }: Options) => {
+const useScrollDownHide = ({ ref, animateOut, exit, enter, hideAtTop }: Options) => {
 
     React.useEffect(() => {
         let pageYOffset = window.pageYOffset;
         let element = ref.current;
+        if (window.scrollY < 100 && hideAtTop) {
+            if (element) {
+                element.style.display = 'none'
+            }
+        }
         window.addEventListener("scroll", () => {
             let currentOffset = window.pageYOffset;
+            if (window.scrollY < 100 && hideAtTop) {
+                if (element) {
+                    element.style.display = 'none'
+                }
+                return;
+            }
             if (pageYOffset > currentOffset) {
                 if (element && animateOut) {
                     if (enter) {
@@ -31,7 +43,7 @@ const useScrollDownHide = ({ ref, animateOut, exit, enter }: Options) => {
                     }
                 }
             }
-            pageYOffset = currentOffset;
+            pageYOffset = currentOffset > 0 ? currentOffset : 0;
         });
 
         return () => {
