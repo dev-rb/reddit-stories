@@ -2,7 +2,7 @@ import * as React from 'react';
 import { IPost } from '../../interfaces/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import CommentDisplay from '../Comment';
-import { createStyles, Group, Paper, Stack, Box, Title, Center } from '@mantine/core';
+import { createStyles, Group, Paper, Stack, Box, Title, Center, Avatar } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import Post from '../Post';
@@ -14,6 +14,7 @@ import SortSelect from '../MobileSelect/SortSelect';
 import { useSession } from 'next-auth/react';
 import { Prompt, StoryAndNormalizedReplies } from 'src/interfaces/db';
 import VirtualizedDataDisplay from '../VirtualizedDataDisplay';
+import AccountDrawer from '../AccountDrawer';
 
 const useStyles = createStyles((theme) => ({
     header: {
@@ -45,6 +46,7 @@ const CommentsContainer = ({ postId }: Props) => {
     const largeScreen = useMediaQuery('(min-width: 900px)');
 
     const router = useRouter();
+    const [drawerOpen, setDrawerOpen] = React.useState(false);
 
     const session = useSession();
     const queryClient = useQueryClient();
@@ -87,7 +89,11 @@ const CommentsContainer = ({ postId }: Props) => {
         <Stack align='center'>
             <Stack spacing={0} sx={(theme) => ({ width: largeScreen ? '40%' : '100%', borderLeft: largeScreen ? '2px solid' : 'unset', borderRight: largeScreen ? '2px solid' : 'unset', borderColor: theme.colors.dark[4] })}>
                 <Paper px='lg' py='xs' className={classes.header}>
-                    <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
+                    <Group noWrap align='start' position='apart' sx={{ width: '100%' }}>
+                        <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
+                        <Avatar radius={'xl'} onClick={() => { setDrawerOpen(true) }} />
+                        <AccountDrawer opened={drawerOpen} closeDrawer={() => setDrawerOpen(false)} />
+                    </Group>
                 </Paper>
                 {/* Post Details */}
                 {(postData) &&
