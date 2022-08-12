@@ -48,11 +48,8 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
                     provider: { server, from },
                     theme,
                 }) {
-                    const { host, searchParams } = new URL(url)
-                    // searchParams.set("callbackUrl", "")
-                    console.log("Verification Request Url: ", url);
+                    const { host } = new URL(url)
 
-                    // NOTE: You are not required to use `nodemailer`, use whatever you want.
                     const transport = createTransport(server)
                     const result = await transport.sendMail({
                         to: email,
@@ -128,12 +125,15 @@ function html(params: { url: string; host: string; theme: Theme }) {
     return `
   <body style="background: ${color.background};">
     <table width="100%" border="0" cellspacing="20" cellpadding="0"
-      style="background: ${color.mainBackground}; max-width: 600px; margin: auto; border-radius: 10px;">
+      style="background: ${color.mainBackground}; max-width: 600px; height: '800px'; margin: auto; border-radius: 10px;">
       <tr>
         <td align="center"
-          style="padding: 10px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: ${color.text};">
+          style="padding: 10px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: ${color.buttonBackground};">
           Sign in to <strong>${escapedHost}</strong>
+          <br/>
+            <p style="padding: 10px 0px; font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: ${color.text};"> Use the button below to sign in to your account! </p>
         </td>
+        
       </tr>
       <tr>
         <td align="center" style="padding: 20px 0;">
@@ -141,8 +141,9 @@ function html(params: { url: string; host: string; theme: Theme }) {
             <tr>
               <td align="center" style="border-radius: 5px;" bgcolor="${color.buttonBackground}"><a href="${url}"
                   target="_blank"
-                  style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: ${color.buttonText}; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid ${color.buttonBorder}; display: inline-block; font-weight: bold;">Sign
-                  in</a></td>
+                  style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: ${color.buttonText}; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid ${color.buttonBorder}; display: inline-block; font-weight: bold;">
+                  Sign in</a>
+            </td>
             </tr>
           </table>
         </td>
