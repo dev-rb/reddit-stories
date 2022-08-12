@@ -111,7 +111,7 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                             <PersistGate loading={null} persistor={persistor}>
                                 <ColorSchemeProvider colorScheme={theme} toggleColorScheme={toggleColorScheme}>
                                     <MantineProvider
-                                        theme={{ colorScheme: theme }}
+                                        theme={{ colorScheme: theme, fontFamily: 'Roboto, sans-serif' }}
                                         withGlobalStyles
                                         withNormalizeCSS
                                     >

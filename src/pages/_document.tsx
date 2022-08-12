@@ -19,7 +19,9 @@ export default class extends Document {
                     <meta name='theme-color' content='#FFFFFF' />
                     {/* TIP: set viewport head meta tag in _app.js, otherwise it will show a warning */}
                     {/* <meta name='viewport' content='minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover' /> */}
-
+                    <link rel="preconnect" href="https://fonts.googleapis.com" />
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin='' />
+                    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
                     <link rel='apple-touch-icon' sizes='180x180' href='/icons/apple-touch-icon.png' />
                     <link rel='manifest' href='/manifest.json' />
                     <link rel='shortcut icon' href='/favicon.ico' />
