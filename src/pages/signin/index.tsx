@@ -124,7 +124,7 @@ const SignIn = () => {
     }
 
     const emailSignIn = async ({ email }: { email: string }) => {
-        const res = await signIn('email', { email, callbackUrl: '/', redirect: false });
+        const res = await signIn('email', { email, callbackUrl: '/signin/confirmation', redirect: false });
         console.log(res)
         if (res?.error?.includes('Invalid Email')) {
             form.setFieldError('email', 'Invalid Email')

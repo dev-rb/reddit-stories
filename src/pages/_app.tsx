@@ -4,7 +4,7 @@ import Head from 'next/head';
 import { Provider } from 'react-redux';
 import { setCookies } from 'cookies-next';
 import { persistor, store } from '../redux/store';
-import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core';
+import { ColorScheme, ColorSchemeProvider, Global, MantineProvider } from '@mantine/core';
 import AppLayout from '../components/AppLayout';
 import { useLocalStorage } from '@mantine/hooks';
 import { createContext, useState } from 'react';
@@ -115,6 +115,17 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                                         withGlobalStyles
                                         withNormalizeCSS
                                     >
+                                        <Global
+                                            styles={(theme) => ({
+                                                '*, *::before, *::after': {
+                                                    boxSizing: 'border-box',
+                                                },
+
+                                                body: {
+                                                    overflowX: 'hidden'
+                                                },
+                                            })}
+                                        />
                                         <NotificationsProvider position='bottom-center' limit={3}>
                                             <ModalsProvider>
                                                 <AppLayout>
