@@ -101,7 +101,7 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
                             <MdBookmark size={16} color={favorited ? '#30CFF8' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]} />
                         </Group>
                     </Group>
-                    <Text size='sm' weight={600} color={userRead ? (theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]) : (theme.colorScheme === 'dark' ? theme.colors.gray[0] : theme.black)}>
+                    <Text size='sm' weight={500} color={userRead ? (theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]) : (theme.colorScheme === 'dark' ? theme.colors.gray[0] : theme.black)}>
                         {title.replace('[WP]', '').trim()}
                     </Text>
                     <PostControls

@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchSubredditPosts, getTotalCommentsForPost } from "src/utils/redditApi";
 import { Prompt } from "src/interfaces/db";
+import { addPosts, getPosts } from "src/utils/redis";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
     id: true,
@@ -32,12 +33,13 @@ export const postRouter = createRouter()
         async resolve({ input, ctx }) {
             console.log("Sort called in backend: ", input);
             if (input.sortType === 'hot' || input.sortType === 'new' || input.sortType.includes('top')) {
-                // const posts = await getPosts(input.sortType, input.timeSort);
-                // if (posts !== undefined && posts !== null) {
-                //     console.log("Posts from redis: ")
-                //     return posts as unknown as Prompt[];
-                // }
-                let prompts: Prompt[] = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
+                const posts = await getPosts(input.sortType, input.timeSort);
+                let prompts: Prompt[] = [];
+                if (posts !== undefined && posts !== null && (input.sortType === 'hot' || input.sortType.includes('top'))) {
+                    prompts = posts as unknown as Prompt[];
+                } else {
+                    prompts = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
+                }
 
                 const createPosts = [...prompts.map((prompt) => {
                     const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
@@ -68,7 +70,7 @@ export const postRouter = createRouter()
                     }))
                 }
 
-                // await addPosts(prompts, input.sortType, input.timeSort)
+                await addPosts(prompts, input.sortType, input.timeSort)
 
                 return prompts;
             } else {
