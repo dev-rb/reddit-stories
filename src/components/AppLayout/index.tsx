@@ -21,7 +21,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <>
             <main> {children} </main>
-            {!blacklistRoutes.includes(router.pathname) && <BottomNavigationBar />}
+            {/* {!blacklistRoutes.includes(router.pathname) && <BottomNavigationBar />} */}
         </>
     );
 }

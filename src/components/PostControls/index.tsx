@@ -32,7 +32,7 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
 
     const { mutate: updatePostMutation } = trpc.useMutation('post.updatePostStatus');
 
-    const { mutate: updateStoryMutation } = trpc.useMutation('story.updatePostStatus');
+    const { mutate: updateStoryMutation } = trpc.useMutation('story.updateCommentStatus');
 
     const { userId, isAuthenticated } = useUser();
 

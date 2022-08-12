@@ -166,7 +166,7 @@ export const storiesRouter = createRouter()
     //         return story;
     //     }
     // })
-    .mutation("updatePostStatus", {
+    .mutation("updateCommentStatus", {
         input: z.object({
             userId: z.string(),
             commentId: z.string(),

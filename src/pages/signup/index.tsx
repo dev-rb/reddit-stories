@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ActionIcon, Anchor, Blockquote, Button, createStyles, Group, Stack, Text, TextInput, Title, useMantineTheme } from '@mantine/core';
+import { ActionIcon, Anchor, Blockquote, Box, Button, createStyles, Group, Overlay, Stack, Text, TextInput, Title, useMantineTheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useRouter } from 'next/router';
 import { BsGoogle, BsReddit } from 'react-icons/bs';
@@ -187,9 +187,14 @@ const SignUp = () => {
                             >
                                 Sign up with Google
                             </Button>
-                            <Button variant='outline' color={theme.colorScheme === 'dark' ? 'dark' : 'gray'} fullWidth leftIcon={<BsReddit color='#F8A130' />} sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}>
-                                Sign up with Reddit
-                            </Button>
+                            <Box sx={{ position: 'relative' }}>
+                                <Overlay opacity={1} color="#00000099" radius={'sm'} sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Text color='white' weight={400} sx={{ zIndex: 999, opacity: 1, userSelect: 'none' }} ml='lg'> Coming soon... </Text>
+                                </Overlay>
+                                <Button variant='outline' color={theme.colorScheme === 'dark' ? 'dark' : 'gray'} fullWidth leftIcon={<BsReddit color='#F8A130' />} sx={{ color: theme.colorScheme === 'dark' ? 'white' : 'black' }}>
+                                    Sign up with Reddit
+                                </Button>
+                            </Box>
                         </Stack>
 
                         <Text mt={100}>
