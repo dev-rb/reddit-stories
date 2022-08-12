@@ -123,7 +123,7 @@ const SignUp = () => {
     }
 
     const emailSignUp = async ({ email }: { email: string }) => {
-        const res = await signUp('email', { email, callbackUrl: '/', redirect: false });
+        const res = await signUp('email', { email, callbackUrl: '/signin/confirmation', redirect: false });
         console.log(res)
         if (res?.error?.includes('Email already in use')) {
             form.setFieldError('email', 'Email already in use')
