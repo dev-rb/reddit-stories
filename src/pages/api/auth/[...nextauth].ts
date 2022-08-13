@@ -53,7 +53,7 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
                     const transport = createTransport(server)
                     const result = await transport.sendMail({
                         to: email,
-                        from: from,
+                        from: 'Tavern Tales <no-reply@taverntales.app>',
                         subject: `Sign in to ${host}`,
                         text: text({ url, host }),
                         html: html({ url, host, theme }),
