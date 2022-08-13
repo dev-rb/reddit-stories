@@ -84,9 +84,9 @@ function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: 
                     name="viewport"
                     content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"
                 />
-                <meta name="description" content="Description" />
-                <meta name="keywords" content="Keywords" />
-                <title>Reddit Stories</title>
+                <meta name="description" content="Site and PWA for r/writingprompts" />
+                <meta name="keywords" content="Reddit WritingPrompts Tavern Tales Stories Short" />
+                <title>Tavern Tales</title>
 
                 {/* <link rel="manifest" href="/manifest.json" /> */}
                 <link

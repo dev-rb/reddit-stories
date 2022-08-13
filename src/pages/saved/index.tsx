@@ -49,9 +49,9 @@ const UserSavedPage = () => {
                     <Group px='lg' pb='lg' pt='sm' align='center' position='apart'>
                         {/* <NativeSelect variant='filled' data={['Popular', 'Rising', 'New']} rightSection={<MdArrowDropDown />} /> */}
                         <TypeSelect onChange={onSortChange} />
-                        <ActionIcon variant='filled' color='gray' ml={'auto'}>
+                        {/* <ActionIcon variant='filled' color='gray' ml={'auto'}>
                             <MdDownload />
-                        </ActionIcon>
+                        </ActionIcon> */}
                     </Group>
 
                     {
