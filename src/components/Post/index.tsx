@@ -55,7 +55,7 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
 
     React.useEffect(() => {
         if (isDownloaded !== undefined) {
-            setPostStatuses((prev) => ({ ...prev, download: isDownloaded }))
+            setPostStatuses((prev) => ({ ...prev, downloaded: isDownloaded }))
         }
     }, [isDownloaded])
 
