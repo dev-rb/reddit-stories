@@ -34,6 +34,7 @@ export const postRouter = createRouter()
             console.log("Sort called in backend: ", input);
             if (input.sortType === 'hot' || input.sortType === 'new' || input.sortType.includes('top')) {
                 const posts = await getPosts(input.sortType, input.timeSort);
+                // console.log("Redis Data: ", posts);
                 let prompts: Prompt[] = [];
                 if (posts !== undefined && posts !== null && (input.sortType === 'hot' || input.sortType.includes('top'))) {
                     prompts = posts as unknown as Prompt[];
