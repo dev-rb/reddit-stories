@@ -40,21 +40,23 @@ export const postRouter = createRouter()
                     prompts = posts as unknown as Prompt[];
                 } else {
                     prompts = await fetchSubredditPosts('/r/writingprompts', { sortType: input.sortType, timeSort: input.timeSort })
+
+                    const createPosts = [...prompts.map((prompt) => {
+                        const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
+                        return ctx.prisma.post.upsert({
+                            create: rest,
+                            update: rest,
+                            where: {
+                                id: prompt.id
+                            },
+
+                        })
+                    })]
+
+                    await Promise.all(createPosts)
+                    await addPosts(prompts, input.sortType, input.timeSort)
                 }
 
-                const createPosts = [...prompts.map((prompt) => {
-                    const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
-                    return ctx.prisma.post.upsert({
-                        create: rest,
-                        update: rest,
-                        where: {
-                            id: prompt.id
-                        },
-
-                    })
-                })]
-
-                await Promise.all(createPosts)
 
                 // Check if user has saved or liked any of the posts
 
@@ -67,11 +69,10 @@ export const postRouter = createRouter()
                             }
                         });
 
-                        return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, saved: dbPost?.favorited };
+                        return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, favorited: dbPost?.favorited };
                     }))
                 }
 
-                await addPosts(prompts, input.sortType, input.timeSort)
 
                 return prompts;
             } else {
