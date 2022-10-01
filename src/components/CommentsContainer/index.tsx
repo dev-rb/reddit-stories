@@ -16,7 +16,13 @@ import { Prompt, StoryAndNormalizedReplies } from 'src/interfaces/db';
 import VirtualizedDataDisplay from '../VirtualizedDataDisplay';
 import AccountDrawer from '../AccountDrawer';
 
-const useStyles = createStyles((theme) => ({
+const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
+    container: {
+        width: largeScreen ? '40%' : '100%',
+        borderLeft: largeScreen ? '2px solid' : 'unset',
+        borderRight: largeScreen ? '2px solid' : 'unset',
+        borderColor: theme.colors.dark[4]
+    },
     header: {
         width: '100%',
         borderBottom: '2px solid',
@@ -83,11 +89,13 @@ const CommentsContainer = ({ postId }: Props) => {
             return rest;
         }
     });
-    const { classes } = useStyles();
+    const { classes } = useStyles({ largeScreen });
+
+    const noComments = postData?.totalComments === 0;
 
     return (
         <Stack align='center'>
-            <Stack spacing={0} sx={(theme) => ({ width: largeScreen ? '40%' : '100%', borderLeft: largeScreen ? '2px solid' : 'unset', borderRight: largeScreen ? '2px solid' : 'unset', borderColor: theme.colors.dark[4] })}>
+            <Stack spacing={0}>
                 <Paper px='lg' py='xs' className={classes.header}>
                     <Group noWrap align='start' position='apart' sx={{ width: '100%' }}>
                         <MdKeyboardBackspace size={30} onClick={() => { router.back() }} />
@@ -107,7 +115,7 @@ const CommentsContainer = ({ postId }: Props) => {
                         <SortSelect onChange={() => { }} />
                     </Group>
                     {
-                        postData?.totalComments === 0 ?
+                        noComments ?
                             <Center sx={{ height: '50vh' }}>
                                 <Title order={2} sx={(theme) => ({ color: theme.colors.dark[3] })}>No Stories Yet</Title>
                             </Center>
@@ -130,7 +138,6 @@ const CommentsContainer = ({ postId }: Props) => {
                                     />;
                                 }}
                             />
-
                     }
                 </Stack>
             </Stack>

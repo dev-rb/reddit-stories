@@ -48,9 +48,9 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
                     <Stack mt={'lg'} justify='space-between' sx={{ height: '100%', width: '100%' }}>
                         <Stack align='start' spacing={'xl'} sx={{ height: '100%' }}>
                             <NavLink href='/' label='Home' icon={<MdHome />} />
-                            <NavLink href='/likes' label='Your Likes' icon={<BsHeartFill />} />
-                            <NavLink href='/saved' label='Your Favorites' icon={<BsBookmarkFill />} />
-                            <NavLink href='/later' label='Your Read Later' icon={<BsClockFill />} />
+                            <NavLink href='/history/likes' label='Your Likes' icon={<BsHeartFill />} />
+                            <NavLink href='/history/saved' label='Your Favorites' icon={<BsBookmarkFill />} />
+                            <NavLink href='/history/later' label='Your Read Later' icon={<BsClockFill />} />
                         </Stack>
                         <Stack>
                             {

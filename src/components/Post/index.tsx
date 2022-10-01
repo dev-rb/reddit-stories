@@ -35,13 +35,6 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
             userRead: localPostStatus?.userRead ?? false,
         }
     );
-    // const [isRead, setIsRead] = React.useState(localPostStatus?.userRead ?? false);
-
-    // const [downloadedStatus, setDownloadedStatus] = React.useState(localPostStatus?.downloaded ?? false);
-
-    // const [liked, setLiked] = React.useState(postLiked ?? localPostStatus?.liked ?? false);
-    // const [saved, setSaved] = React.useState(postSaved ?? localPostStatus?.favorited ?? false);
-    // const [later, setLater] = React.useState(postReadLater ?? localPostStatus?.readLater ?? false);
 
     const postRef = React.useRef<HTMLDivElement>(null);
 
@@ -77,7 +70,15 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
             queryCache.forEach((val) => {
                 if (val.id === id) {
                     if (val.userRead || val.liked || val.readLater || val.favorited) {
-                        setPostStatuses((prev) => ({ ...prev, userRead: val.userRead ?? prev.userRead, liked: val.liked ?? prev.liked, favorited: val.favorited ?? prev.favorited, readLater: val.readLater ?? prev.readLater }));
+                        setPostStatuses((prev) =>
+                        ({
+                            ...prev,
+                            userRead: val.userRead ?? prev.userRead,
+                            liked: val.liked ?? prev.liked,
+                            favorited: val.favorited ?? prev.favorited,
+                            readLater: val.readLater ?? prev.readLater
+                        })
+                        );
                     }
                 }
             })
