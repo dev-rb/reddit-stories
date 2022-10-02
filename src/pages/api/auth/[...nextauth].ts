@@ -75,21 +75,6 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
             session: async ({ session, user }) => {
                 return { ...session, user: user };
             },
-            signIn: async ({ user }) => {
-                console.log("Sign in callback")
-                if (user.id) {
-                    const validEmail = await prisma.user.findUnique({
-                        where: {
-                            id: user.id
-                        }
-                    });
-
-                    if (validEmail) {
-                        return true;
-                    }
-                }
-                throw new Error('Invalid Email')
-            }
         },
         session: {
             strategy: 'database'
