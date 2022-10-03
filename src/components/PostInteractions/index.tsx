@@ -3,7 +3,7 @@ import { Group, UnstyledButton, Text } from '@mantine/core';
 import { BsClockFill } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { MdModeComment, MdBookmark } from 'react-icons/md';
-import { IStory, Prompt } from 'src/interfaces/db';
+import { IStory, Prompt } from 'src/types/db';
 import { trpc } from 'src/utils/trpc';
 import { useUser } from 'src/hooks/useUser';
 import { useDispatch } from 'react-redux';
@@ -16,7 +16,7 @@ type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments
 type NeededStoryValues = Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & { mainCommentId: string | null, replies: string[] }
 type PostOrComment = NeededPromptValues | NeededStoryValues
 
-interface PostControlsProps<TData extends PostOrComment> {
+interface PostInteractionsProps<TData extends PostOrComment> {
     postInfo: TData,
     liked: boolean,
     favorited: boolean,
@@ -26,7 +26,7 @@ interface PostControlsProps<TData extends PostOrComment> {
     toggleReadLater: () => void,
 }
 
-const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited, readLater, toggleLiked, toggleSaved, toggleReadLater }: PostControlsProps<TData>) => {
+const PostInteractions = <TData extends PostOrComment,>({ postInfo, liked, favorited, readLater, toggleLiked, toggleSaved, toggleReadLater }: PostInteractionsProps<TData>) => {
 
     const queryClient = useQueryClient();
 
@@ -122,4 +122,4 @@ const PostControls = <TData extends PostOrComment,>({ postInfo, liked, favorited
     );
 }
 
-export default PostControls;
+export default PostInteractions;

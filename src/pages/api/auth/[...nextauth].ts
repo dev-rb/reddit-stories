@@ -22,8 +22,6 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
         }
     }
 
-    console.log(req.query.nextauth)
-
     const indexOfSignUp = req.query.nextauth.indexOf('signup');
     if (typeof req.query.nextauth === 'object' && indexOfSignUp) {
         req.query.nextauth[indexOfSignUp] = 'signin'

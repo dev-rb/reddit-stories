@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchSubredditPosts, getTotalCommentsForPost } from "src/utils/redditApi";
-import { Prompt } from "src/interfaces/db";
+import { Prompt } from "src/types/db";
 import { addPosts, getPosts } from "src/utils/redis";
 
 const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({

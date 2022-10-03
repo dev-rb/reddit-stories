@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { StatusTypeSort } from 'src/components/MobileSelect/TypeSelect';
-import { Prompt, IStory } from 'src/interfaces/db';
+import { Prompt, IStory } from 'src/types/db';
 import { trpc } from 'src/utils/trpc';
 import { useUser } from './useUser';
 

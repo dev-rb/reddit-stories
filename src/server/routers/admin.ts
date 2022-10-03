@@ -57,11 +57,11 @@ export const adminRouter = createRouter()
         async resolve({ input }) {
             const { id } = input;
 
-            prisma.post.delete({
-                where: {
-                    id
-                }
-            });
+            // prisma.post.delete({
+            //     where: {
+            //         id
+            //     }
+            // });
         }
     })
     .mutation("delete-story", {

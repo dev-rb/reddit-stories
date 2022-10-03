@@ -1,5 +1,5 @@
 import { Redis } from '@upstash/redis';
-import { Prompt } from 'src/interfaces/db';
+import { Prompt } from 'src/types/db';
 
 const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,

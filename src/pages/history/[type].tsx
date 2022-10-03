@@ -6,6 +6,8 @@ const HistoryPage = () => {
     const router = useRouter()
     const { type } = router.query;
 
+    const [historyType, setHistoryType] = React.useState<HistoryType>('favorited');
+
     const getHistoryType = (): HistoryType => {
 
         if (type === 'likes') {
@@ -17,9 +19,13 @@ const HistoryPage = () => {
         return 'favorited';
     }
 
+    React.useEffect(() => {
+        setHistoryType(getHistoryType());
+    }, [type])
+
 
     return (
-        <HistoryLayout historyType={getHistoryType()} />
+        <HistoryLayout historyType={historyType} />
     )
 }
 

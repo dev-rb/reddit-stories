@@ -1,4 +1,4 @@
-import { SortType, RedditSortTypeConversion, TopTimeSort, TopSorts } from "src/interfaces/sorts"
+import { SortType, RedditSortTypeConversion, TopTimeSort, TopSorts } from "src/types/sorts"
 
 export const sortTypeMap: { [key in SortType]: RedditSortTypeConversion } = {
     New: 'new',

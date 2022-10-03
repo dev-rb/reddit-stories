@@ -6,16 +6,16 @@ import { MdBookmark, MdFileDownload } from 'react-icons/md';
 import { BsChevronDown, BsChevronUp, BsClockFill } from 'react-icons/bs';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
-import { IStory, NormalizedReplies } from 'src/interfaces/db';
-import PostControls from '../PostControls';
-import { ListVirtualizerContext } from 'src/utils/contexts/ListVirtualizerContext';
+import { IStory, NormalizedReplies } from 'src/types/db';
+import PostInteractions from '../PostInteractions';
+import { ListVirtualizerContext } from 'src/components/VirtualizedDataDisplay/ListVirtualizer';
 import { useSelector } from 'react-redux';
 import { getCommentStatuses, PostsState } from 'src/redux/slices';
 import { useCommentStyles } from './comment.styles';
 
 dayjs.extend(RelativeTime);
 
-interface CommentDisplayProps extends IStory {
+interface CommentProps extends IStory {
     allReplies: NormalizedReplies,
     replies: string[],
     postAuthor: string,
@@ -24,7 +24,7 @@ interface CommentDisplayProps extends IStory {
     isDownloaded?: boolean
 }
 
-const CommentDisplay = ({
+const Comment = ({
     body,
     bodyHtml,
     author,
@@ -43,7 +43,7 @@ const CommentDisplay = ({
     readLater: storyReadLater,
     isCollapsed,
     isDownloaded
-}: CommentDisplayProps) => {
+}: CommentProps) => {
     const commentStatus = useSelector((state: PostsState) => getCommentStatuses(state, postId!, id));
 
     const [liked, setLiked] = React.useState(storyLiked ?? commentStatus?.liked ?? false);
@@ -112,7 +112,7 @@ const CommentDisplay = ({
                 <Stack spacing={0}>
                     <Text size='sm'> {HtmlReactParser(sanitize(bodyHtml, { transformTags: { 'a': 'p' } }))} </Text>
 
-                    <PostControls<Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & { mainCommentId: string | null, replies: string[] }>
+                    <PostInteractions<Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & { mainCommentId: string | null, replies: string[] }>
                         postInfo={{ id, score, postId, replies, liked, mainCommentId }}
                         liked={liked}
                         toggleLiked={() => setLiked((prev) => !prev)}
@@ -130,7 +130,7 @@ const CommentDisplay = ({
                 <Stack id={"replies-container"} className={classes.repliesContainer} spacing={0}>
                     {getCommentReplies()?.map((reply, index) => {
                         return (
-                            <CommentDisplay
+                            <Comment
                                 key={reply.id}
                                 {...reply}
                                 permalink={permalink}
@@ -152,4 +152,4 @@ const CommentDisplay = ({
     );
 }
 
-export default CommentDisplay;
+export default Comment;

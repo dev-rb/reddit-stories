@@ -4,7 +4,7 @@ import * as React from 'react';
 import { BsTrophy } from 'react-icons/bs';
 import { MdWhatshot, MdNewReleases } from 'react-icons/md';
 import { useQueryClient } from 'react-query';
-import { RedditSortTypeConversion, SortType, TopSorts, TopTimeSort } from 'src/interfaces/sorts';
+import { RedditSortTypeConversion, SortType, TopSorts, TopTimeSort } from 'src/types/sorts';
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import { trpc } from 'src/utils/trpc';
 import MobileSelect from '.';
@@ -66,13 +66,6 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
 
     const trpcClient = trpc.useContext();
     const queryClient = useQueryClient();
-
-    const cancelPreviousQuery = async (oldSort: string, oldTime?: string) => {
-        console.log("Should cancel query with input: ", sortTypeMap[oldSort as SortType].toString() as RedditSortTypeConversion, topSortTypeMap[oldTime as TopTimeSort].toString() as TopSorts)
-        // queryClient.cancelQueries();
-        // console.log(queryClient.getQueryData(['post.sort', { sortType: oldSort as RedditSortTypeConversion, timeSort: oldTime as TopSorts }]))
-        await trpcClient.cancelQuery(['post.sort', { sortType: sortTypeMap[oldSort as SortType].toString() as RedditSortTypeConversion, timeSort: topSortTypeMap[oldTime as TopTimeSort].toString() as TopSorts }])
-    }
 
     const onSortChange = (newValue: string) => {
         if (newValue === 'Top') {

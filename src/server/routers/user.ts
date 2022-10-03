@@ -2,7 +2,7 @@ import { createRouter } from ".";
 import { prisma } from "../prisma";
 import { z } from 'zod';
 import { TRPCError } from "@trpc/server";
-import { IStory, Prompt } from "src/interfaces/db";
+import { IStory, Prompt } from "src/types/db";
 import { getTotalCommentsForPost } from "src/utils/redditApi";
 import { Prisma } from "@prisma/client";
 

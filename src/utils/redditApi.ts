@@ -1,6 +1,6 @@
 import { Post, Comment } from '@prisma/client';
-import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../interfaces/reddit';
-import { ExtendedReply, IStory, NormalizedReplies, Prompt, StoryAndReplies } from '../interfaces/db';
+import { CommentDetails, IPost, PostDetails, PostInfo, Posts, RedditComment, RedditCommentRoot, RedditSortType } from '../types/reddit';
+import { ExtendedReply, IStory, NormalizedReplies, Prompt, StoryAndReplies } from '../types/db';
 import { Stream } from 'stream';
 
 interface RedditFetchOptions {

@@ -1,5 +1,5 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { IStory, NormalizedReplies, Prompt, PromptAndStoriesWithNormalizedReplies } from "src/interfaces/db";
+import { IStory, NormalizedReplies, Prompt, PromptAndStoriesWithNormalizedReplies } from "src/types/db";
 import { PostStatus } from "src/server/routers/post";
 
 interface PostStateItem extends Prompt {
@@ -43,8 +43,6 @@ const PostsSlice = createSlice({
     reducers: {
         updateReplyStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, storyId: string, replyId: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
             if (payload.storyId !== undefined) {
-                console.log("Update reply local called")
-                console.log(payload.storyId)
                 if (state.stories[payload.postId] === undefined) return;
                 state.stories[payload.postId] = state.stories[payload.postId].map((story) => {
                     if (story.id === payload.storyId) {
@@ -59,8 +57,6 @@ const PostsSlice = createSlice({
         },
         updateStoryStatus: (state: PostsState, { payload }: PayloadAction<{ postId: string, storyId: string, statusToUpdate: PostStatus, newStatusValue: boolean }>) => {
             if (payload.storyId !== undefined) {
-                console.log("Update story local called")
-                console.log(payload.storyId)
                 if (state.stories[payload.postId] === undefined) return;
                 state.stories[payload.postId] = state.stories[payload.postId].map((story) => {
                     if (story.id === payload.storyId) {
@@ -83,7 +79,6 @@ const PostsSlice = createSlice({
             })
         },
         downloadPost: (state: PostsState, { payload }: PayloadAction<{ post: PromptAndStoriesWithNormalizedReplies, sortType: string, timeSort?: string }>) => {
-            console.log("Download post called")
             state.posts.push({ ...payload.post, downloaded: true, sortType: payload.sortType, timeSort: payload.timeSort });
             state.stories[payload.post.id] = [...payload.post.stories.map((val, index) => ({ ...val, downloaded: true, replies: { ...downloadReplies(val.replies), } }))];
         },

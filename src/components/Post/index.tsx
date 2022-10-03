@@ -6,8 +6,8 @@ import { useMediaQuery } from '@mantine/hooks';
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import PostControls from '../PostControls';
-import { Prompt } from 'src/interfaces/db';
+import PostInteractions from '../PostInteractions';
+import { Prompt } from 'src/types/db';
 import { useQueryClient } from 'react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { getPostStatuses, PostsState, updatePostStatus } from 'src/redux/slices';
@@ -105,7 +105,7 @@ const Post = ({ title, id, score, author, permalink, totalComments, created, ind
                     <Text size='sm' weight={500} color={userRead ? (theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[6]) : (theme.colorScheme === 'dark' ? theme.colors.gray[0] : theme.black)}>
                         {title.replace('[WP]', '').trim()}
                     </Text>
-                    <PostControls
+                    <PostInteractions
                         postInfo={{ title, id, score, author, created, totalComments }}
                         liked={liked}
                         toggleLiked={() => setPostStatuses((prev) => ({ ...prev, liked: !liked }))}

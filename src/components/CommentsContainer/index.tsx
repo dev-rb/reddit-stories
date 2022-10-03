@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { IPost } from '../../interfaces/reddit';
+import { IPost } from '../../types/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
-import CommentDisplay from '../Comment';
+import Comment from '../Comment';
 import { createStyles, Group, Paper, Stack, Box, Title, Center, Avatar } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux';
 import { postSelector, PostsState } from 'src/redux/slices';
 import SortSelect from '../MobileSelect/SortSelect';
 import { useSession } from 'next-auth/react';
-import { Prompt, StoryAndNormalizedReplies } from 'src/interfaces/db';
+import { Prompt, StoryAndNormalizedReplies } from 'src/types/db';
 import VirtualizedDataDisplay from '../VirtualizedDataDisplay';
 import AccountDrawer from '../AccountDrawer';
 
@@ -123,7 +123,7 @@ const CommentsContainer = ({ postId }: Props) => {
                             <VirtualizedDataDisplay
                                 dataInfo={{ error, isError, isFetching, isLoading, isRefetching, data: storiesData }}
                                 renderItem={(item: StoryAndNormalizedReplies) => {
-                                    return <CommentDisplay
+                                    return <Comment
                                         key={item.id}
                                         {...item}
                                         allReplies={item.replies}

@@ -13,17 +13,17 @@ const updateDownloadNotification = (icon: React.ReactNode) => updateNotification
     id: 'download-status',
     title: 'Download Status',
     message: 'Download Completed',
-    ...commonProps,
     icon: icon,
-    color: 'green'
+    color: 'green',
+    ...commonProps,
 })
 
 const showDownloadNotification = (isLoading: boolean) => showNotification({
     id: 'download-status',
     title: 'Download Status',
     message: 'Downloading',
-    ...commonProps,
     loading: isLoading,
+    ...commonProps,
 })
 
 const getNotificationStatusTitle = (status: PostStatus) => {
@@ -34,10 +34,10 @@ const showPostStatusNotification = (status: PostStatus, newValue: boolean) => sh
     id: 'post-status-update' + nanoid(),
     title: `${getNotificationStatusTitle(status)}`,
     message: `${newValue === false ? negativeStatusTextMap[status] : positiveStatusTextMap[status]}`,
-    ...commonProps,
     icon: newValue === false ? negativeStatusIconMap[status] : positiveStatusIconMap[status],
     color: newValue === false ? 'red' : 'green',
     autoClose: 1500,
+    ...commonProps,
 })
 
 const showSigninNotification = (userName?: string | null) => showNotification({

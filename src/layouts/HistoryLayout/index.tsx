@@ -6,8 +6,8 @@ import AccountDrawer from 'src/components/AccountDrawer';
 import { trpc } from 'src/utils/trpc';
 import { useUser } from 'src/hooks/useUser';
 import Post from 'src/components/Post';
-import CommentDisplay from 'src/components/Comment';
-import { IStory, Prompt } from 'src/interfaces/db';
+import Comment from 'src/components/Comment';
+import { IStory, Prompt } from 'src/types/db';
 import Link from 'next/link';
 import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
 import TypeSelect, { StatusTypeSort } from 'src/components/MobileSelect/TypeSelect';
@@ -27,7 +27,7 @@ const HistoryLayout = ({ historyType }: HistoryLayoutProps) => {
 
     const user = useUser();
 
-    const { data: userLikes, isLoading, isError, error, isFetching, isRefetching } = useUserSavedQuery({ statusToGet: 'readLater', filter: typeSort });
+    const { data: userLikes, isLoading, isError, error, isFetching, isRefetching } = useUserSavedQuery({ statusToGet: historyType, filter: typeSort });
 
     const isStory = (object: any): object is IStory => {
         return "mainCommentId" in object;
@@ -82,7 +82,7 @@ const HistoryLayout = ({ historyType }: HistoryLayoutProps) => {
                                             (isStory(currentItem)) ?
                                                 <Anchor variant='text' component={Link} href={`/posts/${currentItem.postId}`} >
                                                     <div>
-                                                        <CommentDisplay
+                                                        <Comment
                                                             key={currentItem.id}
                                                             {...currentItem as IStory}
                                                             allReplies={{}}

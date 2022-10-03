@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Prisma, Comment } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { fetchCommentsForPost, getReplies, normalizedReplies } from "src/utils/redditApi";
-import { ExtendedReply, IStory, NormalizedReplies, StoryAndReplies } from "src/interfaces/db";
+import { ExtendedReply, IStory, NormalizedReplies, StoryAndReplies } from "src/types/db";
 import { PostStatus } from "./post";
 
 const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({

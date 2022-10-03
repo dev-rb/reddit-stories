@@ -1,9 +1,12 @@
 import * as React from 'react';
-import Post from '../Post';
-import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual';
-import { get } from 'idb-keyval';
-import { PromptAndStoriesWithExtendedReplies } from 'src/interfaces/db';
+import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { Center, Title } from '@mantine/core';
+
+interface ContextValues {
+    remeasure: () => void
+}
+
+export const ListVirtualizerContext = React.createContext<ContextValues | null>(null);
 
 type Key = number | string
 interface Item {
