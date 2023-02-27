@@ -3,70 +3,74 @@ import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { Center, Title } from '@mantine/core';
 
 interface ContextValues {
-    remeasure: () => void
+  remeasure: () => void;
 }
 
 export const ListVirtualizerContext = React.createContext<ContextValues | null>(null);
 
-type Key = number | string
+type Key = number | string;
 interface Item {
-    key: Key
-    index: number
-    start: number
-    end: number
-    size: number
+  key: Key;
+  index: number;
+  start: number;
+  end: number;
+  size: number;
 }
 
 interface VirtualItem<TItemElement> extends Item {
-    measureElement: (el: TItemElement | null) => void
+  measureElement: (el: TItemElement | null) => void;
 }
 
 interface ListVirtualizerProps<TItem, TItemElement> {
-    data: TItem[],
-    renderItem: (item: VirtualItem<TItemElement>, index: number, remeasure: () => void) => React.ReactNode
+  data: TItem[];
+  renderItem: (item: VirtualItem<TItemElement>, index: number) => React.ReactNode;
 }
 
 const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtualizerProps<TItem, TItemElement>) => {
-    if (!data) {
-        return (
-            <Center>
-                <Title> No Data </Title>
-            </Center>
-        )
-    }
-    const rowVirtualizer = useWindowVirtualizer({
-        count: data.length,
-        getScrollElement: () => window,
-        estimateSize: () => 150,
-        overscan: 3,
-        enableSmoothScroll: true
-    });
-
-    const remeasure = () => {
-        rowVirtualizer.measure();
-    }
-
-    React.useEffect(() => {
-        rowVirtualizer.measure();
-    }, [data])
-
+  if (!data) {
     return (
-        <>
-
-            <div
-                style={{
-                    height: rowVirtualizer.getTotalSize(),
-                    width: '100%',
-                    position: 'relative',
-                }}
-            >
-                {/* Only the visible items in the virtualizer, manually positioned to be in view */}
-                {rowVirtualizer.getVirtualItems().map((virtualItem: VirtualItem<TItemElement>, index: number) => {
-                    return (renderItem(virtualItem, index, remeasure))
-                })}
-            </div>
-        </>
+      <Center>
+        <Title> No Data </Title>
+      </Center>
     );
-}
+  }
+
+  const rowVirtualizer = useWindowVirtualizer({
+    count: data.length,
+    getScrollElement: () => window,
+    estimateSize: () => 150,
+    overscan: 3,
+    enableSmoothScroll: true,
+  });
+
+  const remeasure = () => {
+    rowVirtualizer.measure();
+  };
+
+  React.useEffect(() => {
+    remeasure();
+  }, [data]);
+
+  return (
+    <>
+      <div
+        style={{
+          height: rowVirtualizer.getTotalSize(),
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {/* Only the visible items in the virtualizer, manually positioned to be in view */}
+        <ListVirtualizerContext.Provider value={{ remeasure }}>
+          {rowVirtualizer.getVirtualItems().map((virtualItem: VirtualItem<TItemElement>, index: number) => {
+            return renderItem(virtualItem, index);
+          })}
+        </ListVirtualizerContext.Provider>
+      </div>
+    </>
+  );
+};
 
 export default ListVirtualizer;
+
+export const useListVirtualizer = () => React.useContext(ListVirtualizerContext);

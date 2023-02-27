@@ -8,118 +8,163 @@ import { trpc } from 'src/utils/trpc';
 import { useUser } from 'src/hooks/useUser';
 import { useDispatch } from 'react-redux';
 import { updatePostStatus, updateReplyStatus, updateStoryStatus } from 'src/redux/slices';
-import { useQueryClient } from 'react-query';
 import { PostStatus } from 'src/server/routers/post';
 import { showPostStatusNotification, showUnauthenticatedNotification } from 'src/utils/notifications';
 
-type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>
-type NeededStoryValues = Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & { mainCommentId: string | null, replies: string[] }
-type PostOrComment = NeededPromptValues | NeededStoryValues
+type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>;
+type NeededStoryValues = Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & {
+  mainCommentId: string | null;
+  replies: string[];
+};
+type PostOrComment = NeededPromptValues | NeededStoryValues;
 
 interface PostInteractionsProps<TData extends PostOrComment> {
-    postInfo: TData,
-    liked: boolean,
-    favorited: boolean,
-    readLater: boolean,
-    toggleLiked: () => void,
-    toggleSaved: () => void,
-    toggleReadLater: () => void,
+  postInfo: TData;
+  liked: boolean;
+  favorited: boolean;
+  readLater: boolean;
+  toggleStatus: (status: PostStatus) => void;
 }
 
-const PostInteractions = <TData extends PostOrComment,>({ postInfo, liked, favorited, readLater, toggleLiked, toggleSaved, toggleReadLater }: PostInteractionsProps<TData>) => {
+const PostInteractions = <TData extends PostOrComment>({
+  postInfo,
+  liked,
+  favorited,
+  readLater,
+  toggleStatus,
+}: PostInteractionsProps<TData>) => {
+  const { mutate: updatePostMutation } = trpc.useMutation('post.updatePostStatus');
 
-    const queryClient = useQueryClient();
+  const { mutate: updateStoryMutation } = trpc.useMutation('story.updateCommentStatus');
 
-    const { mutate: updatePostMutation } = trpc.useMutation('post.updatePostStatus');
+  const { userId, isAuthenticated } = useUser();
 
-    const { mutate: updateStoryMutation } = trpc.useMutation('story.updateCommentStatus');
+  const dispatch = useDispatch();
 
-    const { userId, isAuthenticated } = useUser();
+  const isStory = 'replies' in postInfo;
 
-    const dispatch = useDispatch();
+  const updateLocalState = (status: PostStatus, newValue: boolean) => {
+    if (isStory) {
+      if (postInfo.mainCommentId === null) {
+        dispatch(
+          updateStoryStatus({
+            postId: postInfo.postId!,
+            storyId: postInfo.id,
+            newStatusValue: newValue,
+            statusToUpdate: status,
+          })
+        );
+      } else {
+        dispatch(
+          updateReplyStatus({
+            postId: postInfo.postId!,
+            storyId: postInfo.mainCommentId!,
+            replyId: postInfo.id,
+            newStatusValue: newValue,
+            statusToUpdate: status,
+          })
+        );
+      }
+    } else {
+      dispatch(
+        updatePostStatus({
+          postId: postInfo.id!,
+          newStatusValue: newValue,
+          statusToUpdate: status,
+        })
+      );
+    }
+  };
 
-    const isStory = "replies" in postInfo;
-
-    const updateLocalState = (status: PostStatus, newValue: boolean) => {
-        if (isStory) {
-            if (postInfo.mainCommentId === null) {
-                dispatch(updateStoryStatus({ postId: postInfo.postId!, storyId: postInfo.id, newStatusValue: newValue, statusToUpdate: status }))
-            } else {
-                dispatch(updateReplyStatus({ postId: postInfo.postId!, storyId: postInfo.mainCommentId!, replyId: postInfo.id, newStatusValue: newValue, statusToUpdate: status }))
-            }
-        } else {
-            dispatch(updatePostStatus({ postId: postInfo.id!, newStatusValue: newValue, statusToUpdate: status }))
-        }
+  const updatePost = (status: PostStatus) => {
+    if (!isAuthenticated) {
+      showUnauthenticatedNotification();
+      return;
+    }
+    let newValue = false;
+    switch (status) {
+      case 'liked':
+        newValue = liked;
+        break;
+      case 'favorited':
+        newValue = favorited;
+        break;
+      case 'readLater':
+        newValue = readLater;
+        break;
+    }
+    toggleStatus(status);
+    if (isStory) {
+      updateStoryMutation({
+        commentId: postInfo.id,
+        userId: userId!,
+        status,
+        newValue: !newValue,
+      });
+    } else {
+      updatePostMutation({
+        postId: postInfo.id,
+        userId: userId!,
+        status,
+        newValue: !newValue,
+      });
     }
 
-    const updatePost = (status: PostStatus) => {
-        if (!isAuthenticated) {
-            showUnauthenticatedNotification();
-            return;
-        }
-        let newValue = false;
-        switch (status) {
-            case 'liked':
-                toggleLiked();
-                newValue = liked;
-                break;
-            case 'favorited':
-                toggleSaved();
-                newValue = favorited;
-                break;
-            case 'readLater':
-                toggleReadLater();
-                newValue = readLater;
-                break;
-        }
-        if (isStory) {
-            console.log("Is story")
-            updateStoryMutation({ commentId: postInfo.id, userId: userId!, status, newValue: !newValue })
-        } else {
+    showPostStatusNotification(status, !newValue);
+    updateLocalState(status, !newValue);
+  };
 
-            console.log("Is prompt")
-            updatePostMutation({ postId: postInfo.id, userId: userId!, status, newValue: !newValue })
-        }
+  const handleActionPress = (e: React.MouseEvent<HTMLButtonElement>, status: PostStatus) => {
+    e.stopPropagation();
+    e.preventDefault();
+    updatePost(status);
+  };
 
-        showPostStatusNotification(status, !newValue);
-        updateLocalState(status, !newValue);
-    }
-
-    const handleActionPress = (e: React.MouseEvent<HTMLButtonElement>, status: PostStatus) => {
-        e.stopPropagation();
-        e.preventDefault();
-        updatePost(status);
-    }
-
-    return (
-        <Group noWrap align='center' spacing={40}>
-            <UnstyledButton
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'liked')}
-                sx={(theme) => ({ color: liked ? theme.colors.orange[4] : theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}
-            >
-                <Group noWrap align='center' spacing={4}>
-                    {
-                        liked ?
-                            <HiHeart size={20} /> :
-                            <HiOutlineHeart size={20} />
-                    }
-                    <Text weight={500}>{postInfo.score}</Text>
-                </Group>
-            </UnstyledButton>
-            <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })}>
-                <Group noWrap align='center' spacing={4}>
-                    <MdModeComment size={20} />
-                    <Text weight={500}>{isStory ? postInfo.replies.length : (postInfo as any).totalComments}</Text>
-                </Group>
-            </UnstyledButton>
-            <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })} onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'favorited')}>
-                <MdBookmark size={20} />
-            </UnstyledButton>
-            <UnstyledButton sx={(theme) => ({ color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4] })} onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'readLater')}>
-                <BsClockFill size={20} />
-            </UnstyledButton>
+  return (
+    <Group noWrap align="center" spacing={40}>
+      <UnstyledButton
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'liked')}
+        sx={(theme) => ({
+          color: liked
+            ? theme.colors.orange[4]
+            : theme.colorScheme === 'dark'
+            ? theme.colors.dark[3]
+            : theme.colors.gray[4],
+        })}
+      >
+        <Group noWrap align="center" spacing={4}>
+          {liked ? <HiHeart size={20} /> : <HiOutlineHeart size={20} />}
+          <Text weight={500}>{postInfo.score}</Text>
         </Group>
-    );
-}
+      </UnstyledButton>
+      <UnstyledButton
+        sx={(theme) => ({
+          color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4],
+        })}
+      >
+        <Group noWrap align="center" spacing={4}>
+          <MdModeComment size={20} />
+          <Text weight={500}>{isStory ? postInfo.replies.length : (postInfo as any).totalComments}</Text>
+        </Group>
+      </UnstyledButton>
+      <UnstyledButton
+        sx={(theme) => ({
+          color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4],
+        })}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'favorited')}
+      >
+        <MdBookmark size={20} />
+      </UnstyledButton>
+      <UnstyledButton
+        sx={(theme) => ({
+          color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4],
+        })}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'readLater')}
+      >
+        <BsClockFill size={20} />
+      </UnstyledButton>
+    </Group>
+  );
+};
 
 export default PostInteractions;
