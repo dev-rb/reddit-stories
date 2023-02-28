@@ -18,9 +18,10 @@ import { splitLink } from '@trpc/client/links/splitLink';
 import { SessionProvider } from 'next-auth/react';
 import { NotificationsProvider } from '@mantine/notifications';
 
-const url = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/trpc`
-  : 'http://localhost:3000/api/trpc';
+const url =
+  process.env.NEXT_PUBLIC_VERCEL_URL && process.env.NODE_ENV === 'production'
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/trpc`
+    : 'http://localhost:3000/api/trpc';
 
 function MyApp({ Component, pageProps, colorScheme }: AppProps & { colorScheme: ColorScheme }) {
   const [queryClient] = useState(

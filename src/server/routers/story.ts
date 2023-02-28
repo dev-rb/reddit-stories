@@ -2,8 +2,7 @@ import { createRouter } from '.';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { fetchCommentsForPost, normalizedReplies } from 'src/utils/redditApi';
-import { IStory, NormalizedReplies } from 'src/types/db';
+import { fetchCommentsForPost } from 'src/utils/redditApi';
 import { PostStatus } from './post';
 
 const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
@@ -17,7 +16,7 @@ const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
   userCommentSaved: true,
 });
 const postStatusTypeSchema = z.enum(['liked', 'favorited', 'readLater']);
-const POST_STATUSES = ['liked', 'favorited', 'readLater'];
+const POST_STATUSES = ['liked', 'favorited', 'readLater'] as const;
 
 export const storiesRouter = createRouter()
   .query('forPost', {
@@ -28,6 +27,7 @@ export const storiesRouter = createRouter()
     async resolve({ input, ctx }) {
       const { id, userId } = input;
       const stories = await fetchCommentsForPost('/r/writingprompts', id);
+      // console.log(stories);
       for (const story of stories) {
         const { author, body, bodyHtml, created, id, permalink, score, postId, replies } = story;
         await ctx.prisma.comment.upsert({
@@ -65,24 +65,25 @@ export const storiesRouter = createRouter()
         });
 
         if (userId) {
-          story.replies = await Promise.all(
-            replies.map(async (reply) => {
+          await Promise.all(
+            Object.keys(replies).map(async (replyId) => {
               const userCommentSaved = await ctx.prisma.userCommentSaved.findUnique({
                 where: {
                   userId_commentId: {
-                    commentId: reply.id,
+                    commentId: replyId,
                     userId,
                   },
                 },
               });
               if (userCommentSaved) {
                 console.log('Found info for reply');
-                reply.liked = userCommentSaved.liked;
-                reply.readLater = userCommentSaved.readLater;
-                reply.favorited = userCommentSaved.favorited;
+                replies[replyId].liked = userCommentSaved.liked;
+                replies[replyId].readLater = userCommentSaved.readLater;
+                replies[replyId].favorited = userCommentSaved.favorited;
               }
 
-              const { author, body, bodyHtml, created, id, permalink, mainCommentId, score, postId, updatedAt } = reply;
+              const { author, body, bodyHtml, created, id, permalink, mainCommentId, score, postId, updatedAt } =
+                replies[replyId];
               await ctx.prisma.comment.upsert({
                 create: {
                   author,
@@ -113,23 +114,15 @@ export const storiesRouter = createRouter()
                 },
               });
 
-              return reply;
+              return replyId;
             })
           );
         }
       }
 
-      let newResult = stories.map((val) => {
-        let { replies, ...story } = val;
-        let newStory: IStory & { replies: NormalizedReplies } = { ...story, replies: normalizedReplies(replies) };
-        return newStory;
-      });
-
-      // console.log("Normalized Replies: ", normalizedReplies(stories[0].replies))
-
       if (userId) {
         console.log('Find usercommentsaved');
-        for (const story of newResult) {
+        for (const story of stories) {
           const userStory = await ctx.prisma.userCommentSaved.findUnique({
             where: {
               userId_commentId: {
@@ -145,14 +138,14 @@ export const storiesRouter = createRouter()
           }
         }
       }
-      if (!newResult) {
+      if (!stories) {
         throw new TRPCError({
           cause: undefined,
           code: 'NOT_FOUND',
           message: `No story with id '${id}'`,
         });
       }
-      return newResult;
+      return stories;
     },
   })
   // .query("byId", {

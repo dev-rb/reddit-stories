@@ -49,6 +49,7 @@ const VirtualizedDataDisplay = <TData extends any[] | [], TItem>({
           const currentItem = data![item.index];
           return (
             <div
+              key={item.key}
               ref={item.measureElement}
               style={{
                 position: 'absolute',
