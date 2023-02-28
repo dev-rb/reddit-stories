@@ -6,7 +6,7 @@ import { appRouter } from './routers';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CreateContextOptions {
-    // session: Session | null
+  // session: Session | null
 }
 
 /**
@@ -17,23 +17,18 @@ interface CreateContextOptions {
 //     return {};
 // }
 
-
 /**
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export async function createContext({
+export async function createContext({ req, res }: trpcNext.CreateNextContextOptions) {
+  // for API-response caching see https://trpc.io/docs/caching
+
+  return {
     req,
     res,
-}: trpcNext.CreateNextContextOptions,
-) {
-    // for API-response caching see https://trpc.io/docs/caching
-
-    return {
-        req,
-        res,
-        prisma,
-    };
+    prisma,
+  };
 }
 
 export type Context = trpc.inferAsyncReturnType<typeof createContext>;
