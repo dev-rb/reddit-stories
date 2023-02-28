@@ -173,9 +173,6 @@ const CommentsContainer = ({ postId }: Props) => {
                     postAuthor={postData?.author ?? ''}
                     replyIndex={0}
                     isDownloaded={postInfo?.downloaded}
-                    liked={postInfo?.liked}
-                    favorited={postInfo?.favorited}
-                    readLater={postInfo?.readLater}
                     isCollapsed={false}
                   />
                 );

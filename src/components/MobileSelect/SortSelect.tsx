@@ -1,4 +1,5 @@
 import { Group } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useRouter } from 'next/router';
 import * as React from 'react';
 import { BsTrophy } from 'react-icons/bs';
@@ -53,6 +54,7 @@ interface SortSelectProps {
 const SortSelect = ({ onChange }: SortSelectProps) => {
   const router = useRouter();
   const { sort, time } = router.query;
+  const largeScreen = useMediaQuery('(min-width: 900px)');
 
   const [sortType, setSortType] = React.useState<string>('Popular');
   const [timeSort, setTimeSort] = React.useState<string>(time?.toString() ?? 'Today');
@@ -87,6 +89,14 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
     onChange?.(sortTypeMap[sortType as SortType].toString(), topSortTypeMap[newValue as TopTimeSort].toString());
   };
 
+  const onSortTypeClick = () => {
+    setShowOptions(true);
+  };
+
+  const onTimeSortClick = () => {
+    setShowTopOptions(true);
+  };
+
   React.useEffect(() => {
     if (sort && !Array.isArray(sort)) {
       setSortType(sort);
@@ -94,28 +104,32 @@ const SortSelect = ({ onChange }: SortSelectProps) => {
   }, [sort]);
 
   return (
-    <>
-      <Group noWrap>
+    <Group noWrap>
+      <MobileSelect
+        value={sortType}
+        data={sortOptions.map((val) => val.value)}
+        selectOptions={sortOptions}
+        bottomSheetOpened={showOptions && !largeScreen}
+        onBottomSheetClose={() => setShowOptions(false)}
+        onSelectClick={onSortTypeClick}
+        onChange={onSortChange}
+        defaultActive={'Popular'}
+        styles={{ justify: 'unset', spacing: 'lg' }}
+      />
+      {(time !== undefined || showTopOptions) && (
         <MobileSelect
-          data={sortOptions.map((val) => val.value)}
-          selectOptions={sortOptions}
-          onChange={onSortChange}
-          bottomSheetOpened={showOptions}
-          defaultActive={sortType}
-          styles={{ justify: 'unset', spacing: 'lg' }}
+          value={timeSort}
+          data={topSortOptions.map((val) => val.value)}
+          selectOptions={topSortOptions}
+          bottomSheetOpened={showTopOptions && !largeScreen}
+          onBottomSheetClose={() => setShowTopOptions(false)}
+          onSelectClick={onTimeSortClick}
+          onChange={onTimeSortChange}
+          defaultActive={'Today'}
+          styles={{ justify: 'space-between', spacing: 0 }}
         />
-        {(time !== undefined || showTopOptions) && (
-          <MobileSelect
-            data={topSortOptions.map((val) => val.value)}
-            selectOptions={topSortOptions}
-            onChange={onTimeSortChange}
-            bottomSheetOpened={showTopOptions}
-            defaultActive={timeSort}
-            styles={{ justify: 'space-between', spacing: 0 }}
-          />
-        )}
-      </Group>
-    </>
+      )}
+    </Group>
   );
 };
 

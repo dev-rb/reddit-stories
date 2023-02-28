@@ -55,13 +55,10 @@ const PostsSlice = createSlice({
     ) => {
       if (!payload.storyId || state.stories[payload.postId] === undefined) return;
 
-      state.stories[payload.postId] = state.stories[payload.postId].map((story) => {
-        if (story.id === payload.storyId) {
-          story.replies[payload.replyId][payload.statusToUpdate] = payload.newStatusValue;
-        }
-
-        return story;
-      });
+      const storyToUpdate = state.stories[payload.postId].find((story) => story.id === payload.storyId);
+      if (storyToUpdate) {
+        storyToUpdate.replies[payload.replyId][payload.statusToUpdate] = payload.newStatusValue;
+      }
     },
     updateStoryStatus: (
       state: PostsState,

@@ -1,17 +1,6 @@
 import * as React from 'react';
-import {
-  createStyles,
-  Drawer,
-  Group,
-  MantineNumberSize,
-  NativeSelect,
-  Stack,
-  StackProps,
-  UnstyledButton,
-} from '@mantine/core';
+import { createStyles, Drawer, Group, MantineNumberSize, NativeSelect, Stack, UnstyledButton } from '@mantine/core';
 import { MdArrowDropDown, MdCheck } from 'react-icons/md';
-import { useDidUpdate, useMediaQuery } from '@mantine/hooks';
-import { useRouter } from 'next/router';
 
 const useStyles = createStyles((theme) => ({
   bottomSheet: {
@@ -21,13 +10,15 @@ const useStyles = createStyles((theme) => ({
 }));
 
 interface SortSelectProps {
+  value: string | undefined;
   onChange: (newValue: string) => void;
   selectOptions: { value: string; icon: React.ReactNode }[];
   data: string[];
   defaultActive?: string;
   onBottomSheetClose?: () => void;
   bottomSheetTitle?: string;
-  bottomSheetOpened?: boolean;
+  bottomSheetOpened: boolean;
+  onSelectClick?: (e: React.MouseEvent<HTMLSelectElement>) => void;
   styles?: {
     spacing?: MantineNumberSize | number;
     justify?: React.CSSProperties['justifyContent'];
@@ -35,63 +26,44 @@ interface SortSelectProps {
 }
 
 const MobileSelect = ({
+  value,
   onChange,
   onBottomSheetClose,
   data,
   selectOptions,
   bottomSheetTitle = 'Sort Posts By',
   bottomSheetOpened,
+  onSelectClick,
   defaultActive,
   styles,
 }: SortSelectProps) => {
-  const [bottomSheetOpen, setBottomSheetOpen] = React.useState(false);
-
-  const [activeValue, setActiveValue] = React.useState<string>('');
-
-  const largeScreen = useMediaQuery('(min-width: 900px)');
-
   const { classes } = useStyles();
 
-  const selectSortType = (e: React.MouseEvent<HTMLSelectElement>) => {
-    if (largeScreen) {
-      e.preventDefault();
-    } else {
-      setBottomSheetOpen(true);
-    }
-  };
-
   const onSelectChange = (newType: string) => {
-    if (newType === activeValue) {
+    if (newType === value) {
       return;
     }
-    setActiveValue(newType);
     onChange(newType);
   };
-
-  React.useEffect(() => {
-    setBottomSheetOpen(bottomSheetOpened ?? false);
-    // console.log(`${data[0]} is open?: `, bottomSheetOpened);
-  }, [bottomSheetOpened]);
 
   return (
     <>
       <NativeSelect
         variant="filled"
         data={data}
-        value={defaultActive ?? activeValue}
+        value={value ?? defaultActive}
         rightSection={<MdArrowDropDown />}
         onChange={(e) => {
           onSelectChange(e.target.value);
         }}
-        onClick={selectSortType}
+        onClick={onSelectClick}
         styles={{ rightSection: { pointerEvents: 'none' } }}
       />
 
       <Drawer
         className={classes.bottomSheet}
-        opened={bottomSheetOpen && !largeScreen}
+        opened={bottomSheetOpened}
         onClose={() => {
-          setBottomSheetOpen(false);
           onBottomSheetClose?.();
         }}
         position="bottom"
@@ -110,7 +82,7 @@ const MobileSelect = ({
               key={val.value}
               {...val}
               updateSortType={onSelectChange}
-              active={val.value === (defaultActive ?? activeValue)}
+              active={val.value === (value ?? defaultActive)}
             />
           ))}
         </Stack>

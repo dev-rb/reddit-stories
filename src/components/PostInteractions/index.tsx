@@ -3,13 +3,14 @@ import { Group, UnstyledButton, Text } from '@mantine/core';
 import { BsClockFill } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { MdModeComment, MdBookmark } from 'react-icons/md';
-import { IStory, Prompt } from 'src/types/db';
+import { IStory, Prompt, StoryAndNormalizedReplies } from 'src/types/db';
 import { trpc } from 'src/utils/trpc';
 import { useUser } from 'src/hooks/useUser';
 import { useDispatch } from 'react-redux';
 import { updatePostStatus, updateReplyStatus, updateStoryStatus } from 'src/redux/slices';
 import { PostStatus } from 'src/server/routers/post';
 import { showPostStatusNotification, showUnauthenticatedNotification } from 'src/utils/notifications';
+import { useQueryClient } from 'react-query';
 
 type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>;
 type NeededStoryValues = Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & {
@@ -33,9 +34,60 @@ const PostInteractions = <TData extends PostOrComment>({
   readLater,
   toggleStatus,
 }: PostInteractionsProps<TData>) => {
-  const { mutate: updatePostMutation } = trpc.useMutation('post.updatePostStatus');
+  const { mutate: updatePostMutation } = trpc.useMutation('post.updatePostStatus', {
+    onMutate(variables) {
+      if (isStory) return;
+      const previousInfo = queryClient.getQueryData(['post.sort']);
+      queryClient.setQueryData(['post.sort'], (cache: Prompt[] | undefined) => {
+        if (!cache) return [];
 
-  const { mutate: updateStoryMutation } = trpc.useMutation('story.updateCommentStatus');
+        const rootComment = cache.find((v) => v.id === variables.postId);
+
+        if (rootComment) {
+          rootComment[variables.status] = variables.newValue;
+        }
+
+        return [...cache];
+      });
+
+      return previousInfo;
+    },
+  });
+  const queryClient = useQueryClient();
+
+  const { mutate: updateStoryMutation } = trpc.useMutation('story.updateCommentStatus', {
+    onMutate(variables) {
+      if (!isStory) return;
+      const previousInfo = queryClient.getQueryData([
+        'story.forPost',
+        { id: postInfo.postId, userId: variables.userId },
+      ]);
+      queryClient.setQueryData(
+        ['story.forPost', { id: postInfo.postId, userId: variables.userId }],
+        (cache: StoryAndNormalizedReplies[] | undefined) => {
+          if (!cache) return [];
+
+          const rootComment = cache.find((v) => v.id === variables.commentId);
+
+          if (rootComment) {
+            rootComment[variables.status] = variables.newValue;
+          } else {
+            for (const comment of cache) {
+              const replyMatch = Object.keys(comment.replies).find((replyId) => replyId === variables.commentId);
+
+              if (replyMatch) {
+                comment.replies[replyMatch][variables.status] = variables.newValue;
+                break;
+              }
+            }
+          }
+          return [...cache];
+        }
+      );
+
+      return previousInfo;
+    },
+  });
 
   const { userId, isAuthenticated } = useUser();
 
