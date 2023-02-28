@@ -11,25 +11,30 @@ interface RedditFetchOptions {
 
 const promptTags = ['wp', 'cw', 'eu', 'pm', 'pi', 'sp', 'tt', 'rf'];
 
-export const fetchSubredditPosts = async (subreddit: string, options: RedditFetchOptions) => {
+type SubredditName<T extends string> = T extends `r/${infer Name}` ? Name : T extends `/r/${infer Name}` ? Name : T;
+
+export const fetchSubredditPosts = async <T extends string>(
+  subreddit: SubredditName<T>,
+  options: RedditFetchOptions
+) => {
   let data: PostInfo[] = [];
+  const count = options.count ?? 100;
   if (options.fetchAll) {
     const [newData, hotData, topData] = await Promise.all([
-      (await fetch(`https://www.reddit.com${subreddit}/${'new'}.json?limit=${options.count ?? 100}&raw_json=1`)).json(),
-      (await fetch(`https://www.reddit.com${subreddit}/${'hot'}.json?limit=${options.count ?? 100}&raw_json=1`)).json(),
-      (
-        await fetch(`https://www.reddit.com${subreddit}/${'top'}.json?limit=${options.count ?? 100}&raw_json=1&t=day`)
-      ).json(),
+      (await fetch(`https://www.reddit.com/r/${subreddit}/${'new'}.json?limit=${count}&raw_json=1`)).json(),
+      (await fetch(`https://www.reddit.com/r/${subreddit}/${'hot'}.json?limit=${count}&raw_json=1`)).json(),
+      (await fetch(`https://www.reddit.com/r/${subreddit}/${'top'}.json?limit=${count}&raw_json=1&t=day`)).json(),
     ]);
 
     const allData = [...newData.data.children, ...hotData.data.children, ...topData.data.children];
     data = removeUnwantedPosts(removeDuplicates(allData));
   } else {
+    const timeSort = options.timeSort ? `t=${options.timeSort}` : '';
     const singleData: Posts = await (
       await fetch(
-        `https://www.reddit.com${subreddit}/${options.sortType?.toString()}.json?${
-          options.timeSort ? 't=' + options.timeSort + '&' : ''
-        }limit=${options.count ?? 100}&raw_json=1`
+        `https://www.reddit.com/r/${subreddit}/${options.sortType?.toString()}.json?${
+          timeSort + '&'
+        }limit=${count}&raw_json=1`
       )
     ).json();
     data = removeUnwantedPosts(singleData.data.children);
@@ -80,14 +85,11 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
 
 const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
   const { author, created_utc, id, permalink, score, title, body, body_html } = commentInfo;
-  const replies = Object.fromEntries(
-    normalizeReplies(
-      { comment: commentInfo, grandparentId: id, parentAuthor: author, parentId: null, postId },
-      new Map<string, IStory & { replies: [] }>()
-    )?.entries() ?? []
-  ) as unknown as NormalizedReplies;
+  const replies = normalizeReplies(
+    { comment: commentInfo, grandparentId: id, parentAuthor: author, parentId: null, postId },
+    {}
+  );
 
-  // console.log(replies);
   const story: StoryAndNormalizedReplies = {
     author,
     created: new Date(created_utc * 1000),
@@ -98,7 +100,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     postId,
     bodyHtml: body_html,
     updatedAt: null,
-    replies,
+    replies: replies ?? {},
     mainCommentId: null,
     replyId: null,
   };
@@ -115,7 +117,7 @@ interface NormalizeRepliesArgs {
 
 const normalizeReplies = (
   { parentAuthor, comment, grandparentId, parentId, postId }: NormalizeRepliesArgs,
-  map: Map<string, IStory & { replies: string[] }>
+  map: NormalizedReplies
 ) => {
   const replies = comment.replies;
 
@@ -141,13 +143,13 @@ const normalizeReplies = (
     };
 
     if (parentId) {
-      const currentValue = map.get(parentId);
+      const currentValue = map[parentId];
       if (currentValue) {
-        map.set(parentId, { ...currentValue, replies: [...currentValue.replies, id] });
+        map[parentId] = { ...currentValue, replies: [...currentValue.replies, id] };
       }
     }
 
-    map.set(id, comment);
+    map[id] = comment;
 
     normalizeReplies({ parentAuthor, comment: reply.data, grandparentId, parentId: id, postId }, map);
   }

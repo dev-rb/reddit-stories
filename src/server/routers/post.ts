@@ -30,60 +30,58 @@ export const postRouter = createRouter()
       userId: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
-      console.log('Sort called in backend: ', input);
-      if (input.sortType === 'hot' || input.sortType === 'new' || input.sortType.includes('top')) {
-        const posts = await getPosts(input.sortType, input.timeSort);
-        // console.log("Redis Data: ", posts);
-        let prompts: Prompt[] = [];
-        if (posts !== undefined && posts !== null && (input.sortType === 'hot' || input.sortType.includes('top'))) {
-          prompts = posts as unknown as Prompt[];
-        } else {
-          prompts = await fetchSubredditPosts('/r/writingprompts', {
-            sortType: input.sortType,
-            timeSort: input.timeSort,
-          });
+      // console.log('Sort called in backend: ', input);
 
-          const createPosts = [
-            ...prompts.map((prompt) => {
-              const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
-              return ctx.prisma.post.upsert({
-                create: rest,
-                update: rest,
-                where: {
-                  id: prompt.id,
-                },
-              });
-            }),
-          ];
-
-          await Promise.all(createPosts);
-          await addPosts(prompts, input.sortType, input.timeSort);
-        }
-
-        // Check if user has saved or liked any of the posts
-
-        if (input.userId !== undefined) {
-          prompts = await Promise.all(
-            prompts.map(async (prompt) => {
-              const dbPost = await ctx.prisma.userPostSaved.findFirst({
-                where: {
-                  userId: input.userId!,
-                  postId: prompt.id,
-                },
-              });
-
-              return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, favorited: dbPost?.favorited };
-            })
-          );
-        }
-
-        return prompts;
-      } else {
+      if (input.sortType !== 'hot' && input.sortType !== 'new' && !input.sortType.includes('top')) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: `"${input?.sortType}" sort type not supported`,
         });
       }
+
+      const posts = await getPosts(input.sortType, input.timeSort);
+
+      let prompts: Prompt[] = [];
+      if (posts !== undefined && posts !== null && (input.sortType === 'hot' || input.sortType.includes('top'))) {
+        prompts = posts as unknown as Prompt[];
+      } else {
+        prompts = await fetchSubredditPosts('writingprompts', {
+          sortType: input.sortType,
+          timeSort: input.timeSort,
+        });
+
+        const createPosts = [
+          ...prompts.map((prompt) => {
+            const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
+            return ctx.prisma.post.upsert({
+              create: rest,
+              update: rest,
+              where: {
+                id: prompt.id,
+              },
+            });
+          }),
+        ];
+
+        await Promise.all([createPosts, addPosts(prompts, input.sortType, input.timeSort)]);
+      }
+
+      // If there is no userId, we can return what we have
+      if (input.userId === undefined) return prompts;
+
+      // Otherwise, check if user has interacted with this post
+      return await Promise.all(
+        prompts.map(async (prompt) => {
+          const dbPost = await ctx.prisma.userPostSaved.findFirst({
+            where: {
+              userId: input.userId!,
+              postId: prompt.id,
+            },
+          });
+
+          return { ...prompt, liked: dbPost?.liked, readLater: dbPost?.readLater, favorited: dbPost?.favorited };
+        })
+      );
     },
   })
   .query('byId', {

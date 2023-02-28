@@ -176,6 +176,7 @@ const CommentsContainer = ({ postId }: Props) => {
                     liked={postInfo?.liked}
                     favorited={postInfo?.favorited}
                     readLater={postInfo?.readLater}
+                    isCollapsed={false}
                   />
                 );
               }}

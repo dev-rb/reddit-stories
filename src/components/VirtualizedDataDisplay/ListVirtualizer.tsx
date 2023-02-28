@@ -44,7 +44,7 @@ const ListVirtualizer = <TItem, TItemElement>({ data, renderItem }: ListVirtuali
   });
 
   const remeasure = () => {
-    rowVirtualizer.measure();
+    rowVirtualizer.scrollToOffset(window.scrollY + 1);
   };
 
   React.useEffect(() => {

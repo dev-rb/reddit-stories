@@ -75,7 +75,7 @@ const Comment = ({
   const collapseComment = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setCollapsed(!collapsed);
+    setCollapsed((p) => !p);
     virtualList?.remeasure();
   };
 
@@ -159,6 +159,7 @@ const Comment = ({
                 allReplies={allReplies}
                 replyIndex={replyIndex + 1}
                 postAuthor={postAuthor}
+                isCollapsed={false}
               />
             );
           })}
