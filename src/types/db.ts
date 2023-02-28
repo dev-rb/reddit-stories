@@ -10,16 +10,7 @@ export interface NormalizedReplies {
   [key: string]: IStory & { replies: string[] };
 }
 
-export interface ExtendedReply extends IStory {
-  replies: ExtendedReply[];
-}
-
-export type Replies = { replies: ExtendedReply[] };
-
-export type StoryAndReplies = IStory & { replies: IStory[] };
 export type StoryAndNormalizedReplies = IStory & { replies: NormalizedReplies };
-
-export type StoriesAndReplies = { stories: StoryAndReplies[] };
 
 export interface Prompt extends Post {
   totalComments: number;
@@ -30,7 +21,5 @@ export interface Prompt extends Post {
 }
 
 export type PromptAndStories = Prompt & { stories: IStory[] };
-
-export type PromptAndStoriesWithReplies = Prompt & StoriesAndReplies;
 
 export type PromptAndStoriesWithNormalizedReplies = Prompt & { stories: StoryAndNormalizedReplies[] };

@@ -27,9 +27,13 @@ export const storiesRouter = createRouter()
     async resolve({ input, ctx }) {
       const { id, userId } = input;
       const stories = await fetchCommentsForPost('/r/writingprompts', id);
-      // console.log(stories);
-      for (const story of stories) {
+
+      for (let story of stories) {
         const { author, body, bodyHtml, created, id, permalink, score, postId, replies } = story;
+        const count = await ctx.prisma.post.count({ where: { id: postId! } });
+
+        if (count === 0) continue;
+
         await ctx.prisma.comment.upsert({
           create: {
             author,
@@ -82,8 +86,9 @@ export const storiesRouter = createRouter()
                 replies[replyId].favorited = userCommentSaved.favorited;
               }
 
-              const { author, body, bodyHtml, created, id, permalink, mainCommentId, score, postId, updatedAt } =
-                replies[replyId];
+              //prettier-ignore
+              const { author, body, bodyHtml, created, id, permalink, mainCommentId, score, postId, updatedAt } = replies[replyId];
+
               await ctx.prisma.comment.upsert({
                 create: {
                   author,
@@ -117,12 +122,7 @@ export const storiesRouter = createRouter()
               return replyId;
             })
           );
-        }
-      }
 
-      if (userId) {
-        console.log('Find usercommentsaved');
-        for (const story of stories) {
           const userStory = await ctx.prisma.userCommentSaved.findUnique({
             where: {
               userId_commentId: {
@@ -138,6 +138,7 @@ export const storiesRouter = createRouter()
           }
         }
       }
+
       if (!stories) {
         throw new TRPCError({
           cause: undefined,

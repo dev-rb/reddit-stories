@@ -6,10 +6,10 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-export const getPosts = async (sortType: string, timeSort?: string | null) => {
+export const getPosts = async (sortType: string, timeSort?: string | null): Promise<string | null> => {
   const postsKey = `${sortType}${timeSort ? '::' + timeSort : ''}`;
 
-  return (await redis.get(postsKey)) as string;
+  return await redis.get(postsKey);
 };
 
 export const addPosts = async (posts: Prompt[], sortType: string, timeSort?: string | null) => {

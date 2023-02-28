@@ -30,9 +30,7 @@ export const postRouter = createRouter()
       userId: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
-      // console.log('Sort called in backend: ', input);
-
-      if (input.sortType !== 'hot' && input.sortType !== 'new' && !input.sortType.includes('top')) {
+      if (input.sortType !== 'hot' && input.sortType !== 'new' && input.sortType !== 'top') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: `"${input?.sortType}" sort type not supported`,
@@ -42,28 +40,27 @@ export const postRouter = createRouter()
       const posts = await getPosts(input.sortType, input.timeSort);
 
       let prompts: Prompt[] = [];
-      if (posts !== undefined && posts !== null && (input.sortType === 'hot' || input.sortType.includes('top'))) {
+      if (posts !== undefined && posts !== null && (input.sortType === 'hot' || input.sortType === 'top')) {
         prompts = posts as unknown as Prompt[];
       } else {
+        console.log('Fetch new');
         prompts = await fetchSubredditPosts('writingprompts', {
           sortType: input.sortType,
           timeSort: input.timeSort,
         });
 
-        const createPosts = [
-          ...prompts.map((prompt) => {
-            const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
-            return ctx.prisma.post.upsert({
-              create: rest,
-              update: rest,
-              where: {
-                id: prompt.id,
-              },
-            });
-          }),
-        ];
+        for (const prompt of prompts) {
+          const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
+          ctx.prisma.post.upsert({
+            create: { ...rest },
+            update: { ...rest },
+            where: {
+              id: prompt.id,
+            },
+          });
+        }
 
-        await Promise.all([createPosts, addPosts(prompts, input.sortType, input.timeSort)]);
+        await addPosts(prompts, input.sortType, input.timeSort);
       }
 
       // If there is no userId, we can return what we have

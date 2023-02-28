@@ -1,6 +1,6 @@
 import { Comment } from '@prisma/client';
 import { CommentDetails, PostInfo, Posts, RedditCommentRoot } from '../types/reddit';
-import { IStory, NormalizedReplies, Prompt, StoryAndNormalizedReplies, StoryAndReplies } from '../types/db';
+import { IStory, NormalizedReplies, Prompt, StoryAndNormalizedReplies } from '../types/db';
 
 interface RedditFetchOptions {
   sortType?: string;
@@ -79,7 +79,9 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
   const commentDetails = data[1].data.children;
 
   return commentDetails
-    .filter((comment) => comment.data.author !== 'AutoModerator')
+    .filter(
+      (comment) => comment.data.author !== 'AutoModerator' && (comment.kind === 't1' || comment.kind === 'Listing')
+    )
     .map((v) => extractCommentDetails(v.data, postId));
 };
 
@@ -89,7 +91,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     { comment: commentInfo, grandparentId: id, parentAuthor: author, parentId: null, postId },
     {}
   );
-
+  // console.log(commentInfo.replies?.data?.children);
   const story: StoryAndNormalizedReplies = {
     author,
     created: new Date(created_utc * 1000),

@@ -86,7 +86,7 @@ const Home = () => {
               timeSort: timeSort as TopSorts,
               userId,
             },
-          ]) as Prompt[];
+          ]) as Prompt[] | undefined;
           if (cacheData) {
             return cacheData.map((val) => {
               const { userRead, ...rest } = val;
@@ -183,9 +183,7 @@ const Home = () => {
                 variant="filled"
                 color={selector?.length === 0 ? 'gray' : 'blue'}
                 loading={isDownloading}
-                onClick={() => {
-                  downloadPostsAndStories!();
-                }}
+                onClick={downloadPostsAndStories}
               >
                 <MdDownload />
               </ActionIcon>

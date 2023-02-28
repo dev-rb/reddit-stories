@@ -51,7 +51,7 @@ export interface PostDetails {
 }
 
 export interface RedditComment {
-  children: { data: CommentDetails }[];
+  children: { kind: 't1' | 'more' | 'Listing'; data: CommentDetails }[];
 }
 
 export interface RedditCommentRoot {
