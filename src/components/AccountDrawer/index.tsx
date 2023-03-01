@@ -17,6 +17,7 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
   const session = useSession();
 
   const router = useRouter();
+  const { sort, time } = router.query;
 
   const signOutUser = () => {
     signOut();
@@ -26,6 +27,8 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
   const navigateToSignIn = () => {
     router.push('/signin');
   };
+
+  const homeUrl = `/${(sort ? '?sort=' + sort : '') + (time ? '&time=' + time : '')}`;
 
   return (
     <>
@@ -38,7 +41,7 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
           <Divider sx={{ width: '100%' }} />
           <Stack mt={'lg'} justify="space-between" sx={{ height: '100%', width: '100%' }}>
             <Stack align="start" spacing={'xl'} sx={{ height: '100%' }}>
-              <NavLink href="/" label="Home" icon={<MdHome />} />
+              <NavLink href={homeUrl} label="Home" icon={<MdHome />} />
               <NavLink href="/history/likes" label="Your Likes" icon={<BsHeartFill />} />
               <NavLink href="/history/saved" label="Your Favorites" icon={<BsBookmarkFill />} />
               <NavLink href="/history/later" label="Your Read Later" icon={<BsClockFill />} />
