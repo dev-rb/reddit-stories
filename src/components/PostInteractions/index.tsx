@@ -13,7 +13,7 @@ import { showPostStatusNotification, showUnauthenticatedNotification } from 'src
 import { useQueryClient } from 'react-query';
 
 type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>;
-type NeededStoryValues = Pick<IStory, 'liked' | 'score' | 'id' | 'postId'> & {
+type NeededStoryValues = Pick<IStory, 'liked' | 'score' | 'id' | 'postId' | 'repliesTotal'> & {
   mainCommentId: string | null;
   replies: string[];
 };
@@ -196,7 +196,7 @@ const PostInteractions = <TData extends PostOrComment>({
       >
         <Group noWrap align="center" spacing={4}>
           <MdModeComment size={20} />
-          <Text weight={500}>{isStory ? postInfo.replies.length : (postInfo as any).totalComments}</Text>
+          <Text weight={500}>{isStory ? postInfo.repliesTotal : (postInfo as any).totalComments}</Text>
         </Group>
       </UnstyledButton>
       <UnstyledButton

@@ -44,6 +44,7 @@ const Comment = ({
   readLater: storyReadLater,
   isCollapsed,
   isDownloaded,
+  repliesTotal,
 }: CommentProps) => {
   const commentStatus = useSelector((state: PostsState) => getCommentStatuses(state, postId!, id));
 
@@ -139,7 +140,7 @@ const Comment = ({
           <Text size="sm">{HtmlReactParser(sanitize(bodyHtml, { transformTags: { a: 'p' } }))}</Text>
 
           <PostInteractions
-            postInfo={{ id, score, postId, replies, liked, mainCommentId }}
+            postInfo={{ id, score, postId, replies, liked, mainCommentId, repliesTotal }}
             liked={liked}
             favorited={favorited}
             readLater={later}

@@ -1,21 +1,9 @@
 import { createRouter } from '.';
 import { z } from 'zod';
-import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { fetchSubredditPosts, getTotalCommentsForPost } from 'src/utils/redditApi';
+import { fetchSubredditPosts } from 'src/utils/redditApi';
 import { Prompt } from 'src/types/db';
 import { addPosts, getPosts } from 'src/utils/redis';
-
-const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
-  id: true,
-  title: true,
-  score: true,
-  author: true,
-  created: true,
-  permalink: true,
-  comments: true,
-  userPostSaved: true,
-});
 
 const postStatusTypeSchema = z.enum(['liked', 'favorited', 'readLater']);
 export type PostStatus = z.TypeOf<typeof postStatusTypeSchema>;
@@ -92,13 +80,14 @@ export const postRouter = createRouter()
       console.log('backend called');
 
       const post = await ctx.prisma.post.findUnique({
+        include: { comments: true },
         where: {
           id: id,
         },
         rejectOnNotFound: true,
       });
 
-      let prompt: Prompt = { ...post, totalComments: await getTotalCommentsForPost('/r/writingprompts', post.id) };
+      let prompt: Prompt = { ...post, totalComments: post.comments.length };
 
       if (userId) {
         const userPrompt = await ctx.prisma.userPostSaved.findUnique({
@@ -166,7 +155,10 @@ export const postRouter = createRouter()
             },
           },
         },
-        select: defaultPostSelect,
+        include: {
+          comments: true,
+          userPostSaved: true,
+        },
       });
       return post;
     },

@@ -2,18 +2,6 @@ import { createRouter } from '.';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { IStory, Prompt } from 'src/types/db';
-import { getTotalCommentsForPost } from 'src/utils/redditApi';
-import { Prisma } from '@prisma/client';
-
-const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
-  id: true,
-  score: true,
-  author: true,
-  permalink: true,
-  body: true,
-  bodyHtml: true,
-  created: true,
-});
 
 export const userRouter = createRouter().query('getLikes', {
   input: z.object({
@@ -31,7 +19,7 @@ export const userRouter = createRouter().query('getLikes', {
       });
     }
 
-    const userLikes = await ctx.prisma.user.findFirst({
+    const userInteractions = await ctx.prisma.user.findFirst({
       where: {
         id: userId,
       },
@@ -44,15 +32,7 @@ export const userRouter = createRouter().query('getLikes', {
             },
           },
           include: {
-            comment: {
-              select: {
-                ...defaultStorySelect,
-                mainCommentId: true,
-                updatedAt: true,
-                replyId: true,
-                postId: true,
-              },
-            },
+            comment: true,
           },
         },
         savedPosts: {
@@ -62,33 +42,39 @@ export const userRouter = createRouter().query('getLikes', {
             },
           },
           include: {
-            post: true,
+            post: {
+              include: {
+                comments: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!userLikes) {
-      console.log('NO data: ', userLikes);
+    if (!userInteractions) {
+      console.log('NO data: ', userInteractions);
       return;
     }
-
-    const posts: (Prompt | IStory)[] = await Promise.all([
-      ...userLikes.savedPosts.map(async (val) => ({
-        ...val.post,
-        liked: val.liked,
-        readLater: val.readLater,
-        favorited: val.favorited,
-        totalComments: await getTotalCommentsForPost('/r/writingprompts', val.postId),
-      })),
-      ...userLikes.savedComments.map(async (val) => ({
+    const posts: (Prompt | IStory)[] = [
+      ...userInteractions.savedPosts.map((val) => {
+        const { comments, ...rest } = val.post;
+        return {
+          ...rest,
+          liked: val.liked,
+          readLater: val.readLater,
+          favorited: val.favorited,
+          totalComments: comments.length,
+        };
+      }),
+      ...userInteractions.savedComments.map((val) => ({
         ...val.comment,
         liked: val.liked,
         readLater: val.readLater,
         favorited: val.favorited,
-        totalComments: (await ctx.prisma.comment.findMany({ where: { mainCommentId: val.comment.id } })).length,
+        totalComments: val.comment.repliesTotal,
       })),
-    ]);
+    ];
     return posts;
   },
 });

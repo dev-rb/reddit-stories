@@ -65,13 +65,6 @@ const extractPostDetails = (postInfo: PostInfo) => {
   } as Prompt;
 };
 
-export const getTotalCommentsForPost = async (subreddit: string, postId: string) => {
-  let data: RedditCommentRoot[] = await (
-    await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)
-  ).json();
-  return data[1].data.children.length - +data[1].data.children.some((val) => val.data.author === 'AutoModerator');
-};
-
 export const fetchCommentsForPost = async (subreddit: string, postId: string) => {
   let data: RedditCommentRoot[] = await (
     await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)
@@ -105,6 +98,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     replies: replies ?? {},
     mainCommentId: null,
     replyId: null,
+    repliesTotal: replies ? Object.keys(replies).length : 0,
   };
   return story;
 };
@@ -129,6 +123,9 @@ const normalizeReplies = (
 
   for (const reply of replies.data.children) {
     const { author, body, body_html, created_utc, id, permalink, score } = reply.data;
+
+    if (reply.data.author !== 'AutoModerator' && reply.kind !== 't1' && reply.kind !== 'Listing') continue;
+
     const comment: IStory & { replies: string[] } = {
       author,
       body,
@@ -142,12 +139,17 @@ const normalizeReplies = (
       permalink,
       postId: postId,
       replies: [],
+      repliesTotal: 0,
     };
 
     if (parentId) {
       const currentValue = map[parentId];
       if (currentValue) {
-        map[parentId] = { ...currentValue, replies: [...currentValue.replies, id] };
+        map[parentId] = {
+          ...currentValue,
+          replies: [...currentValue.replies, id],
+          repliesTotal: currentValue.repliesTotal + 1,
+        };
       }
     }
 
@@ -157,78 +159,4 @@ const normalizeReplies = (
   }
 
   return map;
-};
-
-/**
- *
- * @param commentInfo      the info for the comment/reply
- * @param commentAuthor    the author of the original comment/story so we can process replies that are only from the author to capture different parts of the story
- * @param parentCommentId  id for the main comment/story that these replies are a part of
- * @param parentReplyId    if a reply is nested, we want to keep track of what reply it is nested inside of so we take its parents id
- * @param replies          array for accumulated nested replies
- * @returns                accumulated replies after we've gone through all of them
- */
-const getRepliesForComment = (
-  postId: string,
-  commentInfo: CommentDetails,
-  commentAuthor: string,
-  parentCommentId: string,
-  parentReplyId: string | null,
-  replies: IStory[]
-) => {
-  // If there are no replies, return and continue looking through the rest of the replies
-  if (
-    commentInfo.replies === undefined ||
-    commentInfo.replies.data === undefined ||
-    commentInfo.replies.data.children.length === 0
-  ) {
-    return;
-  }
-  // Loop through all the replies for this comment
-  const commentDetails = commentInfo.replies.data.children;
-  const commentDetailsLength = commentDetails.length;
-
-  for (let i = 0; i < commentDetailsLength; i++) {
-    const val = commentDetails[i];
-    const { author, body, body_html, created_utc, id, replies: repliesForReply, permalink, score } = val.data;
-    if (body_html === undefined || id === '_') {
-      return;
-    }
-    // Uncomment to only get this reply if it's from the author of the story
-    // if (author === commentAuthor) {
-    const reply: IStory = {
-      author,
-      body,
-      bodyHtml: body_html,
-      created: new Date(created_utc * 1000),
-      id,
-      score,
-      updatedAt: undefined!,
-      mainCommentId: parentCommentId,
-      replyId: parentReplyId,
-      permalink,
-      postId: postId,
-    };
-    // Add this reply to the list of accumulated relies
-    replies.push(reply);
-    // Recursively call this function again on the current reply we are on to check for if it has replies as well.
-    // We go through all nested replies
-    getRepliesForComment(postId, val.data, commentAuthor, parentCommentId, id, replies);
-    // }
-  }
-
-  return replies;
-};
-
-export const normalizedReplies = (replies: Comment[]) => {
-  let normalizedReplies: NormalizedReplies = {};
-
-  replies.forEach((reply, index) => {
-    normalizedReplies[reply.id] = {
-      ...reply,
-      replies: [...replies.filter((val) => val.replyId === reply.id).map((val) => val.id)],
-    };
-  });
-
-  return normalizedReplies;
 };
