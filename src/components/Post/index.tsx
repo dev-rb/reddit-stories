@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { MdBookmark, MdFileDownload } from 'react-icons/md';
-import { BsClockFill } from 'react-icons/bs';
 import { Anchor, Box, Group, Stack, Text, Title, useMantineTheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import Link from 'next/link';
@@ -12,6 +10,7 @@ import { useQueryClient } from 'react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { getPostStatuses, PostsState, updatePostStatus } from 'src/redux/slices';
 import { PostStatus } from 'src/server/routers/post';
+import { StatusIndicators } from '../StatusIndicators';
 
 dayjs.extend(relativeTime);
 
@@ -133,26 +132,7 @@ const Post = ({
               <Text size="lg">·</Text>
               <Text size="xs">{dayjs(created).fromNow()}</Text>
             </Group>
-            <Group noWrap spacing={10}>
-              <MdFileDownload
-                size={16}
-                color={
-                  downloaded ? '#F84B30' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]
-                }
-              />
-              <BsClockFill
-                size={16}
-                color={
-                  readLater ? '#F8A130' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]
-                }
-              />
-              <MdBookmark
-                size={16}
-                color={
-                  favorited ? '#30CFF8' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]
-                }
-              />
-            </Group>
+            <StatusIndicators downloaded={downloaded} readLater={readLater} favorited={favorited} />
           </Group>
           <Text
             size="sm"

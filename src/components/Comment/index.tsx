@@ -1,9 +1,8 @@
 import * as React from 'react';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
-import { ActionIcon, Group, Stack, Text, Title, useMantineTheme } from '@mantine/core';
-import { MdBookmark, MdFileDownload } from 'react-icons/md';
-import { BsChevronDown, BsChevronUp, BsClockFill } from 'react-icons/bs';
+import { ActionIcon, Group, Stack, Text, Title } from '@mantine/core';
+import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 import { IStory, NormalizedReplies } from 'src/types/db';
@@ -13,8 +12,16 @@ import { useSelector } from 'react-redux';
 import { getCommentStatuses, PostsState } from 'src/redux/slices';
 import { useCommentStyles } from './comment.styles';
 import { PostStatus } from 'src/server/routers/post';
+import { StatusIndicators } from '../StatusIndicators';
 
 dayjs.extend(RelativeTime);
+
+interface CommentStatuses {
+  downloaded: boolean;
+  liked: boolean;
+  favorited: boolean;
+  readLater: boolean;
+}
 
 interface CommentProps extends IStory {
   allReplies: NormalizedReplies;
@@ -26,7 +33,6 @@ interface CommentProps extends IStory {
 }
 
 const Comment = ({
-  body,
   bodyHtml,
   author,
   created,
@@ -46,23 +52,22 @@ const Comment = ({
   isDownloaded,
   repliesTotal,
 }: CommentProps) => {
+  const virtualList = useListVirtualizer();
+
   const commentStatus = useSelector((state: PostsState) => getCommentStatuses(state, postId!, id));
 
-  const [liked, setLiked] = React.useState(storyLiked ?? commentStatus?.liked ?? false);
-  const [favorited, setFavorited] = React.useState(storyFavorited ?? commentStatus?.favorited ?? false);
-  const [later, setLater] = React.useState(storyReadLater ?? commentStatus?.readLater ?? false);
-
-  const [downloadedStatus, setDownloadedStatus] = React.useState(commentStatus?.downloaded ?? false);
+  const [{ downloaded, favorited, liked, readLater }, setCommentStatus] = React.useState<CommentStatuses>({
+    downloaded: isDownloaded ?? commentStatus?.downloaded ?? false,
+    liked: storyLiked ?? commentStatus?.liked ?? false,
+    favorited: storyFavorited ?? commentStatus?.favorited ?? false,
+    readLater: storyReadLater ?? commentStatus?.readLater ?? false,
+  });
 
   const [collapsed, setCollapsed] = React.useState(isCollapsed ?? false);
-
-  const virtualList = useListVirtualizer();
 
   const { classes } = useCommentStyles({ liked, replyIndex, collapsed });
 
   const commentRef = React.useRef<HTMLDivElement>(null);
-
-  const theme = useMantineTheme();
 
   const getCommentReplies = () => {
     if (replies.length === 0) {
@@ -81,14 +86,12 @@ const Comment = ({
   };
 
   const toggleStatus = (status: PostStatus) => {
-    if (status === 'liked') setLiked((p) => !p);
-    if (status === 'favorited') setFavorited((p) => !p);
-    if (status === 'readLater') setLater((p) => !p);
+    setCommentStatus((p) => ({ ...p, [status]: !p[status] }));
   };
 
   React.useEffect(() => {
     if (isDownloaded !== undefined) {
-      setDownloadedStatus(isDownloaded);
+      setCommentStatus((p) => ({ ...p, downloaded: isDownloaded }));
     }
   }, [isDownloaded]);
 
@@ -112,29 +115,8 @@ const Comment = ({
             )}
             <Text size="lg">·</Text>
             <Text size="xs">{dayjs(created).fromNow()}</Text>
-            {/* <Text size='lg'>·</Text>
-                        <Text size='lg'>{replyIndex}</Text> */}
           </Group>
-          <Group noWrap spacing={10}>
-            <MdFileDownload
-              size={16}
-              color={
-                downloadedStatus
-                  ? '#F84B30'
-                  : theme.colorScheme === 'dark'
-                  ? theme.colors.dark[4]
-                  : theme.colors.gray[4]
-              }
-            />
-            <BsClockFill
-              size={16}
-              color={later ? '#F8A130' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]}
-            />
-            <MdBookmark
-              size={16}
-              color={favorited ? '#30CFF8' : theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]}
-            />
-          </Group>
+          <StatusIndicators downloaded={downloaded} readLater={readLater} favorited={favorited} />
         </Group>
         <Stack spacing={0}>
           <Text size="sm">{HtmlReactParser(sanitize(bodyHtml, { transformTags: { a: 'p' } }))}</Text>
@@ -143,7 +125,7 @@ const Comment = ({
             postInfo={{ id, score, postId, replies, liked, mainCommentId, repliesTotal }}
             liked={liked}
             favorited={favorited}
-            readLater={later}
+            readLater={readLater}
             toggleStatus={toggleStatus}
           />
         </Stack>

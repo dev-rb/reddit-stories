@@ -11,6 +11,7 @@ import { updatePostStatus, updateReplyStatus, updateStoryStatus } from 'src/redu
 import { PostStatus } from 'src/server/routers/post';
 import { showPostStatusNotification, showUnauthenticatedNotification } from 'src/utils/notifications';
 import { useQueryClient } from 'react-query';
+import { useInteractionStyles } from './interactions.styles';
 
 type NeededPromptValues = Pick<Prompt, 'id' | 'liked' | 'score' | 'totalComments'>;
 type NeededStoryValues = Pick<IStory, 'liked' | 'score' | 'id' | 'postId' | 'repliesTotal'> & {
@@ -90,6 +91,7 @@ const PostInteractions = <TData extends PostOrComment>({
   });
 
   const { userId, isAuthenticated } = useUser();
+  const { classes } = useInteractionStyles({ liked });
 
   const dispatch = useDispatch();
 
@@ -176,41 +178,27 @@ const PostInteractions = <TData extends PostOrComment>({
     <Group noWrap align="center" spacing={40}>
       <UnstyledButton
         onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'liked')}
-        sx={(theme) => ({
-          color: liked
-            ? theme.colors.orange[4]
-            : theme.colorScheme === 'dark'
-            ? theme.colors.dark[3]
-            : theme.colors.gray[4],
-        })}
+        className={`${classes.baseInteraction} ${classes.like}`}
       >
         <Group noWrap align="center" spacing={4}>
           {liked ? <HiHeart size={20} /> : <HiOutlineHeart size={20} />}
           <Text weight={500}>{postInfo.score}</Text>
         </Group>
       </UnstyledButton>
-      <UnstyledButton
-        sx={(theme) => ({
-          color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4],
-        })}
-      >
+      <UnstyledButton className={classes.baseInteraction}>
         <Group noWrap align="center" spacing={4}>
           <MdModeComment size={20} />
           <Text weight={500}>{isStory ? postInfo.repliesTotal : (postInfo as any).totalComments}</Text>
         </Group>
       </UnstyledButton>
       <UnstyledButton
-        sx={(theme) => ({
-          color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4],
-        })}
+        className={classes.baseInteraction}
         onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'favorited')}
       >
         <MdBookmark size={20} />
       </UnstyledButton>
       <UnstyledButton
-        sx={(theme) => ({
-          color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[4],
-        })}
+        className={classes.baseInteraction}
         onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleActionPress(e, 'readLater')}
       >
         <BsClockFill size={20} />
