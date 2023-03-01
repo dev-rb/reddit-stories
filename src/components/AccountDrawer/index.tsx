@@ -1,9 +1,10 @@
 import { Button, Divider, Drawer, Group, Stack, Switch, Title, useMantineColorScheme } from '@mantine/core';
-import { signOut, useSession } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import * as React from 'react';
 import { BsBookmarkFill, BsClockFill, BsHeartFill } from 'react-icons/bs';
 import { MdHome } from 'react-icons/md';
+import { useUser } from 'src/hooks/useUser';
 import { showSignOutNotification } from 'src/utils/notifications';
 
 interface AccountDrawerProps {
@@ -14,7 +15,7 @@ interface AccountDrawerProps {
 const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
-  const session = useSession();
+  const user = useUser();
 
   const router = useRouter();
   const { sort, time } = router.query;
@@ -35,8 +36,8 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
       <Drawer opened={opened} onClose={() => closeDrawer()} position="right" padding="xl" size={'md'}>
         <Stack align="start" sx={{ height: '95%' }}>
           <Stack spacing={'sm'}>
-            <Title order={3}> Welcome Back{session?.data?.user && ','} </Title>
-            {session.data && <Title sx={{ color: '#F8A130' }}> {session.data.user?.name} </Title>}
+            <Title order={3}> Welcome Back{user.isAuthenticated && ','} </Title>
+            {user.isAuthenticated && <Title sx={{ color: '#F8A130' }}> {user?.name} </Title>}
           </Stack>
           <Divider sx={{ width: '100%' }} />
           <Stack mt={'lg'} justify="space-between" sx={{ height: '100%', width: '100%' }}>
@@ -47,7 +48,7 @@ const AccountDrawer = ({ closeDrawer, opened }: AccountDrawerProps) => {
               <NavLink href="/history/later" label="Your Read Later" icon={<BsClockFill />} />
             </Stack>
             <Stack>
-              {session.status === 'authenticated' ? (
+              {user.isAuthenticated ? (
                 <Button fullWidth onClick={signOutUser}>
                   Sign out
                 </Button>

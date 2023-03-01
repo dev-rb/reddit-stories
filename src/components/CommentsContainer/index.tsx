@@ -11,10 +11,10 @@ import { useQueryClient } from 'react-query';
 import { useSelector } from 'react-redux';
 import { postSelector, PostsState } from 'src/redux/slices';
 import SortSelect from '../MobileSelect/SortSelect';
-import { useSession } from 'next-auth/react';
 import { NormalizedReplies, Prompt, StoryAndNormalizedReplies } from 'src/types/db';
 import VirtualizedDataDisplay from '../VirtualizedDataDisplay';
 import AccountDrawer from '../AccountDrawer';
+import { useUser } from 'src/hooks/useUser';
 
 const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
   container: {
@@ -54,7 +54,7 @@ const CommentsContainer = ({ postId }: Props) => {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
-  const session = useSession();
+  const user = useUser();
   const queryClient = useQueryClient();
 
   const postInfo = useSelector((state: PostsState) => postSelector(state, postId));
@@ -68,25 +68,22 @@ const CommentsContainer = ({ postId }: Props) => {
     isRefetching,
     isError,
     error,
-  } = trpc.useQuery(['story.forPost', { id: postId, userId: session.data?.user?.id }], {
-    // onSuccess: (data) => console.log(data),
+  } = trpc.useQuery(['story.forPost', { id: postId, userId: user.userId }], {
     initialData: () => {
       if (storiesDownloaded === undefined) {
-        console.log('storiesDownloaded undefined');
         return;
       }
       return storiesDownloaded;
     },
   });
-  const { data: postData } = trpc.useQuery(['post.byId', { id: postId, userId: session.data?.user?.id }], {
+  const { data: postData } = trpc.useQuery(['post.byId', { id: postId, userId: user.userId }], {
     initialData: () => {
       if (postInfo === undefined) {
-        console.log('Empty state');
         const queryCache = queryClient.getQueryData(['post.sort']) as Prompt[];
         if (queryCache !== undefined) {
           const cacheInfo = queryCache.find((val) => val.id === postId);
           if (cacheInfo) {
-            console.log('Cached post: ', cacheInfo);
+            // console.log('Cached post: ', cacheInfo);
             return cacheInfo;
           }
         }
