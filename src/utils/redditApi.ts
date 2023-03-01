@@ -43,6 +43,14 @@ export const fetchSubredditPosts = async <T extends string>(
   return data.map(extractPostDetails);
 };
 
+export const fetchPostById = async <T extends string>(subreddit: SubredditName<T>, id: string): Promise<Prompt> => {
+  const singleData: Posts[] = await (
+    await fetch(`https://www.reddit.com/r/${subreddit}/comments/${id}.json?&raw_json=1`)
+  ).json();
+
+  return extractPostDetails(singleData[0].data.children[0]);
+};
+
 const removeUnwantedPosts = (arr: PostInfo[]) => {
   return arr.filter((val) => promptTags.includes(val.data.permalink.split('/')[5].substring(0, 2)));
 };
@@ -51,7 +59,7 @@ const removeDuplicates = (arr: PostInfo[]) => {
   return [...new Set(arr)];
 };
 
-const extractPostDetails = (postInfo: PostInfo) => {
+const extractPostDetails = (postInfo: PostInfo): Prompt => {
   const { author, created_utc, id, permalink, score, title, num_comments } = postInfo.data;
 
   return {
@@ -62,7 +70,8 @@ const extractPostDetails = (postInfo: PostInfo) => {
     score,
     title,
     totalComments: num_comments,
-  } as Prompt;
+    updatedAt: null,
+  };
 };
 
 export const fetchCommentsForPost = async (subreddit: string, postId: string) => {
@@ -85,7 +94,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     {}
   );
   // console.log(commentInfo.replies?.data?.children);
-  const story: StoryAndNormalizedReplies = {
+  const story: Omit<StoryAndNormalizedReplies, 'updatedAt'> = {
     author,
     created: new Date(created_utc * 1000),
     id,
@@ -94,7 +103,6 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     body,
     postId,
     bodyHtml: body_html,
-    updatedAt: null,
     replies: replies ?? {},
     mainCommentId: null,
     replyId: null,

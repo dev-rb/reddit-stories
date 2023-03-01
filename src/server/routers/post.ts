@@ -1,14 +1,19 @@
 import { createRouter } from '.';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { fetchSubredditPosts } from 'src/utils/redditApi';
+import { fetchPostById, fetchSubredditPosts } from 'src/utils/redditApi';
 import { Prompt } from 'src/types/db';
 import { addPosts, getPosts } from 'src/utils/redis';
+import { Context } from '../context';
 
 const postStatusTypeSchema = z.enum(['liked', 'favorited', 'readLater']);
 export type PostStatus = z.TypeOf<typeof postStatusTypeSchema>;
 
 const POST_STATUSES = ['liked', 'favorited', 'readLater'];
+
+const postExists = async (ctx: Context, postId: string) => {
+  return (await ctx.prisma.post.count({ where: { id: postId } })) !== 0;
+};
 
 export const postRouter = createRouter()
   .query('sort', {
@@ -38,7 +43,7 @@ export const postRouter = createRouter()
         });
 
         for (const prompt of prompts) {
-          const { totalComments, liked, readLater, favorited, userRead, ...rest } = prompt;
+          const { totalComments, liked, readLater, favorited, userRead, updatedAt, ...rest } = prompt;
           ctx.prisma.post.upsert({
             create: { ...rest },
             update: { ...rest },
@@ -133,6 +138,13 @@ export const postRouter = createRouter()
         [others[0]]: false,
         [others[1]]: false,
       };
+
+      const exists = await postExists(ctx, postId);
+
+      if (!exists) {
+        const { totalComments, updatedAt, ...post } = await fetchPostById('writingprompts', postId);
+        await ctx.prisma.post.create({ data: { ...post } });
+      }
 
       const post = await ctx.prisma.post.update({
         where: { id: postId },

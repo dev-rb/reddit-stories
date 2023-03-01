@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { Center, Loader, Text } from '@mantine/core';
-import { ListVirtualizerContext } from './ListVirtualizer';
 import ListVirtualizer from './ListVirtualizer';
 import { TRPCClientErrorLike } from '@trpc/client';
 import { AppRouter } from 'src/server/routers';
 
-interface DataProps<TData extends any[] | []> {
+interface DataProps<TData extends any[]> {
   data?: TData;
   isError: boolean;
   isLoading: boolean;
@@ -14,12 +13,12 @@ interface DataProps<TData extends any[] | []> {
   error: TRPCClientErrorLike<AppRouter> | null;
 }
 
-interface DataDisplayProps<TData extends any[] | [], TItem> {
+interface DataDisplayProps<TData extends any[], TItem> {
   dataInfo: DataProps<TData>;
   renderItem: (currentItem: TItem, index: number) => React.ReactNode;
 }
 
-const VirtualizedDataDisplay = <TData extends any[] | [], TItem>({
+const VirtualizedDataDisplay = <TData extends any[], TItem>({
   dataInfo,
   renderItem,
 }: DataDisplayProps<TData, TItem>) => {
