@@ -37,6 +37,19 @@ const PostInteractions = <TData extends PostOrComment>({
 }: PostInteractionsProps<TData>) => {
   const { mutate: updatePostMutation } = trpc.useMutation('post.updatePostStatus', {
     onMutate(variables) {
+      const queryKey = ['user.getLikes', { userId, status: variables.status }];
+      queryClient.setQueryData(queryKey, (cache: Prompt[] | undefined) => {
+        if (!cache) return [];
+
+        const rootComment = cache.find((v) => v.id === variables.postId);
+
+        if (rootComment) {
+          rootComment[variables.status] = variables.newValue;
+        }
+
+        return [...cache];
+      });
+
       if (isStory) return;
       const previousInfo = queryClient.getQueryData(['post.sort']);
       queryClient.setQueryData(['post.sort'], (cache: Prompt[] | undefined) => {
@@ -59,7 +72,7 @@ const PostInteractions = <TData extends PostOrComment>({
   const { mutate: updateStoryMutation } = trpc.useMutation('story.updateCommentStatus', {
     onMutate(variables) {
       if (!isStory) return;
-      const previousInfo = queryClient.getQueryData([
+      const previousStories = queryClient.getQueryData([
         'story.forPost',
         { id: postInfo.postId, userId: variables.userId },
       ]);
@@ -86,7 +99,7 @@ const PostInteractions = <TData extends PostOrComment>({
         }
       );
 
-      return previousInfo;
+      return previousStories;
     },
   });
 
