@@ -1,13 +1,12 @@
 import * as React from 'react';
 import HtmlReactParser from 'html-react-parser';
 import sanitize from 'sanitize-html';
-import { ActionIcon, Group, Stack, Text, Title } from '@mantine/core';
+import { ActionIcon, Collapse, Group, Stack, Text, Title } from '@mantine/core';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 import { IStory, NormalizedReplies } from 'src/types/db';
 import PostInteractions from '../PostInteractions';
-import { useListVirtualizer } from 'src/components/VirtualizedDataDisplay/ListVirtualizer';
 import { useSelector } from 'react-redux';
 import { getCommentStatuses, PostsState } from 'src/redux/slices';
 import { useCommentStyles } from './comment.styles';
@@ -28,8 +27,9 @@ interface CommentProps extends IStory {
   replies: string[];
   postAuthor: string;
   replyIndex: number;
-  isCollapsed?: boolean;
+  isCollapsed: boolean;
   isDownloaded?: boolean;
+  collapseComment: (id: string) => void;
 }
 
 const Comment = ({
@@ -51,9 +51,8 @@ const Comment = ({
   isCollapsed,
   isDownloaded,
   repliesTotal,
+  collapseComment,
 }: CommentProps) => {
-  const virtualList = useListVirtualizer();
-
   const commentStatus = useSelector((state: PostsState) => getCommentStatuses(state, postId!, id));
 
   const [{ downloaded, favorited, liked, readLater }, setCommentStatus] = React.useState<CommentStatuses>({
@@ -63,9 +62,14 @@ const Comment = ({
     readLater: storyReadLater ?? commentStatus?.readLater ?? false,
   });
 
-  const [collapsed, setCollapsed] = React.useState(isCollapsed ?? false);
+  const [collapsedState, setCollapsedState] = React.useState<Record<string, boolean>>(
+    replies.reduce((acc, id) => {
+      acc[id] = false;
+      return acc;
+    }, {} as Record<string, boolean>)
+  );
 
-  const { classes } = useCommentStyles({ liked, replyIndex, collapsed });
+  const { classes } = useCommentStyles({ liked, replyIndex, collapsed: isCollapsed ?? false });
 
   const commentRef = React.useRef<HTMLDivElement>(null);
 
@@ -78,12 +82,16 @@ const Comment = ({
     return mapOfReplies;
   };
 
-  const collapseComment = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCollapsed((p) => !p);
-    virtualList?.remeasure();
+  const collapseSelf = () => {
+    collapseComment(id);
   };
+
+  const collapseReply = React.useCallback(
+    (id: string) => {
+      setCollapsedState((p) => ({ ...p, [id]: !p[id] }));
+    },
+    [id]
+  );
 
   const toggleStatus = (status: PostStatus) => {
     setCommentStatus((p) => ({ ...p, [status]: !p[status] }));
@@ -101,8 +109,8 @@ const Comment = ({
         <Group align="center" position="apart">
           <Group className={classes.commentDetails} noWrap spacing={4} align="center">
             {isCollapsed !== undefined && (
-              <ActionIcon variant="filled" size="md" radius={'xl'} mr="sm" onClick={collapseComment}>
-                {collapsed ? <BsChevronUp /> : <BsChevronDown />}
+              <ActionIcon variant="filled" size="md" radius={'xl'} mr="sm" onClick={collapseSelf}>
+                {isCollapsed ? <BsChevronUp /> : <BsChevronDown />}
               </ActionIcon>
             )}
             <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>
@@ -118,38 +126,47 @@ const Comment = ({
           </Group>
           <StatusIndicators downloaded={downloaded} readLater={readLater} favorited={favorited} />
         </Group>
-        <Stack spacing={0}>
-          <Text size="sm">{HtmlReactParser(sanitize(bodyHtml, { transformTags: { a: 'p' } }))}</Text>
+        <Collapse in={!isCollapsed} animateOpacity transitionTimingFunction="ease-out">
+          <Stack spacing={0}>
+            <Text size="sm">{HtmlReactParser(sanitize(bodyHtml, { transformTags: { a: 'p' } }))}</Text>
 
-          <PostInteractions
-            postInfo={{ id, score, postId, replies, liked, mainCommentId, repliesTotal }}
-            liked={liked}
-            favorited={favorited}
-            readLater={readLater}
-            toggleStatus={toggleStatus}
-          />
-        </Stack>
+            <PostInteractions
+              postInfo={{ id, score, postId, replies, liked, mainCommentId, repliesTotal }}
+              liked={liked}
+              favorited={favorited}
+              readLater={readLater}
+              toggleStatus={toggleStatus}
+            />
+          </Stack>
+        </Collapse>
       </Stack>
-      {replies !== undefined && (
-        <Stack id={'replies-container'} className={classes.repliesContainer} spacing={0}>
-          {getCommentReplies()?.map((reply) => {
-            return (
-              <Comment
-                key={reply.id}
-                {...reply}
-                permalink={permalink}
-                postId={postId}
-                allReplies={allReplies}
-                replyIndex={replyIndex + 1}
-                postAuthor={postAuthor}
-                isCollapsed={false}
-              />
-            );
-          })}
-        </Stack>
-      )}
+      <Collapse in={!isCollapsed}>
+        {replies !== undefined && (
+          <Stack id={'replies-container'} className={classes.repliesContainer} spacing={0}>
+            {getCommentReplies()?.map((reply) => {
+              return (
+                <Comment
+                  key={reply.id}
+                  {...reply}
+                  permalink={permalink}
+                  postId={postId}
+                  allReplies={allReplies}
+                  replyIndex={replyIndex + 1}
+                  postAuthor={postAuthor}
+                  isCollapsed={collapsedState[reply.id]}
+                  collapseComment={collapseReply}
+                />
+              );
+            })}
+          </Stack>
+        )}
+      </Collapse>
     </Stack>
   );
 };
 
-export default Comment;
+export default React.memo(Comment, (p, n) => {
+  const sameId = p.id === n.id;
+  const sameCollapse = n.isCollapsed === p.isCollapsed;
+  return sameId && sameCollapse ? true : false;
+});

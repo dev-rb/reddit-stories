@@ -61,6 +61,8 @@ const CommentsContainer = ({ postId }: Props) => {
 
   const storiesDownloaded = useSelector((state: PostsState) => state.stories[postId]);
 
+  const [collapsedState, setCollapsedState] = React.useState<Record<string, boolean>>({});
+
   const {
     data: storiesData,
     isLoading,
@@ -100,6 +102,24 @@ const CommentsContainer = ({ postId }: Props) => {
   const getParentReplies = (replies: NormalizedReplies) => {
     return Object.keys(replies).filter((val) => replies[val].replyId === null);
   };
+
+  const collapseComment = React.useCallback(
+    (id: string) => {
+      setCollapsedState((p) => ({ ...p, [id]: !p[id] }));
+    },
+    [postId]
+  );
+
+  React.useEffect(() => {
+    if (storiesData) {
+      setCollapsedState(
+        storiesData.reduce((acc, v) => {
+          acc[v.id] = false;
+          return acc;
+        }, {} as Record<string, boolean>)
+      );
+    }
+  }, [storiesData]);
 
   return (
     <Stack align="center">
@@ -170,7 +190,8 @@ const CommentsContainer = ({ postId }: Props) => {
                     postAuthor={postData?.author ?? ''}
                     replyIndex={0}
                     isDownloaded={postInfo?.downloaded}
-                    isCollapsed={false}
+                    isCollapsed={collapsedState[item.id]}
+                    collapseComment={collapseComment}
                   />
                 );
               }}

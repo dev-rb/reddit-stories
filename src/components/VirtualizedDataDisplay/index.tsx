@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Center, Loader, Text } from '@mantine/core';
-import ListVirtualizer from './ListVirtualizer';
+import { Center, Loader, Text, Title } from '@mantine/core';
 import { TRPCClientErrorLike } from '@trpc/client';
 import { AppRouter } from 'src/server/routers';
+import { useWindowVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 
 interface DataProps<TData extends any[]> {
   data?: TData;
@@ -40,30 +40,50 @@ const VirtualizedDataDisplay = <TData extends any[], TItem>({
     );
   }
 
+  if (!data) {
+    return (
+      <Center>
+        <Title> No Data </Title>
+      </Center>
+    );
+  }
+
+  const virtualizer = useWindowVirtualizer({
+    count: data.length,
+    estimateSize: () => 150,
+    overscan: 4,
+  });
+
+  const items = virtualizer.getVirtualItems();
+
   return (
     <>
-      <ListVirtualizer
-        data={data!}
-        renderItem={(item, index) => {
-          const currentItem = data![item.index];
-          return (
-            <div
-              key={item.key}
-              ref={item.measureElement}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                // height: `${item.size}px`,
-                transform: `translateY(${item.start}px)`,
-              }}
-            >
-              {renderItem(currentItem, index)}
-            </div>
-          );
+      <div
+        style={{
+          height: virtualizer.getTotalSize(),
+          width: '100%',
+          position: 'relative',
         }}
-      />
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            transform: `translateY(${items[0].start - virtualizer.options.scrollMargin}px)`,
+          }}
+        >
+          {items.map((item: VirtualItem, index: number) => {
+            const currentItem = data![item.index];
+            return (
+              <div key={item.key} ref={virtualizer.measureElement} data-index={item.index}>
+                {renderItem(currentItem, index)}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </>
   );
 };
