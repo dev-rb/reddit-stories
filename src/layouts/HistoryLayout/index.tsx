@@ -22,6 +22,7 @@ const HistoryLayout = ({ historyType }: HistoryLayoutProps) => {
 
   const largeScreen = useMediaQuery('(min-width: 900px)');
   const [typeSort, setTypeSort] = React.useState<StatusTypeSort>('All');
+  const [collapsedState, setCollapsedState] = React.useState<Record<string, boolean>>({});
 
   const user = useUser();
 
@@ -43,6 +44,21 @@ const HistoryLayout = ({ historyType }: HistoryLayoutProps) => {
     const properCase = splitAtCase.charAt(0).toUpperCase() + splitAtCase.slice(1);
     return properCase;
   };
+
+  const collapseComment = (id: string) => {
+    setCollapsedState((p) => ({ ...p, [id]: !p[id] }));
+  };
+
+  React.useEffect(() => {
+    if (data) {
+      setCollapsedState(
+        data.reduce((acc, v) => {
+          acc[v.id] = false;
+          return acc;
+        }, {} as Record<string, boolean>)
+      );
+    }
+  }, [data]);
 
   return (
     <Stack align="center" sx={{ width: '100%', height: '100vh' }}>
@@ -86,7 +102,7 @@ const HistoryLayout = ({ historyType }: HistoryLayoutProps) => {
                 isRefetching,
                 data,
               }}
-              renderItem={(currentItem: Prompt | IStory, index: number) => {
+              renderItem={(currentItem: Prompt | IStory) => {
                 return isStory(currentItem) ? (
                   <Anchor variant="text" component={Link} href={`/posts/${currentItem.postId}`}>
                     <div>
@@ -98,7 +114,8 @@ const HistoryLayout = ({ historyType }: HistoryLayoutProps) => {
                         replies={[]}
                         postAuthor={''}
                         replyIndex={0}
-                        isCollapsed={true}
+                        isCollapsed={collapsedState[currentItem.id]}
+                        collapseComment={collapseComment}
                       />
                     </div>
                   </Anchor>
