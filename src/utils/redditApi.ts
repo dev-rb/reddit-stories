@@ -94,7 +94,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     {}
   );
   // console.log(commentInfo.replies?.data?.children);
-  const story: Omit<StoryAndNormalizedReplies, 'updatedAt'> = {
+  const story: StoryAndNormalizedReplies = {
     author,
     created: new Date(created_utc * 1000),
     id,
@@ -103,6 +103,7 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     body,
     postId,
     bodyHtml: body_html,
+    updatedAt: null,
     replies: replies ?? {},
     mainCommentId: null,
     replyId: null,

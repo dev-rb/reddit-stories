@@ -209,16 +209,9 @@ const Home = () => {
               isRefetching,
               data: postsData,
             }}
-            renderItem={(item: Prompt, index: number) => {
+            renderItem={(item: Prompt) => {
               return (
-                <Post
-                  key={item.id}
-                  {...item}
-                  isDownloaded={selector.find((val) => val.id === item.id) !== undefined}
-                  liked={item.liked}
-                  readLater={item.readLater}
-                  favorited={item.favorited}
-                />
+                <Post key={item.id} {...item} isDownloaded={selector.find((val) => val.id === item.id) !== undefined} />
               );
             }}
           />
