@@ -2,7 +2,7 @@ import { createRouter } from '.';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { fetchCommentsForPost } from 'src/utils/redditApi';
+import { fetchCommentsForPost, fetchPostById } from 'src/utils/redditApi';
 import { PostStatus } from './post';
 
 const defaultStorySelect = Prisma.validator<Prisma.CommentSelect>()({
@@ -26,127 +26,68 @@ export const storiesRouter = createRouter()
     }),
     async resolve({ input, ctx }) {
       const { id, userId } = input;
-      const stories = await fetchCommentsForPost('/r/writingprompts', id);
+      const comments = await fetchCommentsForPost('/r/writingprompts', id);
+      const count = await ctx.prisma.post.count({ where: { id: id! } });
 
-      for (let story of stories) {
-        const { author, body, bodyHtml, created, id, permalink, score, postId, replies } = story;
-        const count = await ctx.prisma.post.count({ where: { id: postId! } });
+      if (count === 0) {
+        const { totalComments, updatedAt, ...post } = await fetchPostById('writingprompts', id);
+        await ctx.prisma.post.create({ data: { ...post } });
+      }
 
-        if (count === 0) continue;
-
-        await ctx.prisma.comment.upsert({
-          create: {
-            author,
-            body,
-            bodyHtml,
-            created,
-            id,
-            permalink,
-            score,
-            Post: {
-              connect: {
-                id: postId!,
+      ctx.prisma.$transaction(
+        Object.values(comments).map((comment) => {
+          const { postId, replies, liked, favorited, readLater, updatedAt, id, ...rest } = comment;
+          return ctx.prisma.comment.upsert({
+            create: {
+              id: id,
+              ...rest,
+              Post: {
+                connect: {
+                  id: postId!,
+                },
               },
             },
-          },
-          update: {
-            author,
-            body,
-            bodyHtml,
-            created,
-            id,
-            permalink,
-            score,
-            Post: {
-              connect: {
-                id: postId!,
+            update: {
+              ...rest,
+              Post: {
+                connect: {
+                  id: postId!,
+                },
               },
             },
-          },
-          where: {
-            id,
-          },
-        });
+            where: {
+              id,
+            },
+          });
+        })
+      );
 
+      for (let comment of Object.values(comments)) {
         if (userId) {
-          await Promise.all(
-            Object.keys(replies).map(async (replyId) => {
-              const userCommentSaved = await ctx.prisma.userCommentSaved.findUnique({
-                where: {
-                  userId_commentId: {
-                    commentId: replyId,
-                    userId,
-                  },
-                },
-              });
-              if (userCommentSaved) {
-                console.log('Found info for reply');
-                replies[replyId].liked = userCommentSaved.liked;
-                replies[replyId].readLater = userCommentSaved.readLater;
-                replies[replyId].favorited = userCommentSaved.favorited;
-              }
-
-              //prettier-ignore
-              const { author, body, bodyHtml, created, id, permalink, mainCommentId, score, postId, updatedAt } = replies[replyId];
-
-              await ctx.prisma.comment.upsert({
-                create: {
-                  author,
-                  body,
-                  bodyHtml,
-                  id,
-                  created,
-                  permalink,
-                  score,
-                  mainCommentId,
-                  postId,
-                  updatedAt,
-                },
-                update: {
-                  author,
-                  body,
-                  bodyHtml,
-                  id,
-                  created,
-                  permalink,
-                  score,
-                  mainCommentId,
-                  postId,
-                  updatedAt,
-                },
-                where: {
-                  id,
-                },
-              });
-
-              return replyId;
-            })
-          );
-
           const userStory = await ctx.prisma.userCommentSaved.findUnique({
             where: {
               userId_commentId: {
-                commentId: story.id,
+                commentId: comment.id,
                 userId,
               },
             },
           });
           if (userStory) {
-            story.liked = userStory.liked;
-            story.readLater = userStory.readLater;
-            story.favorited = userStory.favorited;
+            comment.liked = userStory.liked;
+            comment.readLater = userStory.readLater;
+            comment.favorited = userStory.favorited;
           }
         }
       }
 
-      if (!stories) {
+      if (!comments) {
         throw new TRPCError({
           cause: undefined,
           code: 'NOT_FOUND',
           message: `No story with id '${id}'`,
         });
       }
-      return stories;
+      return comments;
     },
   })
   // .query("byId", {

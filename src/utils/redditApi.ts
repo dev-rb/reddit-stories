@@ -1,6 +1,5 @@
-import { Comment } from '@prisma/client';
 import { CommentDetails, PostInfo, Posts, RedditCommentRoot } from '../types/reddit';
-import { IStory, NormalizedReplies, Prompt, StoryAndNormalizedReplies } from '../types/db';
+import { Comments, IStory, Prompt } from '../types/db';
 
 interface RedditFetchOptions {
   sortType?: string;
@@ -80,21 +79,29 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
   ).json();
   const commentDetails = data[1].data.children;
 
-  return commentDetails
-    .filter(
-      (comment) => comment.data.author !== 'AutoModerator' && (comment.kind === 't1' || comment.kind === 'Listing')
-    )
-    .map((v) => extractCommentDetails(v.data, postId));
+  const filteredComments = commentDetails.filter(
+    (comment) => comment.data.author !== 'AutoModerator' && (comment.kind === 't1' || comment.kind === 'Listing')
+  );
+
+  let map: Comments = {};
+
+  for (const comment of filteredComments) {
+    extractCommentDetails(comment.data, null, null, postId, map);
+  }
+
+  return map;
 };
 
-const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
-  const { author, created_utc, id, permalink, score, title, body, body_html } = commentInfo;
-  const replies = normalizeReplies(
-    { comment: commentInfo, grandparentId: id, parentAuthor: author, parentId: null, postId },
-    {}
-  );
-  // console.log(commentInfo.replies?.data?.children);
-  const story: StoryAndNormalizedReplies = {
+const extractCommentDetails = (
+  commentInfo: CommentDetails,
+  grandparentId: string | null,
+  parentId: string | null,
+  postId: string,
+  map: Comments
+) => {
+  const { author, created_utc, id, permalink, score, title, body, body_html, replies } = commentInfo;
+
+  const story: IStory & { replies: string[] } = {
     author,
     created: new Date(created_utc * 1000),
     id,
@@ -104,67 +111,39 @@ const extractCommentDetails = (commentInfo: CommentDetails, postId: string) => {
     postId,
     bodyHtml: body_html,
     updatedAt: null,
-    replies: replies ?? {},
-    mainCommentId: null,
-    replyId: null,
-    repliesTotal: replies ? Object.keys(replies).length : 0,
+    replies: [],
+    mainCommentId: grandparentId,
+    replyId: parentId,
+    repliesTotal: 0,
   };
-  return story;
-};
 
-interface NormalizeRepliesArgs {
-  postId: string;
-  comment: CommentDetails;
-  parentAuthor: string;
-  grandparentId: string;
-  parentId: string | null;
-}
+  map[id] = story;
 
-const normalizeReplies = (
-  { parentAuthor, comment, grandparentId, parentId, postId }: NormalizeRepliesArgs,
-  map: NormalizedReplies
-) => {
-  const replies = comment.replies;
+  if (parentId) {
+    const currentValue = map[parentId];
+    if (currentValue) {
+      map[parentId] = {
+        ...currentValue,
+        replies: [...currentValue.replies, id],
+        repliesTotal: currentValue.repliesTotal + 1,
+      };
+    }
+  }
 
   if (replies === undefined || replies.data === undefined || replies.data.children.length === 0) {
     return;
   }
 
-  for (const reply of replies.data.children) {
-    const { author, body, body_html, created_utc, id, permalink, score } = reply.data;
+  if (!parentId && !grandparentId) {
+    grandparentId = id;
+  }
 
-    if (reply.data.author !== 'AutoModerator' && reply.kind !== 't1' && reply.kind !== 'Listing') continue;
+  const filteredReplies = replies.data.children.filter(
+    (v) => v.data.author !== 'AutoModerator' && (v.kind === 't1' || v.kind === 'Listing')
+  );
 
-    const comment: IStory & { replies: string[] } = {
-      author,
-      body,
-      bodyHtml: body_html,
-      created: new Date(created_utc * 1000),
-      id,
-      score,
-      updatedAt: null,
-      mainCommentId: grandparentId,
-      replyId: parentId,
-      permalink,
-      postId: postId,
-      replies: [],
-      repliesTotal: 0,
-    };
-
-    if (parentId) {
-      const currentValue = map[parentId];
-      if (currentValue) {
-        map[parentId] = {
-          ...currentValue,
-          replies: [...currentValue.replies, id],
-          repliesTotal: currentValue.repliesTotal + 1,
-        };
-      }
-    }
-
-    map[id] = comment;
-
-    normalizeReplies({ parentAuthor, comment: reply.data, grandparentId, parentId: id, postId }, map);
+  for (const reply of filteredReplies) {
+    extractCommentDetails(reply.data, grandparentId, id, postId, map);
   }
 
   return map;

@@ -5,7 +5,7 @@ import { ActionIcon, Collapse, Group, Stack, Text, Title } from '@mantine/core';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import dayjs from 'dayjs';
 import RelativeTime from 'dayjs/plugin/relativeTime';
-import { IStory, NormalizedReplies } from 'src/types/db';
+import { Comments, IStory } from 'src/types/db';
 import PostInteractions from '../PostInteractions';
 import { useSelector } from 'react-redux';
 import { getCommentStatuses, PostsState } from 'src/redux/slices';
@@ -23,7 +23,7 @@ interface CommentStatuses {
 }
 
 interface CommentProps extends IStory {
-  allReplies: NormalizedReplies;
+  allReplies: Comments;
   replies: string[];
   postAuthor: string;
   replyIndex: number;

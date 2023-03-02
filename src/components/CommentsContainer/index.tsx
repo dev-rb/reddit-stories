@@ -11,7 +11,7 @@ import { useQueryClient } from 'react-query';
 import { useSelector } from 'react-redux';
 import { postSelector, PostsState } from 'src/redux/slices';
 import SortSelect from '../MobileSelect/SortSelect';
-import { NormalizedReplies, Prompt, StoryAndNormalizedReplies } from 'src/types/db';
+import { Comments, IStory, Prompt } from 'src/types/db';
 import VirtualizedDataDisplay from '../VirtualizedDataDisplay';
 import AccountDrawer from '../AccountDrawer';
 import { useUser } from 'src/hooks/useUser';
@@ -99,8 +99,8 @@ const CommentsContainer = ({ postId }: Props) => {
 
   const noComments = postData?.totalComments === 0;
 
-  const getParentReplies = (replies: NormalizedReplies) => {
-    return Object.keys(replies).filter((val) => replies[val].replyId === null);
+  const getParentComments = (comments: Comments) => {
+    return Object.values(comments).filter((val) => val.mainCommentId === null);
   };
 
   const collapseComment = React.useCallback(
@@ -113,7 +113,7 @@ const CommentsContainer = ({ postId }: Props) => {
   React.useEffect(() => {
     if (storiesData) {
       setCollapsedState(
-        storiesData.reduce((acc, v) => {
+        Object.values(storiesData).reduce((acc, v) => {
           acc[v.id] = false;
           return acc;
         }, {} as Record<string, boolean>)
@@ -123,7 +123,7 @@ const CommentsContainer = ({ postId }: Props) => {
 
   return (
     <Stack align="center">
-      <Stack spacing={0}>
+      <Stack spacing={0} sx={{ width: '100%' }}>
         <Paper px="lg" py="xs" className={classes.header}>
           <Group noWrap align="start" position="apart" sx={{ width: '100%' }}>
             <MdKeyboardBackspace
@@ -177,15 +177,15 @@ const CommentsContainer = ({ postId }: Props) => {
                 isFetching,
                 isLoading,
                 isRefetching,
-                data: storiesData,
+                data: storiesData ? getParentComments(storiesData) : [],
               }}
-              renderItem={(item: StoryAndNormalizedReplies) => {
+              renderItem={(item: IStory & { replies: string[] }) => {
                 return (
                   <Comment
                     key={item.id}
                     {...item}
-                    allReplies={item.replies}
-                    replies={getParentReplies(item.replies)}
+                    allReplies={storiesData ?? {}}
+                    replies={item.replies}
                     postId={postId}
                     postAuthor={postData?.author ?? ''}
                     replyIndex={0}

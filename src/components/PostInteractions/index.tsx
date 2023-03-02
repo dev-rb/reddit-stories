@@ -3,11 +3,11 @@ import { Group, UnstyledButton, Text } from '@mantine/core';
 import { BsClockFill } from 'react-icons/bs';
 import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
 import { MdModeComment, MdBookmark } from 'react-icons/md';
-import { IStory, Prompt, StoryAndNormalizedReplies } from 'src/types/db';
+import { Comments, IStory, Prompt } from 'src/types/db';
 import { trpc } from 'src/utils/trpc';
 import { useUser } from 'src/hooks/useUser';
 import { useDispatch } from 'react-redux';
-import { updatePostStatus, updateReplyStatus, updateStoryStatus } from 'src/redux/slices';
+import { updatePostStatus, updateCommentStatus } from 'src/redux/slices';
 import { PostStatus } from 'src/server/routers/post';
 import { showPostStatusNotification, showUnauthenticatedNotification } from 'src/utils/notifications';
 import { useQueryClient } from 'react-query';
@@ -78,24 +78,15 @@ const PostInteractions = <TData extends PostOrComment>({
       ]);
       queryClient.setQueryData(
         ['story.forPost', { id: postInfo.postId, userId: variables.userId }],
-        (cache: StoryAndNormalizedReplies[] | undefined) => {
-          if (!cache) return [];
+        (cache: Comments | undefined) => {
+          if (!cache) return {};
 
-          const rootComment = cache.find((v) => v.id === variables.commentId);
+          const rootComment = Object.values(cache).find((v) => v.id === variables.commentId);
 
           if (rootComment) {
             rootComment[variables.status] = variables.newValue;
-          } else {
-            for (const comment of cache) {
-              const replyMatch = Object.keys(comment.replies).find((replyId) => replyId === variables.commentId);
-
-              if (replyMatch) {
-                comment.replies[replyMatch][variables.status] = variables.newValue;
-                break;
-              }
-            }
           }
-          return [...cache];
+          return { ...cache };
         }
       );
 
@@ -112,26 +103,14 @@ const PostInteractions = <TData extends PostOrComment>({
 
   const updateLocalState = (status: PostStatus, newValue: boolean) => {
     if (isStory) {
-      if (postInfo.mainCommentId === null) {
-        dispatch(
-          updateStoryStatus({
-            postId: postInfo.postId!,
-            storyId: postInfo.id,
-            newStatusValue: newValue,
-            statusToUpdate: status,
-          })
-        );
-      } else {
-        dispatch(
-          updateReplyStatus({
-            postId: postInfo.postId!,
-            storyId: postInfo.mainCommentId!,
-            replyId: postInfo.id,
-            newStatusValue: newValue,
-            statusToUpdate: status,
-          })
-        );
-      }
+      dispatch(
+        updateCommentStatus({
+          postId: postInfo.postId!,
+          commentId: postInfo.id,
+          newStatusValue: newValue,
+          statusToUpdate: status,
+        })
+      );
     } else {
       dispatch(
         updatePostStatus({

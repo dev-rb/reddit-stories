@@ -7,14 +7,14 @@ import { trpc } from '../utils/trpc';
 import ScrollToTopButton from 'src/components/ScrollToTop';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-import { downloadedPostsSelector, downloadPosts, PostsState } from 'src/redux/slices';
+import { downloadedPostsSelector, downloadPost, downloadPosts, PostsState } from 'src/redux/slices';
 import { useModals } from '@mantine/modals';
 import { clearStorePosts } from 'src/redux/store';
 import { SortType, TopTimeSort, RedditSortTypeConversion as SortTypeConversion, TopSorts } from 'src/types/sorts';
 import { sortTypeMap, topSortTypeMap } from 'src/utils/sortOptionsMap';
 import SortSelect from 'src/components/MobileSelect/SortSelect';
 import { useQueryClient } from 'react-query';
-import { Prompt, PromptAndStoriesWithNormalizedReplies } from 'src/types/db';
+import { Comments, Prompt } from 'src/types/db';
 import AccountDrawer from 'src/components/AccountDrawer';
 import { useUser } from 'src/hooks/useUser';
 import { showDownloadNotification, updateDownloadNotification } from 'src/utils/notifications';
@@ -110,7 +110,7 @@ const Home = () => {
 
   const batchAllDownload = async () => {
     if (postsData) {
-      let allStories: Promise<PromptAndStoriesWithNormalizedReplies>[] = postsData.map((post) => {
+      let allStories: Promise<Prompt & { stories: Comments }>[] = postsData.map((post) => {
         return trpcContext.fetchQuery(['story.forPost', { id: post.id }]).then((val) => {
           return { ...post, stories: val };
         });
@@ -152,7 +152,7 @@ const Home = () => {
       setTimeout(() => {
         setIsDownloading(false);
         updateDownloadNotification(<MdCheckCircle />);
-      }, 1500);
+      }, 500);
     }
   }, [selector]);
 

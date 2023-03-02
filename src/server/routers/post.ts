@@ -84,15 +84,22 @@ export const postRouter = createRouter()
 
       console.log('backend called');
 
-      const post = await ctx.prisma.post.findUnique({
-        include: { comments: true },
-        where: {
-          id: id,
-        },
-        rejectOnNotFound: true,
-      });
+      let prompt: Prompt;
+      const exists = await postExists(ctx, id);
 
-      let prompt: Prompt = { ...post, totalComments: post.comments.length };
+      if (!exists) {
+        const { totalComments, updatedAt, ...post } = await fetchPostById('writingprompts', id);
+        await ctx.prisma.post.create({ data: { ...post } });
+        prompt = { ...post, totalComments, updatedAt };
+      } else {
+        const post = await ctx.prisma.post.findUniqueOrThrow({
+          include: { comments: true },
+          where: {
+            id: id,
+          },
+        });
+        prompt = { ...post, totalComments: post.comments.length };
+      }
 
       if (userId) {
         const userPrompt = await ctx.prisma.userPostSaved.findUnique({
@@ -111,7 +118,7 @@ export const postRouter = createRouter()
         }
       }
 
-      if (!post) {
+      if (!prompt) {
         throw new TRPCError({
           cause: undefined,
           code: 'NOT_FOUND',

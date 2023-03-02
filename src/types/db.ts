@@ -6,11 +6,9 @@ export interface IStory extends Comment {
   readLater?: boolean;
 }
 
-export interface NormalizedReplies {
+export interface Comments {
   [key: string]: IStory & { replies: string[] };
 }
-
-export type StoryAndNormalizedReplies = IStory & { replies: NormalizedReplies };
 
 export interface Prompt extends Post {
   totalComments: number;
@@ -19,7 +17,3 @@ export interface Prompt extends Post {
   readLater?: boolean;
   userRead?: boolean;
 }
-
-export type PromptAndStories = Prompt & { stories: IStory[] };
-
-export type PromptAndStoriesWithNormalizedReplies = Prompt & { stories: StoryAndNormalizedReplies[] };
