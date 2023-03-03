@@ -2,7 +2,7 @@ import * as React from 'react';
 import { IPost } from '../../types/reddit';
 import { MdKeyboardBackspace } from 'react-icons/md';
 import Comment from '../Comment';
-import { createStyles, Group, Paper, Stack, Box, Title, Center, Avatar, useMantineTheme } from '@mantine/core';
+import { Group, Paper, Stack, Box, Title, Center, Avatar, useMantineTheme } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { trpc } from '../../utils/trpc';
 import Post from '../Post';
@@ -15,33 +15,18 @@ import { Comments, IStory, Prompt } from 'src/types/db';
 import VirtualizedDataDisplay from '../VirtualizedDataDisplay';
 import AccountDrawer from '../AccountDrawer';
 import { useUser } from 'src/hooks/useUser';
+import { useStyles } from './comments.styles';
 
-const useStyles = createStyles((theme, { largeScreen }: { largeScreen: boolean }) => ({
-  container: {
-    width: largeScreen ? '40%' : '100%',
-    borderLeft: largeScreen ? '2px solid' : 'unset',
-    borderRight: largeScreen ? '2px solid' : 'unset',
-    borderColor: theme.colors.dark[4],
+export const CollapseContext = React.createContext<{
+  state: Record<string, boolean>;
+  collapseComment: (id: string, value?: boolean) => void;
+}>({
+  state: {},
+  collapseComment: function (id: string, value?: boolean): void {
+    this.state[id] = value ?? !this.state[id];
   },
-  header: {
-    width: '100%',
-    borderBottom: '2px solid',
-    borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
-    color: theme.colorScheme === 'dark' ? 'white' : theme.colors.dark,
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    zIndex: 15,
-    transition: '0.5s ease-out',
-
-    ['@media screen and (min-width: 900px)']: {
-      width: '40%',
-      left: '50%',
-      right: '50%',
-      transform: 'translateX(-50%)',
-    },
-  },
-}));
+});
+export const useCollapsedState = () => React.useContext(CollapseContext);
 
 interface Props {
   post?: IPost;
@@ -104,8 +89,8 @@ const CommentsContainer = ({ postId }: Props) => {
   };
 
   const collapseComment = React.useCallback(
-    (id: string) => {
-      setCollapsedState((p) => ({ ...p, [id]: !p[id] }));
+    (id: string, value?: boolean) => {
+      setCollapsedState((p) => ({ ...p, [id]: value ?? !p[id] }));
     },
     [postId]
   );
@@ -170,32 +155,32 @@ const CommentsContainer = ({ postId }: Props) => {
               </Title>
             </Center>
           ) : (
-            <VirtualizedDataDisplay
-              dataInfo={{
-                error,
-                isError,
-                isFetching,
-                isLoading,
-                isRefetching,
-                data: storiesData ? getParentComments(storiesData) : [],
-              }}
-              renderItem={(item: IStory & { replies: string[] }) => {
-                return (
-                  <Comment
-                    key={item.id}
-                    {...item}
-                    allReplies={storiesData ?? {}}
-                    replies={item.replies}
-                    postId={postId}
-                    postAuthor={postData?.author ?? ''}
-                    replyIndex={0}
-                    isDownloaded={postInfo?.downloaded}
-                    isCollapsed={collapsedState[item.id]}
-                    collapseComment={collapseComment}
-                  />
-                );
-              }}
-            />
+            <CollapseContext.Provider value={{ state: collapsedState, collapseComment }}>
+              <VirtualizedDataDisplay
+                dataInfo={{
+                  error,
+                  isError,
+                  isFetching,
+                  isLoading,
+                  isRefetching,
+                  data: storiesData ? getParentComments(storiesData) : [],
+                }}
+                renderItem={(item: IStory & { replies: string[] }) => {
+                  return (
+                    <Comment
+                      key={item.id}
+                      {...item}
+                      allReplies={storiesData ?? {}}
+                      replies={item.replies}
+                      postId={postId}
+                      postAuthor={postData?.author ?? ''}
+                      replyIndex={0}
+                      isDownloaded={postInfo?.downloaded}
+                    />
+                  );
+                }}
+              />
+            </CollapseContext.Provider>
           )}
         </Stack>
       </Stack>

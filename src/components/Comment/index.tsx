@@ -12,6 +12,7 @@ import { getCommentStatuses, PostsState } from 'src/redux/slices';
 import { useCommentStyles } from './comment.styles';
 import { PostStatus } from 'src/server/routers/post';
 import { StatusIndicators } from '../StatusIndicators';
+import { useCollapsedState } from '../CommentsContainer';
 
 dayjs.extend(RelativeTime);
 
@@ -27,9 +28,8 @@ interface CommentProps extends IStory {
   replies: string[];
   postAuthor: string;
   replyIndex: number;
-  isCollapsed: boolean;
+  isCollapsed?: boolean;
   isDownloaded?: boolean;
-  collapseComment: (id: string) => void;
 }
 
 const Comment = ({
@@ -51,8 +51,10 @@ const Comment = ({
   isCollapsed,
   isDownloaded,
   repliesTotal,
-  collapseComment,
 }: CommentProps) => {
+  const { state: collapsedState, collapseComment } = useCollapsedState();
+  const selfCollapsed = collapsedState[id];
+
   const commentStatus = useSelector((state: PostsState) => getCommentStatuses(state, postId!, id));
 
   const [{ downloaded, favorited, liked, readLater }, setCommentStatus] = React.useState<CommentStatuses>({
@@ -61,13 +63,6 @@ const Comment = ({
     favorited: storyFavorited ?? commentStatus?.favorited ?? false,
     readLater: storyReadLater ?? commentStatus?.readLater ?? false,
   });
-
-  const [collapsedState, setCollapsedState] = React.useState<Record<string, boolean>>(
-    replies.reduce((acc, id) => {
-      acc[id] = false;
-      return acc;
-    }, {} as Record<string, boolean>)
-  );
 
   const { classes } = useCommentStyles({ liked, replyIndex, collapsed: isCollapsed ?? false });
 
@@ -86,13 +81,6 @@ const Comment = ({
     collapseComment(id);
   };
 
-  const collapseReply = React.useCallback(
-    (id: string) => {
-      setCollapsedState((p) => ({ ...p, [id]: !p[id] }));
-    },
-    [id]
-  );
-
   const toggleStatus = (status: PostStatus) => {
     setCommentStatus((p) => ({ ...p, [status]: !p[status] }));
   };
@@ -108,9 +96,9 @@ const Comment = ({
       <Stack id={'parent-reply'} className={classes.commentContainer} spacing={0} px="lg" py="xs">
         <Group align="center" position="apart">
           <Group className={classes.commentDetails} noWrap spacing={4} align="center">
-            {isCollapsed !== undefined && (
+            {selfCollapsed !== undefined && (
               <ActionIcon variant="filled" size="md" radius={'xl'} mr="sm" onClick={collapseSelf}>
-                {isCollapsed ? <BsChevronUp /> : <BsChevronDown />}
+                {selfCollapsed ? <BsChevronUp /> : <BsChevronDown />}
               </ActionIcon>
             )}
             <Title order={6} sx={(theme) => ({ fontSize: theme.fontSizes.xs })}>
@@ -126,7 +114,7 @@ const Comment = ({
           </Group>
           <StatusIndicators downloaded={downloaded} readLater={readLater} favorited={favorited} />
         </Group>
-        <Collapse in={!isCollapsed} animateOpacity transitionTimingFunction="ease-out">
+        <Collapse in={!selfCollapsed} animateOpacity transitionTimingFunction="ease-out">
           <Stack spacing={0}>
             <Text size="sm">{HtmlReactParser(sanitize(bodyHtml, { transformTags: { a: 'p' } }))}</Text>
 
@@ -140,7 +128,7 @@ const Comment = ({
           </Stack>
         </Collapse>
       </Stack>
-      <Collapse in={!isCollapsed}>
+      <Collapse in={!selfCollapsed}>
         {replies !== undefined && (
           <Stack id={'replies-container'} className={classes.repliesContainer} spacing={0}>
             {getCommentReplies()?.map((reply) => {
@@ -153,8 +141,6 @@ const Comment = ({
                   allReplies={allReplies}
                   replyIndex={replyIndex + 1}
                   postAuthor={postAuthor}
-                  isCollapsed={collapsedState[reply.id]}
-                  collapseComment={collapseReply}
                 />
               );
             })}
@@ -165,8 +151,4 @@ const Comment = ({
   );
 };
 
-export default React.memo(Comment, (p, n) => {
-  const sameId = p.id === n.id;
-  const sameCollapse = n.isCollapsed === p.isCollapsed;
-  return sameId && sameCollapse ? true : false;
-});
+export default React.memo(Comment, (p, n) => p.id === n.id);

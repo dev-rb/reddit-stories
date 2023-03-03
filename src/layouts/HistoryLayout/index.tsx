@@ -10,6 +10,7 @@ import Link from 'next/link';
 import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
 import TypeSelect, { StatusTypeSort } from 'src/components/MobileSelect/TypeSelect';
 import { useUserSavedQuery } from 'src/hooks/useUserSavedQuery';
+import { CollapseContext } from 'src/components/CommentsContainer';
 
 export type HistoryType = 'liked' | 'readLater' | 'favorited';
 
@@ -93,45 +94,46 @@ const HistoryLayout = ({ historyType }: HistoryLayoutProps) => {
               </Title>
             </Center>
           ) : (
-            <VirtualizedDataDisplay
-              dataInfo={{
-                error,
-                isError,
-                isFetching,
-                isLoading,
-                isRefetching,
-                data,
-              }}
-              renderItem={(currentItem: Prompt | IStory) => {
-                return isStory(currentItem) ? (
-                  <Anchor variant="text" component={Link} href={`/posts/${currentItem.postId}`}>
-                    <div>
-                      <Comment
-                        key={currentItem.id}
-                        {...(currentItem as IStory)}
-                        allReplies={{}}
-                        mainCommentId={currentItem.mainCommentId}
-                        replies={[]}
-                        postAuthor={''}
-                        replyIndex={0}
-                        isCollapsed={collapsedState[currentItem.id]}
-                        collapseComment={collapseComment}
-                      />
-                    </div>
-                  </Anchor>
-                ) : (
-                  <Post
-                    key={currentItem.id}
-                    {...(currentItem as Prompt)}
-                    title={(currentItem as Prompt).title}
-                    favorited={currentItem.favorited}
-                    liked={currentItem.liked}
-                    readLater={currentItem.readLater}
-                    userRead={currentItem.userRead}
-                  />
-                );
-              }}
-            />
+            <CollapseContext.Provider value={{ state: collapsedState, collapseComment }}>
+              <VirtualizedDataDisplay
+                dataInfo={{
+                  error,
+                  isError,
+                  isFetching,
+                  isLoading,
+                  isRefetching,
+                  data,
+                }}
+                renderItem={(currentItem: Prompt | IStory) => {
+                  return isStory(currentItem) ? (
+                    <Anchor variant="text" component={Link} href={`/posts/${currentItem.postId}`}>
+                      <div>
+                        <Comment
+                          key={currentItem.id}
+                          {...(currentItem as IStory)}
+                          allReplies={{}}
+                          mainCommentId={currentItem.mainCommentId}
+                          replies={[]}
+                          postAuthor={''}
+                          replyIndex={0}
+                          isCollapsed={collapsedState[currentItem.id]}
+                        />
+                      </div>
+                    </Anchor>
+                  ) : (
+                    <Post
+                      key={currentItem.id}
+                      {...(currentItem as Prompt)}
+                      title={(currentItem as Prompt).title}
+                      favorited={currentItem.favorited}
+                      liked={currentItem.liked}
+                      readLater={currentItem.readLater}
+                      userRead={currentItem.userRead}
+                    />
+                  );
+                }}
+              />
+            </CollapseContext.Provider>
           )}
         </Stack>
       </Stack>

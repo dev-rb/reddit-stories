@@ -7,16 +7,12 @@ export const useCommentStyles = createStyles(
       position: 'relative',
       marginLeft: replyIndex > 0 && replyIndex < 12 ? 8 : 0,
       borderLeft: replyIndex > 0 ? `1px solid ${theme.colors.dark[4]}` : 'unset',
-      // height: collapsed ? 80 : 'unset',
-      overflow: collapsed ? 'hidden' : 'unset',
     },
     commentContainer: {
       borderBottom: '1px solid',
       borderTop: '1px solid',
       borderColor: theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4],
       userSelect: 'none',
-      // height: collapsed ? 80 : 'unset',
-      overflow: collapsed ? 'hidden' : 'unset',
     },
     commentDetails: {
       color: theme.colorScheme === 'dark' ? theme.colors.dark[3] : theme.colors.gray[5],
@@ -32,7 +28,6 @@ export const useCommentStyles = createStyles(
       [`#root-container > div:is(#parent-reply)`]: {
         borderLeft: `2px solid ${theme.colors[nestedColors[replyIndex] ?? 'indigo'][5]}`,
       },
-      // height: collapsed ? 0 : 'unset',
     },
     collapsedReadButton: {
       height: 60,
