@@ -1,15 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
   provider             = "mysql"
-  url                  = env("DEV_DATABASE_URL")
-  referentialIntegrity = "prisma"
+  url                  = env("DATABASE_URL")
+  shadowDatabaseUrl    = env("DEV_DATABASE_URL")
+  relationMode         = "prisma"
 }
 
 model Account {
@@ -25,10 +22,10 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -37,6 +34,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model User {
@@ -69,6 +68,7 @@ model UserPostSaved {
   postId    String
 
   @@unique([userId, postId])
+  @@index([postId])
 }
 
 model Post {
@@ -93,6 +93,7 @@ model UserCommentSaved {
   userId    String
 
   @@unique([userId, commentId])
+  @@index([commentId])
 }
 
 model Comment {
@@ -107,26 +108,9 @@ model Comment {
   Post             Post?              @relation(fields: [postId], references: [id])
   postId           String?
   userCommentSaved UserCommentSaved[]
+  mainCommentId    String?
+  replyId          String?
+  repliesTotal     Int                @default(0)
 
-  mainCommentId String?
-
-  replyId String?
-
-  // @@unique([id, author])
+  @@index([postId])
 }
-
-// model Reply {
-//   id            String    @id
-//   body          String    @db.LongText
-//   bodyHtml      String    @db.LongText
-//   author        String
-//   score         Int
-//   created       DateTime
-//   updatedAt     DateTime? @updatedAt
-//   parentComment Comment?    @relation(fields: [commentId], references: [id])
-//   commentId       String?
-
-//   replies Reply[] @relation("replies")
-//   Reply   Reply?  @relation(name: "replies", fields: [replyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-//   replyId String?
-// }

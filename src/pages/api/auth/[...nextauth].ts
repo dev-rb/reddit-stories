@@ -22,8 +22,6 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
         }
     }
 
-    console.log(req.query.nextauth)
-
     const indexOfSignUp = req.query.nextauth.indexOf('signup');
     if (typeof req.query.nextauth === 'object' && indexOfSignUp) {
         req.query.nextauth[indexOfSignUp] = 'signin'
@@ -75,20 +73,6 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
             session: async ({ session, user }) => {
                 return { ...session, user: user };
             },
-            signIn: async ({ user }) => {
-                if (user.id) {
-                    const validEmail = await prisma.user.findUnique({
-                        where: {
-                            id: user.id
-                        }
-                    });
-
-                    if (validEmail) {
-                        return true;
-                    }
-                }
-                throw new Error('Invalid Email')
-            }
         },
         session: {
             strategy: 'database'
