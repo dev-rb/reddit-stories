@@ -10,7 +10,7 @@ import Link from 'next/link';
 import VirtualizedDataDisplay from 'src/components/VirtualizedDataDisplay';
 import TypeSelect, { StatusTypeSort } from 'src/components/MobileSelect/TypeSelect';
 import { useUserSavedQuery } from 'src/hooks/useUserSavedQuery';
-import { CollapseContext } from 'src/components/CommentsContainer';
+import { CollapseContext } from 'src/pages/posts/[id]';
 
 export type HistoryType = 'liked' | 'readLater' | 'favorited';
 

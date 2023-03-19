@@ -12,7 +12,7 @@ import { getCommentStatuses, PostsState } from 'src/redux/slices';
 import { useCommentStyles } from './comment.styles';
 import { PostStatus } from 'src/server/routers/post';
 import { StatusIndicators } from '../StatusIndicators';
-import { useCollapsedState } from '../CommentsContainer';
+import { useCollapsedState } from 'src/pages/posts/[id]';
 
 dayjs.extend(RelativeTime);
 

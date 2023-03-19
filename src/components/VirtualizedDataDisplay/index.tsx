@@ -33,6 +33,7 @@ const VirtualizedDataDisplay = <TData extends any[], TItem>({
   }
 
   if (isError) {
+    console.error(error?.message);
     return (
       <Center
         sx={{
