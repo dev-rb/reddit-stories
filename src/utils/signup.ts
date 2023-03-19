@@ -1,4 +1,4 @@
-import { apiBaseUrl, NextAuthClientConfig } from 'next-auth/client/_utils';
+import { apiBaseUrl, AuthClientConfig } from 'next-auth/client/_utils';
 import { RedirectableProviderType, BuiltInProviderType } from 'next-auth/providers';
 import {
   LiteralUnion,
@@ -45,7 +45,7 @@ function parseUrl(url?: string): InternalUrl {
   };
 }
 
-const __NEXTAUTH: NextAuthClientConfig = {
+const __NEXTAUTH: AuthClientConfig = {
   baseUrl: parseUrl(process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL!).origin,
   basePath: parseUrl(process.env.NEXTAUTH_URL!).path,
   baseUrlServer: parseUrl(process.env.NEXTAUTH_URL_INTERNAL ?? process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL!)
