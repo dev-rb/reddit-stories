@@ -14,7 +14,7 @@ import { useUser } from 'src/hooks/useUser';
 import { PostsState, postSelector } from 'src/redux/slices';
 import { Prompt, Comments, IStory } from 'src/types/db';
 import { trpc } from 'src/utils/trpc';
-import { useStyles } from './comments.styles';
+import { useStyles } from '../../styles/comments.styles';
 
 export const CollapseContext = React.createContext<{
   state: Record<string, boolean>;
