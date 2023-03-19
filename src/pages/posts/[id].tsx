@@ -110,7 +110,7 @@ const CommentsForPost = () => {
 
   return (
     <Stack align="center">
-      <Stack spacing={0} sx={{ width: '100%' }}>
+      <Stack spacing={0} className={classes.container}>
         <Paper px="lg" py="xs" className={classes.header}>
           <Group noWrap align="start" position="apart" sx={{ width: '100%' }}>
             <MdKeyboardBackspace
