@@ -34,8 +34,17 @@ const VirtualizedDataDisplay = <TData extends any[], TItem>({
 
   if (isError) {
     return (
-      <Center>
-        <Text> {error!.message} </Text>
+      <Center
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          flexDirection: 'column',
+        }}
+      >
+        <Text size="xl"> Something went wrong </Text>
+        <Text size="xl"> .·´¯`(&gt;▂&lt;)´¯`·. </Text>
       </Center>
     );
   }
