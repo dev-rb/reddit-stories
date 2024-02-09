@@ -1,1 +1,0 @@
-export { SortNav } from './nav';

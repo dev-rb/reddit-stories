@@ -3,7 +3,7 @@ import { createSignal } from 'solid-js';
 import './app.css';
 import 'uno.css';
 import { AppHeader } from './components/AppHeader';
-import { SortNav } from './components/SortNav';
+import { SortTabs } from './components/SortTabs';
 import { ClientOnly } from './components/ClientOnly';
 
 export default function App() {
@@ -11,7 +11,16 @@ export default function App() {
     <main class="mx-auto max-w-2xl min-h-screen bg-dark-950 p-4">
       <AppHeader />
 
-      <SortNav />
+      <SortTabs.Root class="color-white">
+        <SortTabs.TabsView />
+        <SortTabs.Content value="hot">Hot Content</SortTabs.Content>
+        <SortTabs.Content value="new">New Content</SortTabs.Content>
+        <SortTabs.Content value="top-today">Top Today Content</SortTabs.Content>
+        <SortTabs.Content value="top-week">Top Week Content</SortTabs.Content>
+        <SortTabs.Content value="top-month">Top Month Content</SortTabs.Content>
+        <SortTabs.Content value="top-year">Top Year Content</SortTabs.Content>
+        <SortTabs.Content value="top-all">Top All Content</SortTabs.Content>
+      </SortTabs.Root>
     </main>
   );
 }
