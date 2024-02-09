@@ -40,7 +40,9 @@ const SortTabsList = (props: SortTabsListProps) => {
       class={cn('relative w-full flex items-center justify-evenly rounded-full bg-dark-8 px-4 py-3', props.root?.class)}
     >
       <For each={SORT_VALUES}>
-        {(value) => <SortTabsTrigger {...props.trigger} value={toLowerKebab(value)} label={value} />}
+        {(value) => (
+          <SortTabsTrigger {...props.trigger} value={toLowerKebab(value)} label={value.split(' ')[1] ?? value} />
+        )}
       </For>
       <Tabs.Indicator
         {...props.indicator}
