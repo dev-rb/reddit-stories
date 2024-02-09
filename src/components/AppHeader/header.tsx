@@ -1,6 +1,6 @@
 export const AppHeader = () => {
   return (
-    <div class="h-full w-full flex justify-between">
+    <div class="h-full w-full flex justify-between px-4 pt-4">
       <div class="flex flex-col text-xl color-white">
         <span class="font-bold">Tavern</span>
         <span>Tales</span>
