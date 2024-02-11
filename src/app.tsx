@@ -1,53 +1,69 @@
 // @refresh reload
-import { createSignal } from 'solid-js';
+import { Suspense, createSignal } from 'solid-js';
 import './app.css';
 import 'uno.css';
 import { AppHeader } from './components/AppHeader';
-import { SortTabs } from './components/SortTabs';
-import { ClientOnly } from './components/ClientOnly';
-import { Button } from '@kobalte/core';
-import { PostRoot } from './components/Post/PostRoot';
+import { A, Router } from '@solidjs/router';
+import { FileRoutes } from '@solidjs/start';
 
 export default function App() {
   return (
-    <div class="mx-auto max-h-screen max-w-2xl min-h-screen flex flex-col gap-4 bg-dark-9">
-      <AppHeader />
+    <Router
+      root={(props) => (
+        <Suspense>
+          <main class="relative mx-auto max-h-screen max-w-2xl min-h-screen flex flex-col gap-4 bg-dark-9">
+            <AppHeader />
 
-      <SortTabs.Root class="h-full min-h-min flex flex-col gap-4 overflow-hidden px-4 color-white">
-        <div class="flex flex-col gap-4">
-          <SortTabs.TabsView />
-          <div class="ml-auto flex items-center gap-4">
-            <Button.Root class="flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)">
-              Refresh
-              <span class="i-material-symbols:refresh inline-block text-lg max-sm:text-sm" />
-            </Button.Root>
+            {props.children}
 
-            <Button.Root class="flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)">
-              Download All
-              <span class="i-material-symbols:download inline-block text-lg max-sm:text-sm" />
-            </Button.Root>
-          </div>
-        </div>
-        <SortTabs.Content class="custom-v-scrollbar h-full min-h-0 flex flex-col gap-4 overflow-auto pr-4" value="hot">
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-        </SortTabs.Content>
-        <SortTabs.Content value="new">New Content</SortTabs.Content>
-        <SortTabs.Content value="top-today">Top Today Content</SortTabs.Content>
-        <SortTabs.Content value="top-week">Top Week Content</SortTabs.Content>
-        <SortTabs.Content value="top-month">Top Month Content</SortTabs.Content>
-        <SortTabs.Content value="top-year">Top Year Content</SortTabs.Content>
-        <SortTabs.Content value="top-all">Top All Content</SortTabs.Content>
-      </SortTabs.Root>
-      <div class="min-h-8 w-full py-2">askljdaklsdj</div>
-    </div>
+            <nav class="mt-auto w-full flex items-center justify-evenly bg-dark-9 px-4 py-2">
+              <A
+                class="bg-transparent text-4xl max-sm:text-sm"
+                inactiveClass="color-neutral-6"
+                activeClass="color-white"
+                href="/"
+                end
+              >
+                <span class="i-material-symbols:home inline-block" />
+              </A>
+              <A
+                class="bg-transparent text-4xl max-sm:text-sm"
+                inactiveClass="color-neutral-6"
+                activeClass="color-white"
+                href="/search"
+              >
+                <span class="i-material-symbols:search inline-block" />
+              </A>
+              <A
+                class="bg-transparent text-3xl max-sm:text-sm"
+                inactiveClass="color-neutral-6"
+                activeClass="color-white"
+                href="/town-hall"
+              >
+                <span class="i-material-symbols:view-agenda-outline inline-block" />
+              </A>
+              <A
+                class="bg-transparent text-3xl max-sm:text-sm"
+                inactiveClass="color-neutral-6"
+                activeClass="color-white"
+                href="/read-later"
+              >
+                <span class="i-material-symbols:alarm-outline inline-block" />
+              </A>
+              <A
+                class="bg-transparent text-3xl max-sm:text-sm"
+                inactiveClass="color-neutral-6"
+                activeClass="color-white"
+                href="/account"
+              >
+                <span class="i-material-symbols:person-outline inline-block" />
+              </A>
+            </nav>
+          </main>
+        </Suspense>
+      )}
+    >
+      <FileRoutes />
+    </Router>
   );
 }
