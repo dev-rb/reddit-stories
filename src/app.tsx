@@ -10,11 +10,11 @@ import { PostRoot } from './components/Post/PostRoot';
 
 export default function App() {
   return (
-    <main class="mx-auto max-w-2xl min-h-screen flex flex-col gap-4 bg-dark-950">
+    <div class="mx-auto max-h-screen max-w-2xl min-h-screen flex flex-col gap-4 bg-dark-9">
       <AppHeader />
 
-      <SortTabs.Root class="flex flex-col gap-4 color-white">
-        <div class="flex flex-col gap-4 px-4">
+      <SortTabs.Root class="h-full min-h-min flex flex-col gap-4 overflow-hidden px-4 color-white">
+        <div class="flex flex-col gap-4">
           <SortTabs.TabsView />
           <div class="ml-auto flex items-center gap-4">
             <Button.Root class="flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)">
@@ -28,7 +28,16 @@ export default function App() {
             </Button.Root>
           </div>
         </div>
-        <SortTabs.Content value="hot">
+        <SortTabs.Content class="custom-v-scrollbar h-full min-h-0 flex flex-col gap-4 overflow-auto pr-4" value="hot">
+          <PostRoot></PostRoot>
+          <PostRoot></PostRoot>
+          <PostRoot></PostRoot>
+          <PostRoot></PostRoot>
+          <PostRoot></PostRoot>
+          <PostRoot></PostRoot>
+          <PostRoot></PostRoot>
+          <PostRoot></PostRoot>
+          <PostRoot></PostRoot>
           <PostRoot></PostRoot>
         </SortTabs.Content>
         <SortTabs.Content value="new">New Content</SortTabs.Content>
@@ -38,6 +47,7 @@ export default function App() {
         <SortTabs.Content value="top-year">Top Year Content</SortTabs.Content>
         <SortTabs.Content value="top-all">Top All Content</SortTabs.Content>
       </SortTabs.Root>
-    </main>
+      <div class="min-h-8 w-full py-2">askljdaklsdj</div>
+    </div>
   );
 }
