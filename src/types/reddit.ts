@@ -1,13 +1,17 @@
 export type RedditSortType = 'hot' | 'new' | 'top';
 
-export interface Post {
-  title: string;
-  id: string;
-  created: string;
-  score: number;
-  author: string;
-  permalink: string;
-  stories: CommentDetails[];
+export interface Posts {
+  kind: string;
+  data: Post;
+}
+
+interface Post {
+  children: PostInfo[];
+}
+
+export interface PostInfo {
+  kind: string;
+  data: PostDetails;
 }
 
 export interface PostDetails {

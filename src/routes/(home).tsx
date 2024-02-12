@@ -1,11 +1,28 @@
 import { Button } from '@kobalte/core';
-import { useSearchParams } from '@solidjs/router';
+import { cache, createAsync, useSearchParams } from '@solidjs/router';
+import { For, Show, Suspense, createEffect } from 'solid-js';
 import { PostRoot } from '~/components/Post/PostRoot';
 import { SortTabs } from '~/components/SortTabs';
+import { KEBAB_SORT_VALUES } from '~/constants/sort';
+import { Posts } from '~/types/reddit';
+import { extractPostDetails } from '~/utils/reddit';
+
+const getPosts = async (sort: string) => {
+  const sortType = sort.includes('top') ? 'top' : sort;
+  const timeSort = sort.includes('top') ? `t=${sort.split('-')[1]}` : '';
+
+  const singleData: Posts = await (
+    await fetch(`https://www.reddit.com/r/writingprompts/${sortType}.json?${timeSort + '&'}limit=${100}&raw_json=1`)
+  ).json();
+
+  return singleData.data?.children.map(extractPostDetails);
+};
 
 const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   setSearchParams({ sort: 'hot' });
+
+  const posts = createAsync(() => getPosts(searchParams.sort ?? 'hot'));
 
   const onTabChange = (newTab: string) => {
     setSearchParams({ sort: newTab });
@@ -32,28 +49,17 @@ const Home = () => {
             </Button.Root>
           </div>
         </div>
-        <SortTabs.Content
-          class="custom-v-scrollbar h-full min-h-0 flex flex-col gap-4 overflow-auto pr-4"
-          // forceMount
-          value="hot"
-        >
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-          <PostRoot></PostRoot>
-        </SortTabs.Content>
-        <SortTabs.Content value="new">New Content</SortTabs.Content>
-        <SortTabs.Content value="top-today">Top Today Content</SortTabs.Content>
-        <SortTabs.Content value="top-week">Top Week Content</SortTabs.Content>
-        <SortTabs.Content value="top-month">Top Month Content</SortTabs.Content>
-        <SortTabs.Content value="top-year">Top Year Content</SortTabs.Content>
-        <SortTabs.Content value="top-all">Top All Content</SortTabs.Content>
+
+        <For each={KEBAB_SORT_VALUES}>
+          {(value) => (
+            <SortTabs.Content
+              class="custom-v-scrollbar h-full min-h-0 flex flex-col gap-4 overflow-auto pr-4"
+              value={value}
+            >
+              <For each={posts()}>{(post) => <PostRoot {...post} />}</For>
+            </SortTabs.Content>
+          )}
+        </For>
       </SortTabs.Root>
     </>
   );

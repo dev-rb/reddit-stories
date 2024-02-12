@@ -1,7 +1,7 @@
 import { Button, ToggleButton } from '@kobalte/core';
-import { Post } from '~/types/reddit';
+import { Prompt } from '~/types/app';
 
-interface PostRootProps extends Post {}
+interface PostRootProps extends Prompt {}
 
 export const PostRoot = (props: PostRootProps) => {
   return (
@@ -10,31 +10,29 @@ export const PostRoot = (props: PostRootProps) => {
         <span class="i-material-symbols:download inline-block text-base" />
       </ToggleButton.Root>
       <div class="flex items-center gap-2 text-0.7rem color-neutral-5 font-sans">
-        <span>u/author-name</span>
-        <span>February 9th, 2024</span>
+        <span>u/{props.author}</span>
+        <span>{props.created}</span>
       </div>
       <div class="flex flex-col gap-4">
-        <div class="text-xs color-neutral-3">
-          You are out with a friend when suddenly you blink and everything around you looks ruined and everyone looks
-          like statues. A frail old man looks at you and weeps while he says “After 84 years, I finally was able to wake
-          someone up”
-        </div>
-        <PostInteractions />
+        <div class="text-xs color-neutral-3">{props.title}</div>
+        <PostInteractions totalComments={props.totalComments ?? 0} score={props.score ?? 0} />
       </div>
     </div>
   );
 };
 
-export const PostInteractions = () => {
+interface PostInteractionsProps extends Pick<Prompt, 'score' | 'totalComments'> {}
+
+export const PostInteractions = (props: PostInteractionsProps) => {
   return (
     <div class="flex items-center gap-4">
       <ToggleButton.Root class="group flex-center cursor-pointer select-none appearance-none gap-1 bg-transparent text-0.7rem color-neutral-5 ui-pressed:color-white">
         <span class="i-material-symbols-favorite-outline ui-pressed:i-material-symbols-favorite-rounded inline-block text-lg ui-pressed:(color-blue-3)" />
-        1.1k
+        {props.score}
       </ToggleButton.Root>
       <Button.Root class="group flex-center cursor-pointer select-none appearance-none gap-1 bg-transparent text-0.7rem color-neutral-5 ui-pressed:color-white">
         <span class="i-material-symbols:mode-comment-outline text-lg" />
-        200
+        {props.totalComments}
       </Button.Root>
 
       <ToggleButton.Root class="group flex-center select-none appearance-none gap-1 bg-transparent text-0.7rem color-neutral-5 ui-pressed:color-white">
