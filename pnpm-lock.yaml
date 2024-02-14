@@ -14,6 +14,9 @@ dependencies:
   '@solidjs/start':
     specifier: ^0.5.3
     version: 0.5.3(solid-js@1.8.14)(vinxi@0.2.1)(vite@5.1.0)
+  '@tanstack/solid-query':
+    specifier: ^5.20.5
+    version: 5.20.5(solid-js@1.8.14)
   solid-js:
     specifier: ^1.8.14
     version: 1.8.14
@@ -1621,6 +1624,19 @@ packages:
     resolution: {integrity: sha512-aYX01Ke9hunpoCexYAgQucEpARGQ5w/cqHFrIR+e9gdKb1QWTsVJuTJ2ozQzIAxLyRQe/m+2RqzkyOOGiMKRQA==}
     dependencies:
       tslib: 2.6.2
+    dev: false
+
+  /@tanstack/query-core@5.20.5:
+    resolution: {integrity: sha512-T1W28gGgWn0A++tH3lxj3ZuUVZZorsiKcv+R50RwmPYz62YoDEkG4/aXHZELGkRp4DfrW07dyq2K5dvJ4Wl1aA==}
+    dev: false
+
+  /@tanstack/solid-query@5.20.5(solid-js@1.8.14):
+    resolution: {integrity: sha512-d/H544VZb3/MA/K4Lzar9WB1OU43tmHl4pO2/kgbmpvn0f4MqIfTzqcf1MjiV9d9c0jXZ3V6sDglme4Bxk5AWg==}
+    peerDependencies:
+      solid-js: ^1.6.0
+    dependencies:
+      '@tanstack/query-core': 5.20.5
+      solid-js: 1.8.14
     dev: false
 
   /@types/babel__core@7.20.5:

@@ -5,6 +5,9 @@ import 'uno.css';
 import { AppHeader } from './components/AppHeader';
 import { A, Router } from '@solidjs/router';
 import { FileRoutes } from '@solidjs/start';
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
+
+const queryClient = new QueryClient();
 
 export default function App() {
   return (
@@ -12,9 +15,11 @@ export default function App() {
       root={(props) => (
         <Suspense>
           <main class="relative mx-auto max-h-screen max-w-2xl min-h-screen flex flex-col gap-4 bg-dark-9">
-            <AppHeader />
+            <QueryClientProvider client={queryClient}>
+              <AppHeader />
 
-            {props.children}
+              {props.children}
+            </QueryClientProvider>
 
             <nav class="mt-auto w-full flex items-center justify-evenly bg-dark-9 px-4 py-2">
               <A

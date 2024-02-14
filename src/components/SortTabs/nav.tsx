@@ -6,7 +6,7 @@ import {
   TabsRootProps,
   TabsTriggerProps,
 } from '@kobalte/core/dist/types/tabs';
-import { For, ParentComponent, splitProps } from 'solid-js';
+import { For, ParentComponent, splitProps, startTransition } from 'solid-js';
 import { SORT_VALUES } from '~/constants/sort';
 import { KebabSortTypes, ToKebab } from '~/types';
 import { cn } from '~/utils/common';

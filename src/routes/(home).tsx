@@ -1,6 +1,7 @@
 import { Button } from '@kobalte/core';
-import { cache, createAsync, useSearchParams } from '@solidjs/router';
-import { For, Show, Suspense, createEffect } from 'solid-js';
+import { createAsync, useSearchParams } from '@solidjs/router';
+import { createQuery } from '@tanstack/solid-query';
+import { For, Suspense } from 'solid-js';
 import { PostRoot } from '~/components/Post/PostRoot';
 import { SortTabs } from '~/components/SortTabs';
 import { KEBAB_SORT_VALUES } from '~/constants/sort';
@@ -22,7 +23,15 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   setSearchParams({ sort: 'hot' });
 
-  const posts = createAsync(() => getPosts(searchParams.sort ?? 'hot'));
+  const posts = createQuery(() => ({
+    queryKey: ['posts', searchParams.sort ?? 'hot'],
+    queryFn: (c) => {
+      return getPosts(c.queryKey[1]);
+    },
+    staleTime: Infinity,
+  }));
+
+  // const posts = createAsync(() => getPosts(searchParams.sort ?? 'hot'));
 
   const onTabChange = (newTab: string) => {
     setSearchParams({ sort: newTab });
@@ -50,16 +59,18 @@ const Home = () => {
           </div>
         </div>
 
-        <For each={KEBAB_SORT_VALUES}>
-          {(value) => (
-            <SortTabs.Content
-              class="custom-v-scrollbar h-full min-h-0 flex flex-col gap-4 overflow-auto pr-4"
-              value={value}
-            >
-              <For each={posts()}>{(post) => <PostRoot {...post} />}</For>
-            </SortTabs.Content>
-          )}
-        </For>
+        <Suspense fallback={<div class="color-white">Loading...</div>}>
+          <For each={KEBAB_SORT_VALUES}>
+            {(value) => (
+              <SortTabs.Content
+                class="custom-v-scrollbar h-full min-h-0 flex flex-col gap-4 overflow-auto pr-4"
+                value={value}
+              >
+                <For each={posts.data}>{(post) => <PostRoot {...post} />}</For>
+              </SortTabs.Content>
+            )}
+          </For>
+        </Suspense>
       </SortTabs.Root>
     </>
   );
