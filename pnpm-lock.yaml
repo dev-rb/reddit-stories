@@ -17,17 +17,26 @@ dependencies:
   '@tanstack/solid-query':
     specifier: ^5.20.5
     version: 5.20.5(solid-js@1.8.14)
+  '@tanstack/solid-query-persist-client':
+    specifier: ^5.21.4
+    version: 5.21.4(@tanstack/solid-query@5.20.5)(solid-js@1.8.14)
+  idb-keyval:
+    specifier: ^6.2.1
+    version: 6.2.1
   solid-js:
     specifier: ^1.8.14
     version: 1.8.14
   vinxi:
     specifier: ^0.2.1
-    version: 0.2.1(preact@10.19.4)
+    version: 0.2.1(idb-keyval@6.2.1)(preact@10.19.4)
 
 devDependencies:
   '@iconify-json/material-symbols':
     specifier: ^1.1.72
     version: 1.1.72
+  '@iconify-json/svg-spinners':
+    specifier: ^1.1.2
+    version: 1.1.2
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.21.0
     version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.56.0)(typescript@5.0.4)
@@ -882,6 +891,12 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
+  /@iconify-json/svg-spinners@1.1.2:
+    resolution: {integrity: sha512-Aab6SqkORaTJ1W+ooufn6C8BsBitrn3uk8iRQLPA6pjhyvQAhkKCGMctyXIL5ZjrycnoFVsZ4mx7KnwEMra8qg==}
+    dependencies:
+      '@iconify/types': 2.0.0
+    dev: true
+
   /@iconify/types@2.0.0:
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
     dev: true
@@ -1630,6 +1645,27 @@ packages:
     resolution: {integrity: sha512-T1W28gGgWn0A++tH3lxj3ZuUVZZorsiKcv+R50RwmPYz62YoDEkG4/aXHZELGkRp4DfrW07dyq2K5dvJ4Wl1aA==}
     dev: false
 
+  /@tanstack/query-core@5.21.4:
+    resolution: {integrity: sha512-k3u4RcDAtcCurs8KVEIf52k4yUayc852v4ZQrtI8pkEii71riM9758A2WVGo5T/v4/X7b1RLON5g0aDvkoZYCA==}
+    dev: false
+
+  /@tanstack/query-persist-client-core@5.21.4:
+    resolution: {integrity: sha512-UKdvjSPPb21MLm4Eek/yYST+emk81c62GkLiVyVVv6ke5Gwdwx+z/xfDntJozBe8/q9uOIkJlHjD0FFp7JDnYA==}
+    dependencies:
+      '@tanstack/query-core': 5.21.4
+    dev: false
+
+  /@tanstack/solid-query-persist-client@5.21.4(@tanstack/solid-query@5.20.5)(solid-js@1.8.14):
+    resolution: {integrity: sha512-Wm8eASn3aZdGer302Q6l0ylpXtNNZ1wMUO3Lir3NNKDdMYkeCYU9WeFjbO+IRh9bahlgmguDt89S28H6ti5Vvw==}
+    peerDependencies:
+      '@tanstack/solid-query': 5.21.4
+      solid-js: ^1.6.0
+    dependencies:
+      '@tanstack/query-persist-client-core': 5.21.4
+      '@tanstack/solid-query': 5.20.5(solid-js@1.8.14)
+      solid-js: 1.8.14
+    dev: false
+
   /@tanstack/solid-query@5.20.5(solid-js@1.8.14):
     resolution: {integrity: sha512-d/H544VZb3/MA/K4Lzar9WB1OU43tmHl4pO2/kgbmpvn0f4MqIfTzqcf1MjiV9d9c0jXZ3V6sDglme4Bxk5AWg==}
     peerDependencies:
@@ -2183,7 +2219,7 @@ packages:
       magicast: 0.2.11
       recast: 0.23.4
       tslib: 2.6.2
-      vinxi: 0.2.1(preact@10.19.4)
+      vinxi: 0.2.1(idb-keyval@6.2.1)(preact@10.19.4)
     dev: false
 
   /@vinxi/server-components@0.2.0(vinxi@0.2.1):
@@ -2198,7 +2234,7 @@ packages:
       astring: 1.8.6
       magicast: 0.2.11
       recast: 0.23.4
-      vinxi: 0.2.1(preact@10.19.4)
+      vinxi: 0.2.1(idb-keyval@6.2.1)(preact@10.19.4)
     dev: false
 
   /@vinxi/server-functions@0.2.1(vinxi@0.2.1):
@@ -2213,7 +2249,7 @@ packages:
       astring: 1.8.6
       magicast: 0.2.11
       recast: 0.23.4
-      vinxi: 0.2.1(preact@10.19.4)
+      vinxi: 0.2.1(idb-keyval@6.2.1)(preact@10.19.4)
     dev: false
 
   /abbrev@1.1.1:
@@ -3659,6 +3695,10 @@ packages:
     engines: {node: '>=16.17.0'}
     dev: false
 
+  /idb-keyval@6.2.1:
+    resolution: {integrity: sha512-8Sb3veuYCyrZL+VBt9LJfZjLUPWVvqn8tG28VqYNFCo43KHcKuq+b4EiXGeuaLAQWL2YmyDgMp2aSpH9JHsEQg==}
+    dev: false
+
   /ignore@5.3.1:
     resolution: {integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==}
     engines: {node: '>= 4'}
@@ -4183,7 +4223,7 @@ packages:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
     dev: true
 
-  /nitropack@2.8.1:
+  /nitropack@2.8.1(idb-keyval@6.2.1):
     resolution: {integrity: sha512-pODv2kEEzZSDQR+1UMXbGyNgMedUDq/qUomtiAnQKQvLy52VGlecXO1xDfH3i0kP1yKEcKTnWsx1TAF5gHM7xQ==}
     engines: {node: ^16.11.0 || >=17.0.0}
     hasBin: true
@@ -4256,7 +4296,7 @@ packages:
       unctx: 2.3.1
       unenv: 1.9.0
       unimport: 3.7.1(rollup@4.9.6)
-      unstorage: 1.10.1
+      unstorage: 1.10.1(idb-keyval@6.2.1)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -5362,7 +5402,7 @@ packages:
       webpack-virtual-modules: 0.6.1
     dev: false
 
-  /unstorage@1.10.1:
+  /unstorage@1.10.1(idb-keyval@6.2.1):
     resolution: {integrity: sha512-rWQvLRfZNBpF+x8D3/gda5nUCQL2PgXy2jNG4U7/Rc9BGEv9+CAJd0YyGCROUBKs9v49Hg8huw3aih5Bf5TAVw==}
     peerDependencies:
       '@azure/app-configuration': ^1.4.1
@@ -5407,6 +5447,7 @@ packages:
       chokidar: 3.6.0
       destr: 2.0.2
       h3: 1.10.1
+      idb-keyval: 6.2.1
       ioredis: 5.3.2
       listhen: 1.6.0
       lru-cache: 10.2.0
@@ -5474,7 +5515,7 @@ packages:
     resolution: {integrity: sha512-hGdgQozCsQJMyfK5urgFcWEqsSSrK63Awe0t/IMR0bZ0QMtnuaiHzThW81guu3qx9abLi99NEuiaN6P9gVYsNg==}
     dev: false
 
-  /vinxi@0.2.1(preact@10.19.4):
+  /vinxi@0.2.1(idb-keyval@6.2.1)(preact@10.19.4):
     resolution: {integrity: sha512-zrgFO2XuKpdoW5VwlbieeQ0YhzMuuYCJyFWFyj41h9BnymHZ5dnKElALvFQn5JVzHhyrsdmlm8GU7tIuH786hw==}
     hasBin: true
     dependencies:
@@ -5504,7 +5545,7 @@ packages:
       http-proxy: 1.18.1
       micromatch: 4.0.5
       mri: 1.2.0
-      nitropack: 2.8.1
+      nitropack: 2.8.1(idb-keyval@6.2.1)
       node-fetch-native: 1.6.2
       path-to-regexp: 6.2.1
       pathe: 1.1.2
@@ -5519,7 +5560,7 @@ packages:
       unctx: 2.3.1
       unenv: 1.9.0
       unimport: 3.7.1(rollup@4.9.6)
-      unstorage: 1.10.1
+      unstorage: 1.10.1(idb-keyval@6.2.1)
       vite: 4.5.0
       ws: 8.16.0
       zod: 3.22.4

@@ -47,7 +47,7 @@ const SortTabsList = (props: SortTabsListProps) => {
       <Tabs.Indicator
         {...props.indicator}
         class={cn(
-          'absolute bottom-1 left-0 h-2px rounded-full bg-white transition-all duration-150',
+          'absolute bottom-1 left-0 h-2px rounded-full bg-white transition-none duration-150',
           props.indicator?.class
         )}
       />
