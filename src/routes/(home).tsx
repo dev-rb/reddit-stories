@@ -101,11 +101,11 @@ const Home = () => {
 
   return (
     <SortTabs.Root
-      class="h-screen flex flex-col gap-2 overflow-hidden px-4 color-white"
+      class="overflow-hidden min-h-0 flex flex-col px-4 color-white"
       value={searchParams.sort}
       onChange={onTabChange}
     >
-      <div class="h-full flex flex-col gap-4">
+      <div class="overflow-hidden h-full flex flex-col gap-4">
         <SortTabs.TabsView />
         <Suspense
           fallback={
@@ -114,8 +114,8 @@ const Home = () => {
             </div>
           }
         >
-          <div class="flex flex-col gap-4">
-            <div class="mb-2 ml-auto flex items-center gap-4">
+          <div class="relative overflow-hidden min-h-0 flex flex-col gap-2 after:(content-empty absolute bottom-0 left-0 py-4 w-full from-dark-9 to-75% bg-gradient-to-t) before:(content-empty absolute top-10 left-0 w-full py-4 from-dark-9 from-45% z-10 bg-gradient-to-b)">
+            <div class="mt-2 pr-1 ml-auto flex items-center gap-4">
               <Button.Root
                 class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
                 disabled={manualRefetch()}
@@ -145,7 +145,7 @@ const Home = () => {
               <For each={KEBAB_SORT_VALUES}>
                 {(value) => (
                   <SortTabs.Content
-                    class="custom-v-scrollbar h-full min-h-0 flex flex-col gap-4 overflow-auto pr-4"
+                    class="custom-v-scrollbar h-full flex flex-col gap-4 overflow-auto py-4 pr-4 "
                     value={value}
                   >
                     <For each={posts.data?.prompts}>

@@ -57,14 +57,14 @@ export default function App() {
     <Router
       root={(props) => (
         <Suspense fallback={<div class="color-white">Last</div>}>
-          <main class="relative mx-auto max-h-screen max-w-2xl min-h-screen flex flex-col gap-4 bg-dark-9">
+          <main class="relative mx-auto max-h-screen min-h-screen overflow-y-hidden overflow-x-visible flex flex-col max-w-2xl">
             <QueryClientProvider client={queryClient}>
               <AppHeader />
 
               {props.children}
             </QueryClientProvider>
 
-            <nav class="mt-auto w-full flex items-center justify-evenly bg-dark-9 px-4 py-2">
+            <nav class="mt-auto w-full flex items-center justify-evenly px-4 py-2">
               <A
                 class="bg-transparent text-4xl max-sm:text-sm"
                 inactiveClass="color-neutral-6"
