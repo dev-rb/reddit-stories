@@ -7,7 +7,7 @@ import { A, Router } from '@solidjs/router';
 import { FileRoutes } from '@solidjs/start';
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
 import { PersistedClient, Persister, persistQueryClientRestore } from '@tanstack/solid-query-persist-client';
-import { set, get, del } from 'idb-keyval';
+import { set, get, del, getMany, entries } from 'idb-keyval';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,29 +26,37 @@ const queryClient = new QueryClient({
 });
 function createIDBPersister(idbValidKey: string = 'reactQuery') {
   return {
-    persistClient: async (client: PersistedClient) => {
-      await set(idbValidKey, client);
+    save: async (key: string, data: any) => {
+      await set(key, data);
     },
-    restoreClient: async () => {
-      return await get<PersistedClient>(idbValidKey);
+    get: async (key: string) => {
+      return await get(key);
     },
-    removeClient: async () => {
-      await del(idbValidKey);
+    getAll: async () => {
+      return await entries();
     },
-  } as Persister;
+    remove: async (key: string) => {
+      await del(key);
+    },
+  };
 }
 
 export const persister = createIDBPersister();
 
 export default function App() {
+  const updateCache = async () => {
+    const entries = await persister.getAll();
+    for (const [key, data] of entries) {
+      queryClient.prefetchQuery({ queryKey: ['posts', key.toString().split('.')[1]] });
+    }
+  };
   onMount(() => {
-    persistQueryClientRestore({ queryClient, persister });
-    // console.log(queryClient.getQueryData({ queryKey: ['posts'] }));
+    updateCache();
   });
   return (
     <Router
       root={(props) => (
-        <Suspense>
+        <Suspense fallback={<div class="color-white">Last</div>}>
           <main class="relative mx-auto max-h-screen max-w-2xl min-h-screen flex flex-col gap-4 bg-dark-9">
             <QueryClientProvider client={queryClient}>
               <AppHeader />
