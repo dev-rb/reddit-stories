@@ -24,6 +24,7 @@ const queryClient = new QueryClient({
     },
   },
 });
+
 function createIDBPersister(idbValidKey: string = 'reactQuery') {
   return {
     save: async (key: string, data: any) => {
@@ -46,18 +47,24 @@ export const persister = createIDBPersister();
 export default function App() {
   const updateCache = async () => {
     const entries = await persister.getAll();
-    for (const [key, data] of entries) {
-      queryClient.prefetchQuery({ queryKey: ['posts', key.toString().split('.')[1]] });
+    for (let [key, data] of entries) {
+      key = key.toString();
+      const [one, two] = key.split('.');
+
+      // queryClient.setQueryData([one, two], data);
+      await queryClient.ensureQueryData({ queryKey: [one, two], initialData: data });
     }
+
+    // console.log(queryClient.getQueriesData({ queryKey: ['posts'] }));
   };
   onMount(() => {
-    updateCache();
+    // updateCache();
   });
   return (
     <Router
       root={(props) => (
         <Suspense fallback={<div class="color-white">Last</div>}>
-          <main class="relative mx-auto max-h-screen min-h-screen overflow-y-hidden overflow-x-visible flex flex-col max-w-2xl">
+          <main class="relative mx-auto max-h-screen min-h-screen overflow-y-hidden overflow-x-visible flex flex-col max-w-2xl bg-dark-9">
             <QueryClientProvider client={queryClient}>
               <AppHeader />
 

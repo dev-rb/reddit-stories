@@ -2,10 +2,10 @@ export type RedditSortType = 'hot' | 'new' | 'top';
 
 export interface Posts {
   kind: string;
-  data: Post;
+  data: RedditPost;
 }
 
-interface Post {
+export interface RedditPost {
   children: PostInfo[];
 }
 

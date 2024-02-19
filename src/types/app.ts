@@ -6,10 +6,14 @@ export interface Prompt {
   author: string;
   permalink: string;
   totalComments: number;
+  downloaded: boolean;
   stories: Comment[];
 }
 
 export interface Comment {
+  postId: string;
+  replyingTo?: string;
+  mainCommentId?: string;
   title: string;
   body: string;
   bodyHtml: string;
@@ -19,5 +23,5 @@ export interface Comment {
   author: string;
   id: string;
   created: number;
-  replies: Comment[];
+  replies: string[];
 }

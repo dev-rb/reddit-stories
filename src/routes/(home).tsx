@@ -1,6 +1,6 @@
 import { Button } from '@kobalte/core';
 import { useSearchParams } from '@solidjs/router';
-import { createQuery, dehydrate, useQueryClient } from '@tanstack/solid-query';
+import { createQueries, createQuery, dehydrate, useQueryClient } from '@tanstack/solid-query';
 import { PersistedClient } from '@tanstack/solid-query-persist-client';
 import { For, Show, Suspense, createEffect, createSignal, onMount, untrack } from 'solid-js';
 import { unwrap } from 'solid-js/store';
@@ -12,7 +12,7 @@ import { SortTabs } from '~/components/SortTabs';
 import { KEBAB_SORT_VALUES } from '~/constants/sort';
 import { Prompt } from '~/types';
 import { Posts } from '~/types/reddit';
-import { extractPostDetails } from '~/utils/reddit';
+import { extractPostDetails, fetchCommentsForPost, Comments } from '~/utils/reddit';
 
 const getPosts = async (sort: string) => {
   const sortType = sort.includes('top') ? 'top' : sort;
@@ -22,6 +22,7 @@ const getPosts = async (sort: string) => {
   const persisted = await persister.get(`posts.${sort}`)?.then((d) => {
     return d;
   });
+  console.log(persisted);
 
   if (persisted) {
     return { prompts: persisted as Prompt[], persisted: true };
@@ -51,8 +52,8 @@ const Home = () => {
   const posts = createQuery(() => ({
     enabled: mounted(),
     queryKey: queryKey(),
-    queryFn: ({ queryKey }) => {
-      return getPosts(queryKey[1]);
+    queryFn: async ({ queryKey }) => {
+      return await getPosts(queryKey[1]);
     },
     initialData: () => {
       const prompts: Prompt[] | undefined = queryClient.getQueryData(queryKey());
@@ -62,6 +63,25 @@ const Home = () => {
       return { prompts, persisted: true };
     },
   }));
+
+  const comments = createQueries(() => {
+    return {
+      queries:
+        posts.data?.prompts?.map((prompt) => {
+          return {
+            enabled: false,
+            queryKey: ['comments', prompt.id],
+            queryFn: async () => {
+              return [prompt.id, await fetchCommentsForPost('/r/writingprompts', prompt.id)];
+            },
+            // initialData: async () => {
+            //   const data = await persister.get(`comments.${prompt.id}`);
+            //   return (data ?? []) as [string, Comments];
+            // },
+          };
+        }) ?? [],
+    };
+  });
 
   createEffect(() => {
     const fetched = posts.isFetched && !posts.isLoading && !posts.isRefetching && posts.status === 'success';
@@ -80,23 +100,45 @@ const Home = () => {
     setSearchParams({ sort: newTab });
   };
 
-  const refresh = () => {
+  const refresh = async () => {
     setManualRefetch(true);
     persister.remove(`posts.${sortParam()}`);
+    for (const c of await persister.getAll()) {
+      const k = c[0].toString();
+      if (k.includes('comments')) {
+        persister.remove(k);
+      }
+    }
     queryClient.invalidateQueries({
-      queryKey: queryKey(),
       refetchType: 'all',
       type: 'all',
     });
   };
 
-  const download = () => {
+  const download = async () => {
     const data = posts.data?.prompts;
 
     if (!data || !data.length) return;
 
-    persister.save(`posts.${sortParam()}`, unwrap(data));
-    posts.refetch();
+    for (const commentQuery of comments) {
+      const postComments = await commentQuery.refetch();
+      if (!postComments.data) continue;
+      const prompt = (await postComments.data)[0];
+      await persister.save(`comments.${prompt}`, unwrap(postComments.data));
+    }
+
+    await persister.save(`posts.${sortParam()}`, unwrap(data));
+    await posts.refetch();
+  };
+
+  const isDownloaded = (id: string) => {
+    const v = comments.find(async (c) => {
+      const map = await c.data;
+      if (!map || !map.length) return false;
+      setTimeout(() => {}, 2000);
+      return map[0] === id;
+    });
+    return !!v && v.isFetched;
   };
 
   return (
@@ -109,13 +151,13 @@ const Home = () => {
         <SortTabs.TabsView />
         <Suspense
           fallback={
-            <div class="h-full w-full flex-center">
+            <div class="m-auto h-full w-full flex-center">
               <Loading class="mx-auto text-4xl color-blue-5" />
             </div>
           }
         >
-          <div class="relative overflow-hidden min-h-0 flex flex-col gap-2 after:(content-empty absolute bottom-0 left-0 py-4 w-full from-dark-9 to-75% bg-gradient-to-t) before:(content-empty absolute top-10 left-0 w-full py-4 from-dark-9 from-45% z-10 bg-gradient-to-b)">
-            <div class="mt-2 pr-1 ml-auto flex items-center gap-4">
+          <div class="relative min-h-0 h-screen flex flex-col gap-2 overflow-hidden after:(absolute bottom-0 left-0 w-full from-dark-9 to-75% bg-gradient-to-t py-4 content-empty) before:(absolute left-0 top-10 z-10 w-full from-dark-9 from-45% bg-gradient-to-b py-4 content-empty)">
+            <div class="ml-auto mt-2 flex items-center gap-4 pr-1">
               <Button.Root
                 class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
                 disabled={manualRefetch()}
@@ -149,7 +191,7 @@ const Home = () => {
                     value={value}
                   >
                     <For each={posts.data?.prompts}>
-                      {(post) => <PostRoot downloaded={posts.data?.persisted} {...post} />}
+                      {(post) => <PostRoot {...post} downloaded={isDownloaded(post.id)} />}
                     </For>
                   </SortTabs.Content>
                 )}

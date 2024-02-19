@@ -1,16 +1,18 @@
 import { Button, ToggleButton } from '@kobalte/core';
+import { A } from '@solidjs/router';
 import { mergeProps } from 'solid-js';
 import { Prompt } from '~/types/app';
 
-interface PostRootProps extends Prompt {
-  downloaded?: boolean;
-}
+interface PostRootProps extends Prompt {}
 
 export const PostRoot = (props: PostRootProps) => {
   props = mergeProps({ downloaded: false }, props);
 
   return (
-    <div class="relative w-full flex flex-col gap-2 border-2 border-dark-4 rounded-xl border-solid px-4 py-2">
+    <A
+      class="relative w-full flex flex-col gap-2 border-2 border-dark-4 rounded-xl border-solid px-4 py-2 decoration-none"
+      href={`post/${props.id}`}
+    >
       <ToggleButton.Root
         class="absolute right-2 top-2 ml-auto aspect-square flex-center rounded-full bg-neutral-7 p-1 color-neutral-4 ui-pressed:(bg-blue-950 color-blue-4)"
         pressed={props.downloaded}
@@ -25,7 +27,7 @@ export const PostRoot = (props: PostRootProps) => {
         <div class="pr-8 text-xs color-neutral-3">{props.title}</div>
         <PostInteractions totalComments={props.totalComments ?? 0} score={props.score ?? 0} />
       </div>
-    </div>
+    </A>
   );
 };
 
