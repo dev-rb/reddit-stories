@@ -8,6 +8,8 @@ import { FileRoutes } from '@solidjs/start';
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
 import { PersistedClient, Persister, persistQueryClientRestore } from '@tanstack/solid-query-persist-client';
 import { set, get, del, getMany, entries } from 'idb-keyval';
+import { StoreDefinition, createDB, noopDb } from './utils/db';
+import { isServer } from 'solid-js/web';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,40 +27,37 @@ const queryClient = new QueryClient({
   },
 });
 
-function createIDBPersister(idbValidKey: string = 'reactQuery') {
-  return {
-    save: async (key: string, data: any) => {
-      await set(key, data);
-    },
-    get: async (key: string) => {
-      return await get(key);
-    },
-    getAll: async () => {
-      return await entries();
-    },
-    remove: async (key: string) => {
-      await del(key);
-    },
-  };
-}
+const PostDBStore: StoreDefinition = {
+  name: 'posts',
+  key: 'id',
+  index: { name: 'sortIndex', key: 'sort' },
+};
+const CommentDBStore: StoreDefinition = {
+  name: 'comments',
+  key: 'id',
+  index: { name: 'commentsIndex', key: 'postId' },
+};
 
-export const persister = createIDBPersister();
+export const db: Awaited<ReturnType<typeof createDB>> = isServer
+  ? (noopDb as any)
+  : await createDB('tavern-tales', [PostDBStore, CommentDBStore]);
 
 export default function App() {
-  const updateCache = async () => {
-    const entries = await persister.getAll();
-    for (let [key, data] of entries) {
-      key = key.toString();
-      const [one, two] = key.split('.');
-
-      // queryClient.setQueryData([one, two], data);
-      await queryClient.ensureQueryData({ queryKey: [one, two], initialData: data });
-    }
+  const updateCache = () => {
+    queryClient.prefetchQuery({ queryKey: ['posts'] });
+    // const entries = await db.getAll('posts');
+    // for (let [key, data] of entries) {
+    //   key = key.toString();
+    //   const [one, two] = key.split('.');
+    //
+    //   // queryClient.setQueryData([one, two], data);
+    //   await queryClient.ensureQueryData({ queryKey: [one, two], initialData: data });
+    // }
 
     // console.log(queryClient.getQueriesData({ queryKey: ['posts'] }));
   };
   onMount(() => {
-    // updateCache();
+    updateCache();
   });
   return (
     <Router

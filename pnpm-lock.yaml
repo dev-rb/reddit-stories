@@ -20,6 +20,9 @@ dependencies:
   '@tanstack/solid-query-persist-client':
     specifier: ^5.21.4
     version: 5.21.4(@tanstack/solid-query@5.20.5)(solid-js@1.8.14)
+  idb:
+    specifier: ^8.0.0
+    version: 8.0.0
   idb-keyval:
     specifier: ^6.2.1
     version: 6.2.1
@@ -3697,6 +3700,10 @@ packages:
 
   /idb-keyval@6.2.1:
     resolution: {integrity: sha512-8Sb3veuYCyrZL+VBt9LJfZjLUPWVvqn8tG28VqYNFCo43KHcKuq+b4EiXGeuaLAQWL2YmyDgMp2aSpH9JHsEQg==}
+    dev: false
+
+  /idb@8.0.0:
+    resolution: {integrity: sha512-l//qvlAKGmQO31Qn7xdzagVPPaHTxXx199MhrAFuVBTPqydcPYBWjkrbv4Y0ktB+GmWOiwHl237UUOrLmQxLvw==}
     dev: false
 
   /ignore@5.3.1:

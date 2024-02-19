@@ -1,42 +1,16 @@
 import { Button } from '@kobalte/core';
 import { useSearchParams } from '@solidjs/router';
-import { createQueries, createQuery, dehydrate, useQueryClient } from '@tanstack/solid-query';
-import { PersistedClient } from '@tanstack/solid-query-persist-client';
+import { createQueries, createQuery, useQueryClient } from '@tanstack/solid-query';
 import { For, Show, Suspense, createEffect, createSignal, onMount, untrack } from 'solid-js';
 import { unwrap } from 'solid-js/store';
-import { persister } from '~/app';
-import { ClientOnly } from '~/components/ClientOnly';
+import { db } from '~/app';
 import { Loading } from '~/components/Loading';
 import { PostRoot } from '~/components/Post/PostRoot';
 import { SortTabs } from '~/components/SortTabs';
 import { KEBAB_SORT_VALUES } from '~/constants/sort';
-import { Prompt } from '~/types';
-import { Posts } from '~/types/reddit';
-import { extractPostDetails, fetchCommentsForPost, Comments } from '~/utils/reddit';
-
-const getPosts = async (sort: string) => {
-  const sortType = sort.includes('top') ? 'top' : sort;
-  const timeSort = sort.includes('top') ? `t=${sort.split('-')[1]}&` : '';
-  const count = 100;
-
-  const persisted = await persister.get(`posts.${sort}`)?.then((d) => {
-    return d;
-  });
-  console.log(persisted);
-
-  if (persisted) {
-    return { prompts: persisted as Prompt[], persisted: true };
-  }
-
-  const postsData: Posts = await (
-    await fetch(`https://www.reddit.com/r/writingprompts/${sortType}.json?${timeSort}limit=${count}&raw_json=1`)
-  ).json();
-
-  console.log('Fetch data');
-  const prompts = postsData.data?.children.map(extractPostDetails);
-
-  return { prompts: prompts, persisted: false };
-};
+import { Comment, Prompt } from '~/types';
+import { getPosts } from '~/utils/data';
+import { fetchCommentsForPost, Comments } from '~/utils/reddit';
 
 const Home = () => {
   const [mounted, setMounted] = createSignal(false);
@@ -100,15 +74,35 @@ const Home = () => {
     setSearchParams({ sort: newTab });
   };
 
+  const deleteFromDb = () => {
+    db.raw(async (db) => {
+      const tx = db.transaction(['posts', 'comments'], 'readwrite');
+
+      let postsCursor = await tx.objectStore('posts').openCursor();
+      const commentsStore = tx.objectStore('comments');
+      const commentsIndex = commentsStore.index('commentsIndex');
+
+      while (postsCursor) {
+        if (postsCursor.value.sort === sortParam()) {
+          let commentsCursor = await commentsIndex.openKeyCursor(postsCursor.value.id);
+
+          while (commentsCursor) {
+            commentsStore.delete(commentsCursor.primaryKey);
+            commentsCursor = await commentsCursor.continue();
+          }
+
+          postsCursor.delete();
+        }
+
+        postsCursor = await postsCursor.continue();
+      }
+    });
+  };
+
   const refresh = async () => {
     setManualRefetch(true);
-    persister.remove(`posts.${sortParam()}`);
-    for (const c of await persister.getAll()) {
-      const k = c[0].toString();
-      if (k.includes('comments')) {
-        persister.remove(k);
-      }
-    }
+    deleteFromDb();
+
     queryClient.invalidateQueries({
       refetchType: 'all',
       type: 'all',
@@ -124,10 +118,34 @@ const Home = () => {
       const postComments = await commentQuery.refetch();
       if (!postComments.data) continue;
       const prompt = (await postComments.data)[0];
-      await persister.save(`comments.${prompt}`, unwrap(postComments.data));
+      const unwrapped = unwrap(postComments.data);
+      await db.upsertMany(
+        `comments`,
+        Object.values(unwrapped[1] as Comments).reduce(
+          (acc, curr) => {
+            if (typeof curr === 'string') return acc;
+
+            acc.push([curr.id, curr]);
+
+            return acc;
+          },
+          [] as unknown as [string, Comment][]
+        )
+      );
     }
 
-    await persister.save(`posts.${sortParam()}`, unwrap(data));
+    const unwrappedPosts = unwrap(data);
+    await db.upsertMany(
+      `posts`,
+      unwrappedPosts.reduce(
+        (acc, curr) => {
+          acc.push([curr.id, { ...curr, sort: sortParam() }]);
+
+          return acc;
+        },
+        [] as unknown as [string, Prompt & { sort: string }][]
+      )
+    );
     await posts.refetch();
   };
 

@@ -1,25 +1,37 @@
 import { useParams } from '@solidjs/router';
 import { QueryClient, QueryKey, createQuery, useQueryClient } from '@tanstack/solid-query';
 import { createSignal, onMount } from 'solid-js';
-import { persister } from '~/app';
-import { KEBAB_SORT_VALUES } from '~/constants/sort';
-import { Prompt } from '~/types';
-import { RedditPost } from '~/types/reddit';
+import { db } from '~/app';
+import { Comment, Prompt } from '~/types';
 import { Comments, fetchCommentsForPost } from '~/utils/reddit';
 
 type QueryPostsData = { persisted: boolean; prompts: Prompt[] };
 
 const getPost = async (id: string, queryClient: QueryClient) => {
-  const persisted = await persister.get(`comments.${id}`)?.then((d) => {
-    return d;
+  const persistedComments = await db.raw(async (db) => {
+    const tx = db.transaction('comments', 'readwrite');
+    const store = tx.store.index('commentsIndex');
+    let cursor = await store.openKeyCursor(id);
+
+    let results: Comment[] = [];
+
+    while (cursor) {
+      results.push(await store.get(cursor.key));
+      cursor = await cursor.continue();
+    }
+    return results;
   });
 
-  if (persisted) {
-    const queryCache: [QueryKey, QueryPostsData | undefined][] = queryClient.getQueriesData({ queryKey: ['posts'] });
-    const postId: string = persisted[0];
+  const persistedPrompt: Prompt | undefined = await db.get('posts', id);
 
-    console.log(persisted);
-    let prompt: Prompt | undefined;
+  if (persistedComments.length) {
+    if (persistedPrompt) {
+      return { post: [persistedPrompt, persistedComments], persisted: true };
+    }
+    const queryCache: [QueryKey, QueryPostsData | undefined][] = queryClient.getQueriesData({ queryKey: ['posts'] });
+    const postId: string = id;
+
+    let prompt: Prompt | undefined = persistedPrompt;
     for (const data of queryCache) {
       const _data = data[1];
       if (!_data) continue;
@@ -27,12 +39,13 @@ const getPost = async (id: string, queryClient: QueryClient) => {
       prompt = _data.prompts.find((p) => p.id === postId);
     }
 
-    return { post: [prompt, persisted[1]] as [Prompt, Comments], persisted: true };
+    return { post: [prompt, persistedComments] as [Prompt, Comment[]], persisted: true };
   }
 
+  console.log('Fetch comments from reddit');
   const comments = await fetchCommentsForPost('/r/writingprompts', id);
 
-  return { post: [id, comments], persisted: false };
+  return { post: comments, persisted: false };
 };
 
 const Post = () => {
@@ -57,7 +70,7 @@ const Post = () => {
 
   return (
     <div class="flex flex-col gap-4">
-      <div class="text-sm color-white">{JSON.stringify(post.data?.post?.[0])}</div>
+      <div class="text-sm color-white">{JSON.stringify(post.data?.post)}</div>
     </div>
   );
 };

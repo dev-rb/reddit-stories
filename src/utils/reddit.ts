@@ -20,7 +20,7 @@ export const extractPostDetails = (postInfo: PostInfo): Prompt => {
 };
 
 export const fetchCommentsForPost = async (subreddit: string, postId: string) => {
-  let data: RedditCommentRoot[] = await (
+  let data: RedditCommentRoot = await (
     await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)
   ).json();
   const commentDetails = data[1].data.children;
@@ -35,7 +35,7 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
     extractCommentDetails(comment.data, null, null, postId, map);
   }
 
-  return map;
+  return [extractPostDetails(data[0].data.children[0]), map];
 };
 
 const extractCommentDetails = (

@@ -44,10 +44,7 @@ export interface RedditComment {
   children: { kind: 't1' | 'more' | 'Listing'; data: CommentDetails }[];
 }
 
-export interface RedditCommentRoot {
-  kind: string;
-  data: RedditComment;
-}
+export type RedditCommentRoot = [Posts, { kind: string; data: RedditComment }];
 
 export interface CommentDetails {
   title: string;
