@@ -24,6 +24,7 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
     await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)
   ).json();
   const commentDetails = data[1].data.children;
+  const postDetails = data[0].data.children[0];
 
   const filteredComments = commentDetails.filter(
     (comment) => comment.data.author !== 'AutoModerator' && (comment.kind === 't1' || comment.kind === 'Listing')
@@ -35,7 +36,7 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
     extractCommentDetails(comment.data, null, null, postId, map);
   }
 
-  return [extractPostDetails(data[0].data.children[0]), map];
+  return [extractPostDetails(postDetails), map] as const;
 };
 
 const extractCommentDetails = (

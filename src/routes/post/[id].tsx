@@ -1,7 +1,10 @@
+import { Separator, Skeleton } from '@kobalte/core';
 import { useParams } from '@solidjs/router';
 import { QueryClient, QueryKey, createQuery, useQueryClient } from '@tanstack/solid-query';
-import { createSignal, onMount } from 'solid-js';
+import { For, Show, Suspense, createSignal, onMount } from 'solid-js';
 import { db } from '~/app';
+import { Loading } from '~/components/Loading';
+import { PostRoot } from '~/components/Post/PostRoot';
 import { Comment, Prompt } from '~/types';
 import { Comments, fetchCommentsForPost } from '~/utils/reddit';
 
@@ -13,10 +16,11 @@ const getPost = async (id: string, queryClient: QueryClient) => {
     const store = tx.store.index('commentsIndex');
     let cursor = await store.openKeyCursor(id);
 
-    let results: Comment[] = [];
+    let results: Comments = {};
 
     while (cursor) {
-      results.push(await store.get(cursor.key));
+      const comment: Comment = await store.get(cursor.key);
+      results[comment.id] = comment;
       cursor = await cursor.continue();
     }
     return results;
@@ -26,7 +30,7 @@ const getPost = async (id: string, queryClient: QueryClient) => {
 
   if (persistedComments.length) {
     if (persistedPrompt) {
-      return { post: [persistedPrompt, persistedComments], persisted: true };
+      return { post: [persistedPrompt, persistedComments] as const, persisted: true };
     }
     const queryCache: [QueryKey, QueryPostsData | undefined][] = queryClient.getQueriesData({ queryKey: ['posts'] });
     const postId: string = id;
@@ -39,10 +43,10 @@ const getPost = async (id: string, queryClient: QueryClient) => {
       prompt = _data.prompts.find((p) => p.id === postId);
     }
 
-    return { post: [prompt, persistedComments] as [Prompt, Comment[]], persisted: true };
+    return { post: [prompt, persistedComments] as const, persisted: true };
   }
 
-  console.log('Fetch comments from reddit');
+  console.log('Fetch comments from reddit', id);
   const comments = await fetchCommentsForPost('/r/writingprompts', id);
 
   return { post: comments, persisted: false };
@@ -69,8 +73,46 @@ const Post = () => {
   });
 
   return (
-    <div class="flex flex-col gap-4">
-      <div class="text-sm color-white">{JSON.stringify(post.data?.post)}</div>
+    <div class="flex flex-col gap-2 h-full overflow-auto custom-v-scrollbar">
+      <Suspense
+        fallback={
+          <div class="m-auto h-full w-full flex-center">
+            <Loading class="mx-auto text-4xl color-blue-5" />
+          </div>
+        }
+      >
+        <Skeleton.Root
+          class="relative data-[visible=true]:min-h-50 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
+          visible={!post.data?.post[0]}
+        >
+          <Show when={post.data?.post[0]}>{(post) => <PostRoot {...post()} />}</Show>
+        </Skeleton.Root>
+      </Suspense>
+      <Separator.Root class="border-dark-950" />
+      <Skeleton.Root
+        class="relative flex flex-col gap-4 h-full data-[visible=true]:min-h-screen flex-1 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
+        visible={!post.data?.post[1]}
+      >
+        <Show when={post.data?.post[1]}>
+          {(comments) => (
+            <For each={Object.values(comments())}>
+              {(comment) => (
+                <PostRoot
+                  id={comment.id}
+                  score={comment.score}
+                  created={new Date(comment.created).toLocaleTimeString()}
+                  title={comment.body}
+                  author={comment.author}
+                  stories={[]}
+                  permalink={comment.permalink}
+                  downloaded={false}
+                  totalComments={comment.replies.length}
+                />
+              )}
+            </For>
+          )}
+        </Show>
+      </Skeleton.Root>
     </div>
   );
 };

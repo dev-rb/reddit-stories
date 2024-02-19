@@ -56,5 +56,5 @@ export interface CommentDetails {
   author: string;
   id: string;
   created_utc: number;
-  replies: RedditCommentRoot;
+  replies: { kind: string; data: RedditComment };
 }
