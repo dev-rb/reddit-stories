@@ -16,15 +16,15 @@ export const getPosts = async (sort: string) => {
     let results = [];
 
     while (cursor) {
-      results.push(index.get(cursor.key));
+      results.push(tx.store.get(cursor.primaryKey));
 
       cursor = await cursor.continue();
     }
 
-    return Promise.all(results);
+    return await Promise.all(results);
   });
 
-  if (persisted.length) {
+  if (persisted && persisted.length) {
     return { prompts: persisted as Prompt[], persisted: true };
   }
 

@@ -1,8 +1,8 @@
 import { Button } from '@kobalte/core';
 import { useSearchParams } from '@solidjs/router';
 import { createQueries, createQuery, useQueryClient } from '@tanstack/solid-query';
-import { For, Show, Suspense, createEffect, createSignal, onMount, untrack } from 'solid-js';
-import { unwrap } from 'solid-js/store';
+import { ErrorBoundary, For, Index, Show, Suspense, createEffect, createSignal, onMount, untrack } from 'solid-js';
+import { createStore, reconcile, unwrap } from 'solid-js/store';
 import { db } from '~/app';
 import { Loading } from '~/components/Loading';
 import { PostRoot } from '~/components/Post/PostRoot';
@@ -16,6 +16,8 @@ const Home = () => {
   const [mounted, setMounted] = createSignal(false);
   const [manualRefetch, setManualRefetch] = createSignal(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [store, setStore] = createStore<Prompt[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -46,15 +48,40 @@ const Home = () => {
             enabled: false,
             queryKey: ['comments', prompt.id],
             queryFn: async () => {
-              return [prompt.id, await fetchCommentsForPost('/r/writingprompts', prompt.id)];
+              return await fetchCommentsForPost('/r/writingprompts', prompt.id);
             },
-            // initialData: async () => {
-            //   const data = await persister.get(`comments.${prompt.id}`);
-            //   return (data ?? []) as [string, Comments];
-            // },
+            initialData: async () => {
+              const id = prompt.id;
+              const post = unwrap(prompt);
+              const data = await db.raw(async (db) => {
+                const tx = db.transaction('comments', 'readonly');
+
+                const index = tx.store.index('commentsIndex');
+                let cursor = await index.openKeyCursor(id);
+
+                let results: Comments = {};
+
+                while (cursor) {
+                  const comment: Comment = await tx.store.get(cursor.primaryKey);
+                  results[comment.id] = comment;
+                  cursor = await cursor.continue();
+                }
+                return results;
+              });
+
+              return [post, data] as const;
+            },
           };
         }) ?? [],
     };
+  });
+
+  createEffect(() => {
+    const data = posts.data;
+
+    if (!data) return;
+
+    setStore(reconcile(data.prompts));
   });
 
   createEffect(() => {
@@ -114,27 +141,20 @@ const Home = () => {
 
     if (!data || !data.length) return;
 
+    const unwrappedPosts = unwrap(data);
+
     for (const commentQuery of comments) {
       const postComments = await commentQuery.refetch();
       if (!postComments.data) continue;
-      const prompt = (await postComments.data)[0];
-      const unwrapped = unwrap(postComments.data);
-      await db.upsertMany(
-        `comments`,
-        Object.values(unwrapped[1] as Comments).reduce(
-          (acc, curr) => {
-            if (typeof curr === 'string') return acc;
+      const unwrapped = await unwrap(postComments.data);
 
-            acc.push([curr.id, curr]);
+      const prompt = unwrapped[0];
+      const comments = unwrapped[1];
 
-            return acc;
-          },
-          [] as unknown as [string, Comment][]
-        )
-      );
+      await db.upsertMany(`comments`, Object.entries(comments));
+      setStore((p) => p.id === prompt.id, 'downloaded', true);
     }
 
-    const unwrappedPosts = unwrap(data);
     await db.upsertMany(
       `posts`,
       unwrappedPosts.reduce(
@@ -146,17 +166,6 @@ const Home = () => {
         [] as unknown as [string, Prompt & { sort: string }][]
       )
     );
-    await posts.refetch();
-  };
-
-  const isDownloaded = (id: string) => {
-    const v = comments.find(async (c) => {
-      const map = await c.data;
-      if (!map || !map.length) return false;
-      setTimeout(() => {}, 2000);
-      return map[0] === id;
-    });
-    return !!v && v.isFetched;
   };
 
   return (
@@ -167,56 +176,56 @@ const Home = () => {
     >
       <div class="overflow-hidden h-full flex flex-col gap-4">
         <SortTabs.TabsView />
-        <Suspense
-          fallback={
-            <div class="m-auto h-full w-full flex-center">
-              <Loading class="mx-auto text-4xl color-blue-5" />
-            </div>
-          }
-        >
-          <div class="relative min-h-0 h-screen flex flex-col gap-2 overflow-hidden after:(absolute bottom-0 left-0 w-full from-dark-9 to-75% bg-gradient-to-t py-4 content-empty) before:(absolute left-0 top-10 z-10 w-full from-dark-9 from-45% bg-gradient-to-b py-4 content-empty)">
-            <div class="ml-auto mt-2 flex items-center gap-4 pr-1">
-              <Button.Root
-                class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
-                disabled={manualRefetch()}
-                onClick={refresh}
-              >
-                Refresh
-                <span class="i-material-symbols:refresh group-disabled:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
-              </Button.Root>
+        <ErrorBoundary fallback={<div>Error</div>}>
+          <Suspense
+            fallback={
+              <div class="m-auto h-full w-full flex-center">
+                <Loading class="mx-auto text-4xl color-blue-5" />
+              </div>
+            }
+          >
+            <div class="relative min-h-0 h-screen flex flex-col gap-2 overflow-hidden after:(absolute bottom-0 left-0 w-full from-dark-9 to-75% bg-gradient-to-t py-4 content-empty) before:(absolute left-0 top-10 z-10 w-full from-dark-9 from-45% bg-gradient-to-b py-4 content-empty)">
+              <div class="ml-auto mt-2 flex items-center gap-4 pr-1">
+                <Button.Root
+                  class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
+                  disabled={manualRefetch()}
+                  onClick={refresh}
+                >
+                  Refresh
+                  <span class="i-material-symbols:refresh group-disabled:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
+                </Button.Root>
 
-              <Button.Root
-                class="flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
-                disabled={posts.data?.persisted}
-                onClick={download}
+                <Button.Root
+                  class="flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
+                  disabled={posts.data?.persisted}
+                  onClick={download}
+                >
+                  Download All
+                  <span class="i-material-symbols:download inline-block text-lg max-sm:text-sm" />
+                </Button.Root>
+              </div>
+              <Show
+                when={posts.data && !posts.isLoading && posts.status === 'success' && !posts.isRefetching}
+                fallback={
+                  <div class="h-full w-full flex-center">
+                    <Loading class="mx-auto text-4xl color-blue-5" />
+                  </div>
+                }
               >
-                Download All
-                <span class="i-material-symbols:download inline-block text-lg max-sm:text-sm" />
-              </Button.Root>
+                <For each={KEBAB_SORT_VALUES}>
+                  {(value) => (
+                    <SortTabs.Content
+                      class="custom-v-scrollbar h-full flex flex-col gap-4 overflow-auto py-4 pr-4 "
+                      value={value}
+                    >
+                      <Index each={store}>{(post) => <PostRoot {...post()} />}</Index>
+                    </SortTabs.Content>
+                  )}
+                </For>
+              </Show>
             </div>
-            <Show
-              when={posts.data && !posts.isLoading && posts.status === 'success' && !posts.isRefetching}
-              fallback={
-                <div class="h-full w-full flex-center">
-                  <Loading class="mx-auto text-4xl color-blue-5" />
-                </div>
-              }
-            >
-              <For each={KEBAB_SORT_VALUES}>
-                {(value) => (
-                  <SortTabs.Content
-                    class="custom-v-scrollbar h-full flex flex-col gap-4 overflow-auto py-4 pr-4 "
-                    value={value}
-                  >
-                    <For each={posts.data?.prompts}>
-                      {(post) => <PostRoot {...post} downloaded={isDownloaded(post.id)} />}
-                    </For>
-                  </SortTabs.Content>
-                )}
-              </For>
-            </Show>
-          </div>
-        </Suspense>
+          </Suspense>
+        </ErrorBoundary>
       </div>
     </SortTabs.Root>
   );

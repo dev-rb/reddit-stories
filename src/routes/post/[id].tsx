@@ -15,13 +15,14 @@ type QueryPostsData = { persisted: boolean; prompts: Prompt[] };
 const getPost = async (id: string, queryClient: QueryClient) => {
   const persistedComments = await db.raw(async (db) => {
     const tx = db.transaction('comments', 'readwrite');
-    const store = tx.store.index('commentsIndex');
-    let cursor = await store.openKeyCursor(id);
+    const store = tx.store;
+    const index = store.index('commentsIndex');
+    let cursor = await index.openKeyCursor(id);
 
     let results: Comments = {};
 
     while (cursor) {
-      const comment: Comment = await store.get(cursor.key);
+      const comment: Comment = await store.get(cursor.primaryKey);
       results[comment.id] = comment;
       cursor = await cursor.continue();
     }
@@ -30,7 +31,7 @@ const getPost = async (id: string, queryClient: QueryClient) => {
 
   const persistedPrompt: Prompt | undefined = await db.get('posts', id);
 
-  if (persistedComments.length) {
+  if (Object.keys(persistedComments).length) {
     if (persistedPrompt) {
       return { post: [persistedPrompt, persistedComments] as const, persisted: true };
     }
@@ -67,7 +68,7 @@ const Post = () => {
     queryFn: async () => {
       return await getPost(id(), queryClient);
     },
-    refetchOnMount: true,
+    staleTime: 0,
   }));
 
   onMount(() => {
@@ -85,17 +86,18 @@ const Post = () => {
       >
         <Skeleton.Root
           class="relative data-[visible=true]:min-h-50 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
-          visible={!post.data?.post[0]}
+          visible={!post.data?.post?.[0]}
         >
-          <Show when={post.data?.post[0]}>{(post) => <PostRoot {...post()} />}</Show>
+          <Show when={post.data?.post?.[0]}>
+            {(postData) => <PostRoot {...postData()} downloaded={post.data?.persisted ?? false} />}
+          </Show>
         </Skeleton.Root>
       </Suspense>
-      <Separator.Root class="border-dark-950" />
       <Skeleton.Root
         class="relative flex flex-col oveflow-hidden h-full data-[visible=true]:min-h-screen flex-1 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
-        visible={!post.data?.post[1]}
+        visible={!post.data?.post}
       >
-        <Show when={post.data?.post[1]}>
+        <Show when={post.data?.post?.[1]}>
           {(comments) => (
             <CommentsProvider comments={comments()}>
               <For each={Object.values(comments()).filter((c) => c.mainCommentId === undefined)}>

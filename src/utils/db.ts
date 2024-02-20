@@ -135,4 +135,5 @@ export const noopDb = {
   set: (store: string, key: string, value: any) => {},
   setMany: (store: string, entries: [any, any][]) => {},
   delete: (store: string, key: string) => {},
+  raw: () => {},
 };

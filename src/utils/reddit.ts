@@ -77,7 +77,7 @@ const extractCommentDetails = (
   }
 
   if (replies === undefined || replies.data === undefined || replies.data.children.length === 0) {
-    return;
+    return map;
   }
 
   if (!replyingToId && !mainCommentId) {

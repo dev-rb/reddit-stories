@@ -20,6 +20,7 @@ export const PostRoot = (props: PostRootProps) => {
         <span class="i-material-symbols:download inline-block text-base" />
       </ToggleButton.Root>
       <div class="flex items-center gap-2 text-0.7rem color-neutral-5 font-sans">
+        <span>{props.id}</span>
         <span>u/{props.author}</span>
         <span>{props.created}</span>
       </div>
