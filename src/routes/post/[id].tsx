@@ -3,6 +3,8 @@ import { useParams } from '@solidjs/router';
 import { QueryClient, QueryKey, createQuery, useQueryClient } from '@tanstack/solid-query';
 import { For, Show, Suspense, createSignal, onMount } from 'solid-js';
 import { db } from '~/app';
+import { CommentView } from '~/components/CommentView/CommentRoot';
+import { CommentsProvider } from '~/components/CommentsContext';
 import { Loading } from '~/components/Loading';
 import { PostRoot } from '~/components/Post/PostRoot';
 import { Comment, Prompt } from '~/types';
@@ -90,26 +92,16 @@ const Post = () => {
       </Suspense>
       <Separator.Root class="border-dark-950" />
       <Skeleton.Root
-        class="relative flex flex-col gap-4 h-full data-[visible=true]:min-h-screen flex-1 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
+        class="relative flex flex-col oveflow-hidden h-full data-[visible=true]:min-h-screen flex-1 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
         visible={!post.data?.post[1]}
       >
         <Show when={post.data?.post[1]}>
           {(comments) => (
-            <For each={Object.values(comments())}>
-              {(comment) => (
-                <PostRoot
-                  id={comment.id}
-                  score={comment.score}
-                  created={new Date(comment.created).toLocaleTimeString()}
-                  title={comment.body}
-                  author={comment.author}
-                  stories={[]}
-                  permalink={comment.permalink}
-                  downloaded={false}
-                  totalComments={comment.replies.length}
-                />
-              )}
-            </For>
+            <CommentsProvider comments={comments()}>
+              <For each={Object.values(comments()).filter((c) => c.mainCommentId === undefined)}>
+                {(comment) => <CommentView {...comment} depth={0} />}
+              </For>
+            </CommentsProvider>
           )}
         </Show>
       </Skeleton.Root>

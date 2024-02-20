@@ -3,6 +3,20 @@ import { presetKobalte } from 'unocss-preset-primitives';
 import { presetUno } from 'unocss';
 import transformVariantGroup from '@unocss/transformer-variant-group';
 
+export const nestedColors: string[] = [
+  'blue',
+  'green',
+  'red',
+  'indigo',
+  'orange',
+  'pink',
+  'cyan',
+  'yellow',
+  'cyan',
+  'lime',
+  'violet',
+];
+
 export default defineConfig({
   shortcuts: [
     {
@@ -21,7 +35,11 @@ export default defineConfig({
       }),
     ],
   ],
-  safelist: [...['n', 'w', 's', 'e', 'nw', 'ne', 'sw', 'se'].map((v) => `cursor-${v}-resize`)],
+  safelist: [
+    ...['n', 'w', 's', 'e', 'nw', 'ne', 'sw', 'se'].map((v) => `cursor-${v}-resize`),
+    ...nestedColors.map((color) => `border-l-${color}-5`),
+    ...nestedColors.map((color) => `before:border-l-${color}-5`),
+  ],
   theme: {
     fontFamily: {
       sans: 'Inter, Tahoma, Geneva, Verdana, sans-serif',

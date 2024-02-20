@@ -33,7 +33,7 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
   let map: Comments = {};
 
   for (const comment of filteredComments) {
-    extractCommentDetails(comment.data, null, null, postId, map);
+    extractCommentDetails(comment.data, undefined, undefined, postId, map);
   }
 
   return [extractPostDetails(postDetails), map] as const;
@@ -41,8 +41,8 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
 
 const extractCommentDetails = (
   commentInfo: CommentDetails,
-  grandparentId: string | null,
-  parentId: string | null,
+  mainCommentId: string | undefined,
+  replyingToId: string | undefined,
   postId: string,
   map: Comments
 ) => {
@@ -58,18 +58,18 @@ const extractCommentDetails = (
     postId,
     bodyHtml: body_html,
     replies: [],
-    mainCommentId: grandparentId ? grandparentId : undefined,
-    replyingTo: parentId ? parentId : undefined,
+    mainCommentId,
+    replyingTo: replyingToId,
     ups: score,
     title: title,
   };
 
   map[id] = comment;
 
-  if (parentId) {
-    const currentValue = map[parentId];
+  if (replyingToId) {
+    const currentValue = map[replyingToId];
     if (currentValue) {
-      map[parentId] = {
+      map[replyingToId] = {
         ...currentValue,
         replies: [...currentValue.replies, id],
       };
@@ -80,8 +80,8 @@ const extractCommentDetails = (
     return;
   }
 
-  if (!parentId && !grandparentId) {
-    grandparentId = id;
+  if (!replyingToId && !mainCommentId) {
+    mainCommentId = id;
   }
 
   const filteredReplies = replies.data.children.filter(
@@ -89,7 +89,7 @@ const extractCommentDetails = (
   );
 
   for (const reply of filteredReplies) {
-    extractCommentDetails(reply.data, grandparentId, id, postId, map);
+    extractCommentDetails(reply.data, mainCommentId, id, postId, map);
   }
 
   return map;
