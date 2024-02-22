@@ -44,59 +44,57 @@ export default function App() {
   return (
     <Router
       root={(props) => (
-        <Suspense fallback={<div class="color-white">Last</div>}>
-          <main class="relative mx-auto max-h-screen min-h-screen overflow-y-hidden overflow-x-visible flex flex-col max-w-2xl bg-dark-9">
-            <QueryClientProvider client={queryClient}>
-              <AppHeader />
+        <main class="relative mx-auto max-h-screen min-h-screen overflow-y-hidden overflow-x-visible flex flex-col max-w-2xl bg-dark-9">
+          <QueryClientProvider client={queryClient}>
+            <AppHeader />
 
-              {props.children}
-            </QueryClientProvider>
+            {props.children}
+          </QueryClientProvider>
 
-            <nav class="mt-auto w-full flex items-center justify-evenly px-4 py-2">
-              <A
-                class="bg-transparent text-4xl max-sm:text-sm"
-                inactiveClass="color-neutral-6"
-                activeClass="color-white"
-                href="/"
-                end
-              >
-                <span class="i-material-symbols:home inline-block" />
-              </A>
-              <A
-                class="bg-transparent text-4xl max-sm:text-sm"
-                inactiveClass="color-neutral-6"
-                activeClass="color-white"
-                href="/search"
-              >
-                <span class="i-material-symbols:search inline-block" />
-              </A>
-              <A
-                class="bg-transparent text-3xl max-sm:text-sm"
-                inactiveClass="color-neutral-6"
-                activeClass="color-white"
-                href="/town-hall"
-              >
-                <span class="i-material-symbols:view-agenda-outline inline-block" />
-              </A>
-              <A
-                class="bg-transparent text-3xl max-sm:text-sm"
-                inactiveClass="color-neutral-6"
-                activeClass="color-white"
-                href="/read-later"
-              >
-                <span class="i-material-symbols:alarm-outline inline-block" />
-              </A>
-              <A
-                class="bg-transparent text-3xl max-sm:text-sm"
-                inactiveClass="color-neutral-6"
-                activeClass="color-white"
-                href="/account"
-              >
-                <span class="i-material-symbols:person-outline inline-block" />
-              </A>
-            </nav>
-          </main>
-        </Suspense>
+          <nav class="mt-auto w-full flex items-center justify-evenly px-4 py-2">
+            <A
+              class="bg-transparent text-4xl max-sm:text-sm"
+              inactiveClass="color-neutral-6"
+              activeClass="color-white"
+              href="/"
+              end
+            >
+              <span class="i-material-symbols:home inline-block" />
+            </A>
+            <A
+              class="bg-transparent text-4xl max-sm:text-sm"
+              inactiveClass="color-neutral-6"
+              activeClass="color-white"
+              href="/search"
+            >
+              <span class="i-material-symbols:search inline-block" />
+            </A>
+            <A
+              class="bg-transparent text-3xl max-sm:text-sm"
+              inactiveClass="color-neutral-6"
+              activeClass="color-white"
+              href="/town-hall"
+            >
+              <span class="i-material-symbols:view-agenda-outline inline-block" />
+            </A>
+            <A
+              class="bg-transparent text-3xl max-sm:text-sm"
+              inactiveClass="color-neutral-6"
+              activeClass="color-white"
+              href="/read-later"
+            >
+              <span class="i-material-symbols:alarm-outline inline-block" />
+            </A>
+            <A
+              class="bg-transparent text-3xl max-sm:text-sm"
+              inactiveClass="color-neutral-6"
+              activeClass="color-white"
+              href="/account"
+            >
+              <span class="i-material-symbols:person-outline inline-block" />
+            </A>
+          </nav>
+        </main>
       )}
     >
       <FileRoutes />

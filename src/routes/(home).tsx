@@ -149,16 +149,20 @@ const Home = () => {
       const postComments = commentQuery.refetch();
 
       const promise = postComments.then(async (value) => {
-        const data = await value.data;
-        if (!data) return;
+        try {
+          const data = await value.data;
+          if (!data) return;
 
-        const unwrapped = unwrap(data);
+          const unwrapped = unwrap(data);
 
-        const prompt = unwrapped[0];
-        const comments = unwrapped[1];
+          const prompt = unwrapped[0];
+          const comments = unwrapped[1];
 
-        await db.upsertMany(`comments`, Object.entries(comments));
-        setStore((p) => p.id === prompt.id, 'downloaded', true);
+          await db.upsertMany(`comments`, Object.entries(comments));
+          setStore((p) => p.id === prompt.id, 'downloaded', true);
+        } catch (e) {
+          console.log('Error: ', e);
+        }
       });
 
       promises.push(promise);
@@ -208,7 +212,7 @@ const Home = () => {
 
                 <Button.Root
                   class="flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
-                  disabled={posts.data?.persisted}
+                  disabled={posts.data?.persisted || store.every((v) => v.downloaded)}
                   onClick={download}
                 >
                   Download All
