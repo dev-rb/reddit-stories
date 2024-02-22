@@ -1,4 +1,4 @@
-import { Separator, Skeleton } from '@kobalte/core';
+import { Skeleton } from '@kobalte/core';
 import { useParams } from '@solidjs/router';
 import { QueryClient, QueryKey, createQuery, useQueryClient } from '@tanstack/solid-query';
 import { For, Show, Suspense, createSignal, onMount } from 'solid-js';

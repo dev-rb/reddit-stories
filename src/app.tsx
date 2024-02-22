@@ -1,13 +1,11 @@
 // @refresh reload
-import { Suspense, createSignal, onMount } from 'solid-js';
+import { Suspense, onMount } from 'solid-js';
 import './app.css';
 import 'uno.css';
 import { AppHeader } from './components/AppHeader';
 import { A, Router } from '@solidjs/router';
 import { FileRoutes } from '@solidjs/start';
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
-import { PersistedClient, Persister, persistQueryClientRestore } from '@tanstack/solid-query-persist-client';
-import { set, get, del, getMany, entries } from 'idb-keyval';
 import { StoreDefinition, createDB, noopDb } from './utils/db';
 import { isServer } from 'solid-js/web';
 
@@ -43,22 +41,6 @@ export const db: Awaited<ReturnType<typeof createDB>> = isServer
   : await createDB('tavern-tales', [PostDBStore, CommentDBStore]);
 
 export default function App() {
-  const updateCache = () => {
-    queryClient.prefetchQuery({ queryKey: ['posts'] });
-    // const entries = await db.getAll('posts');
-    // for (let [key, data] of entries) {
-    //   key = key.toString();
-    //   const [one, two] = key.split('.');
-    //
-    //   // queryClient.setQueryData([one, two], data);
-    //   await queryClient.ensureQueryData({ queryKey: [one, two], initialData: data });
-    // }
-
-    // console.log(queryClient.getQueriesData({ queryKey: ['posts'] }));
-  };
-  onMount(() => {
-    updateCache();
-  });
   return (
     <Router
       root={(props) => (

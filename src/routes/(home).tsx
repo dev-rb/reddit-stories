@@ -40,14 +40,12 @@ const Home = () => {
     },
   }));
 
-  const [shouldFetchComments, setFC] = createSignal(false);
-
   const comments = createQueries(() => {
     return {
       queries:
         posts.data?.prompts?.map((prompt) => {
           return {
-            enabled: shouldFetchComments(),
+            enabled: false,
             queryKey: ['comments', prompt.id],
             queryFn: async () => {
               return await fetchCommentsForPost('/r/writingprompts', prompt.id);
@@ -144,19 +142,29 @@ const Home = () => {
     if (!data || !data.length) return;
 
     const unwrappedPosts = unwrap(data);
-    setFC(true);
+
+    let promises: Promise<any>[] = [];
 
     for (const commentQuery of comments) {
-      const postComments = await commentQuery.data;
-      if (!postComments) continue;
-      const unwrapped = unwrap(postComments);
+      const postComments = commentQuery.refetch();
 
-      const prompt = unwrapped[0];
-      const comments = unwrapped[1];
+      const promise = postComments.then(async (value) => {
+        const data = await value.data;
+        if (!data) return;
 
-      await db.upsertMany(`comments`, Object.entries(comments));
-      setStore((p) => p.id === prompt.id, 'downloaded', true);
+        const unwrapped = unwrap(data);
+
+        const prompt = unwrapped[0];
+        const comments = unwrapped[1];
+
+        await db.upsertMany(`comments`, Object.entries(comments));
+        setStore((p) => p.id === prompt.id, 'downloaded', true);
+      });
+
+      promises.push(promise);
     }
+
+    await Promise.all(promises);
 
     await db.upsertMany(
       `posts`,
@@ -169,7 +177,6 @@ const Home = () => {
         [] as unknown as [string, Prompt & { sort: string }][]
       )
     );
-    setFC(false);
   };
 
   return (

@@ -11,15 +11,21 @@ type Store = string | StoreDefinition;
 
 type GetStoreName<T extends Store> = T extends string ? T : T extends StoreDefinition ? T['name'] : never;
 
+type GetStoreIndex<T extends Store> = T extends StoreDefinition
+  ? T['index'] extends object
+    ? T['index']['name']
+    : never
+  : never;
+
 const getStoreName = <T extends Store>(store: T): string => {
   if (typeof store === 'string') return store;
 
   return store.name;
 };
 
-export const createDB = async <K extends Store, T extends K[], StoreName extends GetStoreName<T[number]>>(
+export const createDB = async <K extends Store, Stores extends K[], StoreName extends GetStoreName<Stores[number]>>(
   dbName: string,
-  stores: T
+  stores: Stores
 ) => {
   const db = await openDB(dbName, 1, {
     upgrade(database, oldVersion, newVersion, transaction, event) {
@@ -120,10 +126,9 @@ export const createDB = async <K extends Store, T extends K[], StoreName extends
     return cb(db);
   };
 
-  // const createQuery = (queryInfo: IDBKeyRange) => {
-  //   IDBKeyRange.only()
-  //
-  // }
+  const onIndex = async <T>(store: StoreName, index: GetStoreIndex<Stores[number]>): Promise<T | undefined> => {
+    return;
+  };
 
   return { raw, get, getAll, set, upsert, upsertMany, clear, setMany, delete: remove };
 };
