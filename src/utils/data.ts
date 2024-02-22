@@ -16,12 +16,16 @@ export const getPosts = async (sort: string) => {
     let results = [];
 
     while (cursor) {
-      results.push(tx.store.get(cursor.primaryKey));
+      const prompt = tx.store.get(cursor.primaryKey);
+      results.push(prompt);
 
       cursor = await cursor.continue();
     }
 
-    return await Promise.all(results);
+    return (await Promise.all(results)).map((prompt) => {
+      prompt.downloaded = true;
+      return prompt;
+    });
   });
 
   if (persisted && persisted.length) {

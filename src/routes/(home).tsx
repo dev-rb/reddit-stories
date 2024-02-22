@@ -40,12 +40,14 @@ const Home = () => {
     },
   }));
 
+  const [shouldFetchComments, setFC] = createSignal(false);
+
   const comments = createQueries(() => {
     return {
       queries:
         posts.data?.prompts?.map((prompt) => {
           return {
-            enabled: false,
+            enabled: shouldFetchComments(),
             queryKey: ['comments', prompt.id],
             queryFn: async () => {
               return await fetchCommentsForPost('/r/writingprompts', prompt.id);
@@ -142,11 +144,12 @@ const Home = () => {
     if (!data || !data.length) return;
 
     const unwrappedPosts = unwrap(data);
+    setFC(true);
 
     for (const commentQuery of comments) {
-      const postComments = await commentQuery.refetch();
-      if (!postComments.data) continue;
-      const unwrapped = await unwrap(postComments.data);
+      const postComments = await commentQuery.data;
+      if (!postComments) continue;
+      const unwrapped = unwrap(postComments);
 
       const prompt = unwrapped[0];
       const comments = unwrapped[1];
@@ -166,6 +169,7 @@ const Home = () => {
         [] as unknown as [string, Prompt & { sort: string }][]
       )
     );
+    setFC(false);
   };
 
   return (

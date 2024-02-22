@@ -6,4 +6,7 @@ export default defineConfig({
     // @ts-ignore
     uno(),
   ],
+  start: {
+    ssr: false,
+  },
 });
