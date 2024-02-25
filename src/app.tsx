@@ -36,11 +36,15 @@ const CommentDBStore: StoreDefinition = {
   index: { name: 'commentsIndex', key: 'postId' },
 };
 
-export const db: Awaited<ReturnType<typeof createDB>> = isServer
-  ? (noopDb as any)
-  : await createDB('tavern-tales', [PostDBStore, CommentDBStore]);
+export let db: Awaited<ReturnType<typeof createDB>>;
 
 export default function App() {
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+  onMount(async () => {
+    db = await createDB('tavern-tales', [PostDBStore, CommentDBStore]);
+  });
   return (
     <Router
       root={(props) => (

@@ -31,7 +31,7 @@ gitignore
 Thumbs.db
 
 # PWA
-**/public/sw.js
+# **/public/sw.js
 **/public/sw.js.map
 **/public/service-worker.js
 **/public/service-worker.js.map

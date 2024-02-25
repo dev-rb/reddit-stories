@@ -1,0 +1,21 @@
+{
+  "name": "Tavern Tales",
+  "short_name": "Tavern Tales",
+  "description": "A PWA for reading short stories from r/WritingPrompts",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "logo192.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "fullscreen",
+  "theme_color": "#B12A34",
+  "background_color": "#B12A34"
+}
