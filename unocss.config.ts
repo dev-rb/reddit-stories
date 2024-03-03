@@ -37,8 +37,8 @@ export default defineConfig({
   ],
   safelist: [
     ...['n', 'w', 's', 'e', 'nw', 'ne', 'sw', 'se'].map((v) => `cursor-${v}-resize`),
-    ...nestedColors.map((color) => `border-l-${color}-5`),
-    ...nestedColors.map((color) => `before:border-l-${color}-5`),
+    ...nestedColors.map((color) => `border-l-${color}-5/50`),
+    ...nestedColors.map((color) => `before:border-l-${color}-5/50`),
   ],
   theme: {
     fontFamily: {
