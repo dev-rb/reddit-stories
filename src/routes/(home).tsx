@@ -15,8 +15,8 @@ import { fetchCommentsForPost, Comments } from '~/utils/reddit';
 const Home = () => {
   const [mounted, setMounted] = createSignal(false);
   const [manualRefetch, setManualRefetch] = createSignal(false);
+  const [downloading, setDownloading] = createSignal(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const location = useLocation();
 
   const [store, setStore] = createStore<Prompt[]>([]);
 
@@ -138,6 +138,7 @@ const Home = () => {
   };
 
   const download = async () => {
+    setDownloading(true);
     const data = posts.data?.prompts;
 
     if (!data || !data.length) return;
@@ -182,6 +183,7 @@ const Home = () => {
         [] as unknown as [string, Prompt & { sort: string }][]
       )
     );
+    setDownloading(false);
   };
 
   return (
@@ -190,36 +192,39 @@ const Home = () => {
       value={searchParams.sort}
       onChange={onTabChange}
     >
-      <div class="overflow-hidden h-full flex flex-col gap-4">
-        <SortTabs.TabsView />
+      <div class="overflow-hidden h-full flex flex-col gap-1">
+        <SortTabs.TabsView
+          root={{ class: 'overflow-visible bg-transparent p-0 justify-between' }}
+          trigger={{ class: 'ui-selected:bg-dark-4 rounded-lg px-4 py-2 max-sm:p-2' }}
+        />
         <ErrorBoundary fallback={<div>Error</div>}>
-          <Suspense
-            fallback={
-              <div class="m-auto h-full w-full flex-center">
-                <Loading class="mx-auto text-4xl color-blue-5" />
-              </div>
-            }
-          >
-            <div class="relative min-h-0 h-screen flex flex-col gap-2 overflow-hidden after:(absolute bottom-0 left-0 w-full from-dark-9 to-75% bg-gradient-to-t py-4 content-empty) before:(absolute left-0 top-10 z-10 w-full from-dark-9 from-45% bg-gradient-to-b py-4 content-empty)">
-              <div class="ml-auto mt-2 flex items-center gap-4 pr-1">
-                <Button.Root
-                  class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
-                  disabled={manualRefetch()}
-                  onClick={refresh}
-                >
-                  Refresh
-                  <span class="i-material-symbols:refresh group-disabled:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
-                </Button.Root>
+          <div class="relative min-h-0 h-screen flex flex-col gap-1 overflow-hidden after:(absolute bottom-0 left-0 w-full from-dark-9 to-75% bg-gradient-to-t py-4 content-empty) before:(absolute left-0 top-8 max-sm:top-7 z-10 w-full from-dark-9 from-45% bg-gradient-to-b py-4 content-empty)">
+            <div class="ml-auto flex items-center gap-4">
+              <Button.Root
+                class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
+                data-fetching={manualRefetch()}
+                disabled={manualRefetch() || downloading()}
+                onClick={refresh}
+              >
+                <span class="i-material-symbols:refresh group-data-[fetching=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
+              </Button.Root>
 
-                <Button.Root
-                  class="flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 outline-2 outline-neutral-7 outline disabled:(bg-dark-8 cursor-not-allowed outline-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 outline-neutral-4) max-sm:(px-2 text-xs)"
-                  disabled={posts.data?.persisted || store.every((v) => v.downloaded)}
-                  onClick={download}
-                >
-                  Download All
-                  <span class="i-material-symbols:download inline-block text-lg max-sm:text-sm" />
-                </Button.Root>
-              </div>
+              <Button.Root
+                class="group flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
+                disabled={posts.data?.persisted || store.every((v) => v.downloaded)}
+                onClick={download}
+                data-downloading={downloading()}
+              >
+                <span class="i-material-symbols:download group-data-[downloading=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
+              </Button.Root>
+            </div>
+            <Suspense
+              fallback={
+                <div class="m-auto h-full w-full flex-center">
+                  <Loading class="mx-auto text-4xl color-blue-5" />
+                </div>
+              }
+            >
               <Show
                 when={posts.data && !posts.isLoading && posts.status === 'success' && !posts.isRefetching}
                 fallback={
@@ -239,8 +244,8 @@ const Home = () => {
                   )}
                 </For>
               </Show>
-            </div>
-          </Suspense>
+            </Suspense>
+          </div>
         </ErrorBoundary>
       </div>
     </SortTabs.Root>

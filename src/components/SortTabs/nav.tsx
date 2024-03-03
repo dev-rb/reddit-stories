@@ -29,7 +29,7 @@ const SortTabsRoot = (props: SortTabsRootProps) => {
 
 interface SortTabsListProps {
   root?: TabsListProps;
-  trigger?: TabsTriggerProps;
+  trigger?: Omit<TabsTriggerProps, 'value'>;
   indicator?: TabsIndicatorProps;
 }
 
@@ -44,13 +44,13 @@ const SortTabsList = (props: SortTabsListProps) => {
           <SortTabsTrigger {...props.trigger} value={toLowerKebab(value)} label={value.split(' ')[1] ?? value} />
         )}
       </For>
-      <Tabs.Indicator
-        {...props.indicator}
-        class={cn(
-          'absolute bottom-1 left-0 h-2px rounded-full bg-white transition-none duration-150',
-          props.indicator?.class
-        )}
-      />
+      {/* <Tabs.Indicator */}
+      {/*   {...props.indicator} */}
+      {/*   class={cn( */}
+      {/*     'absolute bottom-1 left-0 h-2px rounded-full bg-white transition-none duration-150', */}
+      {/*     props.indicator?.class */}
+      {/*   )} */}
+      {/* /> */}
     </Tabs.List>
   );
 };
