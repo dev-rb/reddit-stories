@@ -71,7 +71,10 @@ interface SortTabsTriggerProps extends Omit<TabsTriggerProps, 'value'> {
 const SortTabsTrigger = (props: SortTabsTriggerProps) => {
   const [self, other] = splitProps(props, ['class', 'label']);
   return (
-    <Tabs.Trigger {...other} class={cn('bg-transparent text-xs color-neutral-5 ui-selected:color-white', self.class)}>
+    <Tabs.Trigger
+      {...other}
+      class={cn('bg-transparent text-xs max-sm:text-xxs color-neutral-5 ui-selected:color-white', self.class)}
+    >
       {self.label}
     </Tabs.Trigger>
   );

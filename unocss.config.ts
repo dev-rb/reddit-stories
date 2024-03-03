@@ -24,7 +24,7 @@ export default defineConfig({
       'absolute-center': 'absolute top-50% left-50% -translate-50%',
       'absolute-x-center': 'absolute left-50% -translate-x-50%',
       'absolute-y-center': 'absolute top-50% -translate-y-50%',
-      'text-xxs': 'text-0.5rem',
+      'text-xxs': 'text-0.7rem',
     },
   ],
   rules: [

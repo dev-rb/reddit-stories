@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html';
 import { Comment, Prompt } from '~/types/app';
 import { PostInfo, RedditCommentRoot, CommentDetails } from '~/types/reddit';
 
@@ -50,13 +51,17 @@ const extractCommentDetails = (
 
   const comment: Comment = {
     author,
-    created: created_utc,
+    created: created_utc * 1000,
     id,
     permalink,
     score,
     body,
     postId,
-    bodyHtml: body_html,
+    bodyHtml: sanitizeHtml(body_html, {
+      transformTags: {
+        a: 'span',
+      },
+    }),
     replies: [],
     mainCommentId,
     replyingTo: replyingToId,

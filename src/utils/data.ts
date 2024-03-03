@@ -2,11 +2,7 @@ import { db } from '~/app';
 import { Prompt, Posts } from '~/types';
 import { extractPostDetails } from './reddit';
 
-export const getPosts = async (sort: string) => {
-  const sortType = sort.includes('top') ? 'top' : sort;
-  const timeSort = sort.includes('top') ? `t=${sort.split('-')[1]}&` : '';
-  const count = 100;
-
+export const getDbPosts = async (sort: string) => {
   const persisted = await db.raw(async (db) => {
     const tx = db.transaction('posts');
     const index = tx.store.index('sortIndex');
@@ -28,8 +24,18 @@ export const getPosts = async (sort: string) => {
     });
   });
 
+  return persisted as Prompt[];
+};
+
+export const getPosts = async (sort: string) => {
+  const sortType = sort.includes('top') ? 'top' : sort;
+  const timeSort = sort.includes('top') ? `t=${sort.split('-')[1]}&` : '';
+  const count = 100;
+
+  const persisted = await getDbPosts(sort);
+
   if (persisted && persisted.length) {
-    return { prompts: persisted as Prompt[], persisted: true };
+    return { prompts: persisted, persisted: true };
   }
 
   const postsData: Posts = await (

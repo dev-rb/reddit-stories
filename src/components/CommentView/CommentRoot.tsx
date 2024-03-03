@@ -1,8 +1,10 @@
 import { Comment } from '~/types';
 import { useComments } from '../CommentsContext';
 import { PostInteractions } from '../Post/PostRoot';
-import { For } from 'solid-js';
+import { For, createMemo } from 'solid-js';
 import { cn } from '~/utils/common';
+import sanitizeHtml from 'sanitize-html';
+import dayjs from '~/utils/dayjs';
 
 export const nestedColors: string[] = [
   'blue',
@@ -29,17 +31,20 @@ export const CommentView = (props: CommentViewProps) => {
     <div class="flex flex-col">
       <div
         class={cn(
-          'relative max-w-full flex flex-col gap-2 pl-8px -mt-4px border-b-solid border-b-2 border-b-dark-4 before:(content-empty absolute top-4px -left-0.5 h-[calc(100%-2px)] z-10 border-1 border-solid border-transparent border-b-0) px-4 py-4 decoration-none',
-          props.depth && `before:border-l-${nestedColors[props.depth]}-5`
+          'relative max-w-full flex flex-col gap-2 -mt-2px border-y-2 border-y-dark-4 before:(content-empty absolute top-0px -left-0.5 h-[calc(100%+1px)] z-10 border-1 border-solid border-transparent border-b-0) py-4 decoration-none',
+          props.depth && `before:border-l-${nestedColors[props.depth]}-5`,
+          props.depth === 0 && `border-y-solid`
         )}
         style={{ 'margin-left': `${props.depth * 15}px` }}
       >
-        <div class="flex items-center gap-2 text-0.7rem color-neutral-5 font-sans">
+        <div
+          class={cn('flex items-center gap-2 text-0.7rem color-neutral-5 font-sans', props.depth > 0 ? 'pl-2' : 'pl-4')}
+        >
           <span>u/{props.author}</span>
-          <span>{new Date(props.created).toLocaleString()}</span>
+          <span>{dayjs(props.created).fromNow()}</span>
         </div>
-        <div class="flex flex-col gap-4">
-          <div class="pr-8 text-xs color-neutral-3" innerHTML={props.bodyHtml} />
+        <div class={cn('flex flex-col gap-4 pr-4', props.depth > 0 ? 'pl-2' : 'pl-4')}>
+          <div class="text-xs color-neutral-3 [&_a]:color-blue-4" innerHTML={props.bodyHtml} />
           <PostInteractions totalComments={props.replies?.length ?? 0} score={props.score ?? 0} />
         </div>
       </div>

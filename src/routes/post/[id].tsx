@@ -85,11 +85,11 @@ const Post = () => {
         }
       >
         <Skeleton.Root
-          class="relative data-[visible=true]:min-h-50 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
+          class="relative flex data-[visible=true]:min-h-50 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
           visible={!post.data?.post?.[0]}
         >
           <Show when={post.data?.post?.[0]}>
-            {(postData) => <PostRoot {...postData()} downloaded={post.data?.persisted ?? false} />}
+            {(postData) => <PostRoot class="border-none" {...postData()} downloaded={post.data?.persisted ?? false} />}
           </Show>
         </Skeleton.Root>
       </Suspense>

@@ -1,5 +1,5 @@
-import { Button } from '@kobalte/core';
-import { useSearchParams } from '@solidjs/router';
+import { Button, useLocale } from '@kobalte/core';
+import { useLocation, useNavigate, useSearchParams } from '@solidjs/router';
 import { createQueries, createQuery, useQueryClient } from '@tanstack/solid-query';
 import { ErrorBoundary, For, Index, Show, Suspense, createEffect, createSignal, onMount, untrack } from 'solid-js';
 import { createStore, reconcile, unwrap } from 'solid-js/store';
@@ -16,6 +16,7 @@ const Home = () => {
   const [mounted, setMounted] = createSignal(false);
   const [manualRefetch, setManualRefetch] = createSignal(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
 
   const [store, setStore] = createStore<Prompt[]>([]);
 
@@ -81,7 +82,7 @@ const Home = () => {
 
     if (!data) return;
 
-    setStore(reconcile(data.prompts));
+    setStore(data.prompts);
   });
 
   createEffect(() => {
@@ -230,7 +231,7 @@ const Home = () => {
                 <For each={KEBAB_SORT_VALUES}>
                   {(value) => (
                     <SortTabs.Content
-                      class="custom-v-scrollbar h-full flex flex-col gap-4 overflow-auto py-4 pr-4 "
+                      class="custom-v-scrollbar h-full flex flex-col gap-4 overflow-auto py-4 pr-4 max-sm:pr-0"
                       value={value}
                     >
                       <Index each={store}>{(post) => <PostRoot {...post()} />}</Index>

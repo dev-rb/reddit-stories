@@ -57,7 +57,7 @@ export default function App() {
 
           <nav class="mt-auto w-full flex items-center justify-evenly px-4 py-2">
             <A
-              class="bg-transparent text-4xl max-sm:text-sm"
+              class="bg-transparent text-4xl max-sm:text-2xl"
               inactiveClass="color-neutral-6"
               activeClass="color-white"
               href="/"
@@ -66,7 +66,7 @@ export default function App() {
               <span class="i-material-symbols:home inline-block" />
             </A>
             <A
-              class="bg-transparent text-4xl max-sm:text-sm"
+              class="bg-transparent text-4xl max-sm:text-2xl"
               inactiveClass="color-neutral-6"
               activeClass="color-white"
               href="/search"
@@ -74,7 +74,7 @@ export default function App() {
               <span class="i-material-symbols:search inline-block" />
             </A>
             <A
-              class="bg-transparent text-3xl max-sm:text-sm"
+              class="bg-transparent text-3xl max-sm:text-2xl"
               inactiveClass="color-neutral-6"
               activeClass="color-white"
               href="/town-hall"
@@ -82,7 +82,7 @@ export default function App() {
               <span class="i-material-symbols:view-agenda-outline inline-block" />
             </A>
             <A
-              class="bg-transparent text-3xl max-sm:text-sm"
+              class="bg-transparent text-3xl max-sm:text-2xl"
               inactiveClass="color-neutral-6"
               activeClass="color-white"
               href="/read-later"
@@ -90,7 +90,7 @@ export default function App() {
               <span class="i-material-symbols:alarm-outline inline-block" />
             </A>
             <A
-              class="bg-transparent text-3xl max-sm:text-sm"
+              class="bg-transparent text-3xl max-sm:text-2xl"
               inactiveClass="color-neutral-6"
               activeClass="color-white"
               href="/account"
