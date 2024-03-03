@@ -34,20 +34,20 @@ export const PostRoot = (props: PostRootProps) => {
       href={`post/${self.id}`}
       noScroll={true}
     >
-      <ToggleButton.Root
-        as="div"
-        class="absolute right-2 top-2 ml-auto aspect-square flex-center rounded-full bg-neutral-7 p-1 color-neutral-4 ui-pressed:(bg-blue-950 color-blue-4)"
-        pressed={self.downloaded}
-      >
-        <span class="i-material-symbols:download inline-block text-base" />
-      </ToggleButton.Root>
-      <div class="flex items-center gap-2 text-xxs color-neutral-5 font-sans">
+      <div class="relative flex items-center gap-2 text-xxs color-neutral-5 font-sans">
         {/* <span>{props.id}</span> */}
         <span>u/{self.author}</span>
         <span>{dayjs(self.created).fromNow()}</span>
+        <ToggleButton.Root
+          as="div"
+          class="ml-auto aspect-square flex-center rounded-full bg-transparent color-neutral-6 ui-pressed:(color-blue-5)"
+          pressed={self.downloaded}
+        >
+          <span class="i-material-symbols:download inline-block text-base" />
+        </ToggleButton.Root>
       </div>
       <div class="flex flex-col gap-4 max-sm:gap-2">
-        <div class="pr-8 text-xs max-sm:text-xxs color-neutral-3">{self.title}</div>
+        <div class="text-xs max-sm:text-xxs color-neutral-3">{self.title}</div>
         <PostInteractions totalComments={self.totalComments ?? 0} score={self.score ?? 0} />
       </div>
     </A>

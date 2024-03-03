@@ -60,6 +60,7 @@ const extractCommentDetails = (
     bodyHtml: sanitizeHtml(body_html, {
       transformTags: {
         a: 'span',
+        code: 'span',
       },
     }),
     replies: [],

@@ -1,9 +1,8 @@
 import { Comment } from '~/types';
 import { useComments } from '../CommentsContext';
 import { PostInteractions } from '../Post/PostRoot';
-import { For, createMemo } from 'solid-js';
+import { For } from 'solid-js';
 import { cn } from '~/utils/common';
-import sanitizeHtml from 'sanitize-html';
 import dayjs from '~/utils/dayjs';
 
 export const nestedColors: string[] = [
@@ -43,8 +42,11 @@ export const CommentView = (props: CommentViewProps) => {
           <span>u/{props.author}</span>
           <span>{dayjs(props.created).fromNow()}</span>
         </div>
-        <div class={cn('flex flex-col gap-4 pr-4', props.depth > 0 ? 'pl-2' : 'pl-4')}>
-          <div class="text-xs color-neutral-3 [&_a]:color-blue-4" innerHTML={props.bodyHtml} />
+        <div class={cn('flex flex-col gap-4 pr-4 max-w-full', props.depth > 0 ? 'pl-2' : 'pl-4')}>
+          <div
+            class="text-xs color-neutral-3 [&_a]:color-blue-4 max-w-full [&_*]:(break-words whitespace-normal leading-[1.5])"
+            innerHTML={props.bodyHtml}
+          />
           <PostInteractions totalComments={props.replies?.length ?? 0} score={props.score ?? 0} />
         </div>
       </div>
