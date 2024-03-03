@@ -76,7 +76,7 @@ const Post = () => {
   });
 
   return (
-    <div class="flex flex-col gap-2 h-full overflow-auto custom-v-scrollbar">
+    <div class="flex flex-col gap-2 h-screen overflow-auto custom-v-scrollbar">
       <Suspense
         fallback={
           <div class="m-auto h-full w-full flex-center">
@@ -94,10 +94,18 @@ const Post = () => {
         </Skeleton.Root>
       </Suspense>
       <Skeleton.Root
-        class="relative flex flex-col oveflow-hidden h-full data-[visible=true]:min-h-screen flex-1 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
+        class="relative flex flex-col oveflow-hidden h-full! data-[visible=true]:min-h-screen flex-1 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
         visible={!post.data?.post}
       >
-        <Show when={post.data?.post?.[1]}>
+        <Show
+          when={Object.keys(post.data?.post?.[1] ?? {}).length !== 0 && post.data?.post?.[1]}
+          fallback={
+            <div class="flex-center flex-col gap-4 w-full h-full color-neutral-5">
+              <span class="color-orange-6">{'.·´¯`(>▂<)´¯`·.'}</span>
+              No comments
+            </div>
+          }
+        >
           {(comments) => (
             <CommentsProvider comments={comments()}>
               <For each={Object.values(comments()).filter((c) => c.mainCommentId === undefined)}>

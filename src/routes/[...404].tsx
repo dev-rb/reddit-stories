@@ -1,5 +1,3 @@
-import { Button } from '@kobalte/core';
-
 export default function Page404() {
   return (
     <div class="h-[80vh] flex-center flex-col gap-4 text-2xl color-white">
