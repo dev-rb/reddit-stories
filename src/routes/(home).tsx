@@ -1,4 +1,4 @@
-import { Button } from '@kobalte/core';
+import { Button, Switch } from '@kobalte/core';
 import { useSearchParams } from '@solidjs/router';
 import { createQueries, createQuery, useQueryClient } from '@tanstack/solid-query';
 import { ErrorBoundary, For, Index, Show, Suspense, createEffect, createSignal, untrack } from 'solid-js';
@@ -7,13 +7,14 @@ import { db } from '~/app';
 import { Loading } from '~/components/Loading';
 import { PostRoot } from '~/components/Post/PostRoot';
 import { SortTabs } from '~/components/SortTabs';
-import { KEBAB_SORT_VALUES } from '~/constants/sort';
-import { Prompt } from '~/types';
+import { KEBAB_SORT_VALUES, SORT_MAP } from '~/constants/sort';
+import { KebabSortTypes, Prompt } from '~/types';
 import { getPersistedComments, getPosts } from '~/utils/data';
 import { fetchCommentsForPost } from '~/utils/reddit';
 
 const Home = () => {
   const [manualRefetch, setManualRefetch] = createSignal(false);
+  const [downloadsOnly, setDownloadsOnly] = createSignal(false);
   const [downloading, setDownloading] = createSignal(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -21,7 +22,7 @@ const Home = () => {
 
   const queryClient = useQueryClient();
 
-  const sortParam = () => searchParams.sort ?? 'hot';
+  const sortParam = (): KebabSortTypes => (searchParams.sort as KebabSortTypes) ?? 'hot';
 
   const queryKey = () => ['posts', sortParam()];
 
@@ -54,6 +55,14 @@ const Home = () => {
         }) ?? [],
     };
   });
+
+  const promptsData = () => {
+    if (!store.length) return;
+
+    if (!downloadsOnly()) return store;
+
+    return store.filter((p) => p.downloaded);
+  };
 
   createEffect(() => {
     const data = posts.data;
@@ -166,29 +175,45 @@ const Home = () => {
       value={searchParams.sort}
       onChange={onTabChange}
     >
-      <div class="overflow-hidden h-full flex flex-col gap-1">
+      <div class="overflow-hidden h-full flex flex-col gap-2">
         <SortTabs.TabsView
-          root={{ class: 'overflow-visible bg-transparent p-0 justify-between' }}
+          root={{ class: 'overflow-visible bg-transparent px-2 py-0 justify-between' }}
           trigger={{ class: 'ui-selected:bg-dark-4 rounded-lg px-4 py-2 max-sm:p-2' }}
         />
-        <div class="z-54 ml-auto flex items-center gap-4">
-          <Button.Root
-            class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
-            data-fetching={manualRefetch()}
-            disabled={manualRefetch() || downloading()}
-            onClick={refresh}
+        <div class="flex items-center justify-between w-full">
+          <Switch.Root
+            class="text-xl flex gap-2 items-center w-full"
+            checked={downloadsOnly()}
+            onChange={setDownloadsOnly}
           >
-            <span class="i-material-symbols:refresh group-data-[fetching=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
-          </Button.Root>
+            <Switch.Label class="color-neutral-5 inline-flex items-center">
+              <span class="i-material-symbols:download inline-block" />
+            </Switch.Label>
+            <Switch.Input />
+            <Switch.Control class="w-full max-w-8 max-h-4 rounded-full bg-dark-2 ui-checked:bg-blue-5">
+              <Switch.Thumb class="w-4 h-4 rounded-full bg-white ui-checked:translate-x-full transition-transform" />
+            </Switch.Control>
+          </Switch.Root>
 
-          <Button.Root
-            class="group flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
-            disabled={posts.data?.persisted || store.every((v) => v.downloaded)}
-            onClick={download}
-            data-downloading={downloading()}
-          >
-            <span class="i-material-symbols:download group-data-[downloading=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
-          </Button.Root>
+          <div class="z-54 flex items-center gap-4">
+            <Button.Root
+              class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
+              data-fetching={manualRefetch()}
+              disabled={manualRefetch() || downloading()}
+              onClick={refresh}
+            >
+              <span class="i-material-symbols:refresh group-data-[fetching=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
+            </Button.Root>
+
+            <Button.Root
+              class="group flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
+              disabled={posts.data?.persisted || store.every((v) => v.downloaded)}
+              onClick={download}
+              data-downloading={downloading()}
+            >
+              <span class="i-material-symbols:download group-data-[downloading=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
+            </Button.Root>
+          </div>
         </div>
         <ErrorBoundary fallback={<div>Error</div>}>
           <div class="relative min-h-0 h-screen flex flex-col gap-1 overflow-hidden">
@@ -214,7 +239,15 @@ const Home = () => {
                       class="relative custom-v-scrollbar h-full flex flex-col gap-2 overflow-auto pb-4 mt-2 pr-4 max-sm:pr-0 scroll-smooth"
                       value={value}
                     >
-                      <Index each={store}>{(post) => <PostRoot {...post()} />}</Index>
+                      <Show
+                        when={downloadsOnly() && !promptsData()?.length}
+                        fallback={<Index each={promptsData()}>{(post) => <PostRoot {...post()} />}</Index>}
+                      >
+                        <div class="flex-center flex-col gap-4 w-full h-full color-neutral-5">
+                          <span class="i-material-symbols:download color-blue-5 inline-block text-5xl" />
+                          No Downloads for {SORT_MAP[sortParam()]}
+                        </div>
+                      </Show>
                     </SortTabs.Content>
                   )}
                 </For>

@@ -64,7 +64,19 @@ export const getPosts = async (sort: string) => {
   ).json();
 
   log('info', 'Fetch data');
-  const prompts = postsData.data?.children.map(extractPostDetails);
-
+  const prompts = await db.raw(async (db) => {
+    const tx = db.transaction('posts', 'readonly');
+    const store = tx.store;
+    let results = [];
+    for (const post of postsData.data.children) {
+      const hasPost = await store.get(post.data.id);
+      const prompt = extractPostDetails(post);
+      if (hasPost) {
+        prompt.downloaded = true;
+      }
+      results.push(prompt);
+    }
+    return results;
+  });
   return { prompts: prompts, persisted: false };
 };
