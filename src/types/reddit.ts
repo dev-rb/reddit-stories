@@ -38,6 +38,8 @@ export interface PostDetails {
   url: string;
   created_utc: number;
   num_crossposts: number;
+  selftext: string;
+  selftext_html: string;
 }
 
 export interface RedditComment {

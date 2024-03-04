@@ -64,6 +64,10 @@ button {
   border-radius: 9999px;
 }
 
+.bg-content-fade {
+  background: linear-gradient(to bottom, #0f0f0f 0%, transparent 5%, transparent 95%, #0f0f0f 100%);
+}
+
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;

@@ -1,19 +1,18 @@
-import { Button, useLocale } from '@kobalte/core';
-import { useLocation, useNavigate, useSearchParams } from '@solidjs/router';
+import { Button } from '@kobalte/core';
+import { useSearchParams } from '@solidjs/router';
 import { createQueries, createQuery, useQueryClient } from '@tanstack/solid-query';
-import { ErrorBoundary, For, Index, Show, Suspense, createEffect, createSignal, onMount, untrack } from 'solid-js';
-import { createStore, reconcile, unwrap } from 'solid-js/store';
+import { ErrorBoundary, For, Index, Show, Suspense, createEffect, createSignal, untrack } from 'solid-js';
+import { createStore, unwrap } from 'solid-js/store';
 import { db } from '~/app';
 import { Loading } from '~/components/Loading';
 import { PostRoot } from '~/components/Post/PostRoot';
 import { SortTabs } from '~/components/SortTabs';
 import { KEBAB_SORT_VALUES } from '~/constants/sort';
-import { Comment, Prompt } from '~/types';
-import { getPosts } from '~/utils/data';
-import { fetchCommentsForPost, Comments } from '~/utils/reddit';
+import { Prompt } from '~/types';
+import { getPersistedComments, getPosts } from '~/utils/data';
+import { fetchCommentsForPost } from '~/utils/reddit';
 
 const Home = () => {
-  const [mounted, setMounted] = createSignal(false);
   const [manualRefetch, setManualRefetch] = createSignal(false);
   const [downloading, setDownloading] = createSignal(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -27,7 +26,6 @@ const Home = () => {
   const queryKey = () => ['posts', sortParam()];
 
   const posts = createQuery(() => ({
-    // enabled: mounted(),
     queryKey: queryKey(),
     queryFn: async ({ queryKey }) => {
       return await getPosts(queryKey[1]);
@@ -73,10 +71,6 @@ const Home = () => {
       untrack(() => setManualRefetch(false));
     }
   });
-
-  // onMount(() => {
-  //   setMounted(true);
-  // });
 
   const onTabChange = (newTab: string) => {
     setSearchParams({ sort: newTab });
@@ -177,27 +171,27 @@ const Home = () => {
           root={{ class: 'overflow-visible bg-transparent p-0 justify-between' }}
           trigger={{ class: 'ui-selected:bg-dark-4 rounded-lg px-4 py-2 max-sm:p-2' }}
         />
-        <ErrorBoundary fallback={<div>Error</div>}>
-          <div class="relative min-h-0 h-screen flex flex-col gap-1 overflow-hidden after:(absolute bottom-0 left-0 w-full from-dark-9 to-75% bg-gradient-to-t py-4 content-empty) before:(absolute left-0 top-8 max-sm:top-7 z-10 w-full from-dark-9 from-45% bg-gradient-to-b py-4 content-empty)">
-            <div class="ml-auto flex items-center gap-4">
-              <Button.Root
-                class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
-                data-fetching={manualRefetch()}
-                disabled={manualRefetch() || downloading()}
-                onClick={refresh}
-              >
-                <span class="i-material-symbols:refresh group-data-[fetching=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
-              </Button.Root>
+        <div class="z-54 ml-auto flex items-center gap-4">
+          <Button.Root
+            class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
+            data-fetching={manualRefetch()}
+            disabled={manualRefetch() || downloading()}
+            onClick={refresh}
+          >
+            <span class="i-material-symbols:refresh group-data-[fetching=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
+          </Button.Root>
 
-              <Button.Root
-                class="group flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
-                disabled={posts.data?.persisted || store.every((v) => v.downloaded)}
-                onClick={download}
-                data-downloading={downloading()}
-              >
-                <span class="i-material-symbols:download group-data-[downloading=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
-              </Button.Root>
-            </div>
+          <Button.Root
+            class="group flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
+            disabled={posts.data?.persisted || store.every((v) => v.downloaded)}
+            onClick={download}
+            data-downloading={downloading()}
+          >
+            <span class="i-material-symbols:download group-data-[downloading=true]:i-svg-spinners:180-ring inline-block text-lg max-sm:text-sm" />
+          </Button.Root>
+        </div>
+        <ErrorBoundary fallback={<div>Error</div>}>
+          <div class="relative min-h-0 h-screen flex flex-col gap-1 overflow-hidden">
             <Suspense
               fallback={
                 <div class="m-auto h-full w-full flex-center">
@@ -213,10 +207,11 @@ const Home = () => {
                   </div>
                 }
               >
+                <div class="absolute w-full h-full max-h-full top-0 left-0 bg-content-fade z-53 pointer-events-none" />
                 <For each={KEBAB_SORT_VALUES}>
                   {(value) => (
                     <SortTabs.Content
-                      class="custom-v-scrollbar h-full flex flex-col gap-2 overflow-auto py-4 pr-4 max-sm:pr-0 scroll-smooth"
+                      class="relative custom-v-scrollbar h-full flex flex-col gap-2 overflow-auto pb-4 mt-2 pr-4 max-sm:pr-0 scroll-smooth"
                       value={value}
                     >
                       <Index each={store}>{(post) => <PostRoot {...post()} />}</Index>

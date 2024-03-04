@@ -1,6 +1,6 @@
 import { Button, ToggleButton } from '@kobalte/core';
-import { A } from '@solidjs/router';
-import { mergeProps, splitProps } from 'solid-js';
+import { A, useMatch } from '@solidjs/router';
+import { Show, mergeProps, splitProps } from 'solid-js';
 import { OverrideComponentProps } from '~/types';
 import { Prompt } from '~/types/app';
 import { cn } from '~/utils/common';
@@ -13,8 +13,10 @@ interface PostRootProps extends Omit<OverrideComponentProps<typeof A, Prompt>, '
 export const PostRoot = (props: PostRootProps) => {
   props = mergeProps({ downloaded: false }, props);
 
+  const isPostRoute = useMatch(() => '/post/*');
   const [self, other] = splitProps(props, [
     'downloaded',
+    'description',
     'created',
     'id',
     'title',
@@ -51,6 +53,12 @@ export const PostRoot = (props: PostRootProps) => {
       </div>
       <div class="flex flex-col gap-4 max-sm:gap-2">
         <div class="text-xs max-sm:text-xxs color-neutral-3">{self.title}</div>
+        <Show when={isPostRoute() && props.description}>
+          <div
+            class="text-xs max-sm:text-xxs color-neutral-3 border-t-1 border-t-solid border-t-neutral-6 pt-2 [&_a]:color-blue-4 max-w-full [&_*]:(break-words whitespace-normal leading-[1.5])"
+            innerHTML={props.description}
+          />
+        </Show>
         <PostInteractions totalComments={self.totalComments ?? 0} score={self.score ?? 0} />
       </div>
     </A>

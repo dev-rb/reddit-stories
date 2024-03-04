@@ -1,5 +1,6 @@
 export interface Prompt {
   title: string;
+  description: string;
   id: string;
   created: string;
   score: number;

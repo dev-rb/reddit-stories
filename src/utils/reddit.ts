@@ -6,7 +6,7 @@ import { log } from './common';
 export type Comments = { [key: string]: Comment };
 
 export const extractPostDetails = (postInfo: PostInfo): Prompt => {
-  const { author, created_utc, id, permalink, score, title, num_comments } = postInfo.data;
+  const { author, created_utc, id, permalink, score, title, num_comments, selftext_html } = postInfo.data;
 
   return {
     author,
@@ -15,6 +15,7 @@ export const extractPostDetails = (postInfo: PostInfo): Prompt => {
     permalink,
     score,
     title,
+    description: sanitizeHtml(selftext_html),
     totalComments: num_comments,
     stories: [],
     downloaded: false,
@@ -32,7 +33,7 @@ export const fetchCommentsForPost = async (postId: string) => {
     (comment) => comment.data.author !== 'AutoModerator' && (comment.kind === 't1' || comment.kind === 'Listing')
   );
 
-  log('info', commentDetails);
+  // log('info', commentDetails);
 
   let map: Comments = {};
 

@@ -42,7 +42,7 @@ const getPost = async (id: string, queryClient: QueryClient) => {
   const data = await queryCache?.state.data;
 
   if (data && !Array.isArray(data)) {
-    return data;
+    return data as QueryCommentsData;
   }
 
   log('info', 'Fetch comments from reddit', id);
