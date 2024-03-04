@@ -6,7 +6,9 @@ import { Prompt } from '~/types/app';
 import { cn } from '~/utils/common';
 import dayjs from '~/utils/dayjs';
 
-interface PostRootProps extends Omit<OverrideComponentProps<typeof A, Prompt>, 'href'> {}
+interface PostRootProps extends Omit<OverrideComponentProps<typeof A, Prompt>, 'href'> {
+  sort?: string;
+}
 
 export const PostRoot = (props: PostRootProps) => {
   props = mergeProps({ downloaded: false }, props);
@@ -22,6 +24,7 @@ export const PostRoot = (props: PostRootProps) => {
     'totalComments',
     'stories',
     'class',
+    'sort',
   ]);
 
   return (

@@ -1,6 +1,7 @@
 import sanitizeHtml from 'sanitize-html';
 import { Comment, Prompt } from '~/types/app';
 import { PostInfo, RedditCommentRoot, CommentDetails } from '~/types/reddit';
+import { log } from './common';
 
 export type Comments = { [key: string]: Comment };
 
@@ -20,9 +21,9 @@ export const extractPostDetails = (postInfo: PostInfo): Prompt => {
   };
 };
 
-export const fetchCommentsForPost = async (subreddit: string, postId: string) => {
+export const fetchCommentsForPost = async (postId: string) => {
   let data: RedditCommentRoot = await (
-    await fetch(`https://www.reddit.com${subreddit}/comments/${postId}.json?raw_json=1`)
+    await fetch(`https://www.reddit.com/r/writingprompts/comments/${postId}.json?raw_json=1`)
   ).json();
   const commentDetails = data[1].data.children;
   const postDetails = data[0].data.children[0];
@@ -30,6 +31,8 @@ export const fetchCommentsForPost = async (subreddit: string, postId: string) =>
   const filteredComments = commentDetails.filter(
     (comment) => comment.data.author !== 'AutoModerator' && (comment.kind === 't1' || comment.kind === 'Listing')
   );
+
+  log('info', commentDetails);
 
   let map: Comments = {};
 

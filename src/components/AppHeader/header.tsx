@@ -1,7 +1,7 @@
 import { useLocation, useMatch, useNavigate, useParams } from '@solidjs/router';
 import { ThemeToggle } from './theme';
 import { Show } from 'solid-js';
-import { Button } from '@kobalte/core';
+import { Button, Image } from '@kobalte/core';
 import { cn } from '~/utils/common';
 
 export const AppHeader = () => {
@@ -26,11 +26,11 @@ export const AppHeader = () => {
             </Button.Root>
           }
         >
-          <span class="i-material-symbols:auto-stories color-blue-4 text-3xl" />
-          <div class="flex items-center">
-            <span class="font-bold">Tavern</span>
-            <span>Tales</span>
-          </div>
+          <img class="max-w-10 max-sm:max-w-8 aspect-square" src="/logo192.png" alt="logo" />
+          {/* <div class="flex items-center"> */}
+          {/*   <span class="font-bold">Tavern</span> */}
+          {/*   <span>Tales</span> */}
+          {/* </div> */}
         </Show>
       </div>
       <ThemeToggle />

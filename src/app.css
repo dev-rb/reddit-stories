@@ -43,7 +43,7 @@ button {
 }
 
 .custom-h-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #1b1b1b;
+  @apply bg-dark-8;
   border-radius: 9999px;
 }
 
@@ -55,11 +55,12 @@ button {
 .custom-v-scrollbar::-webkit-scrollbar-track {
   /* background-color: #25262b; */
   border-radius: 9999px;
+  @apply bg-dark-8;
 }
 
 .custom-v-scrollbar::-webkit-scrollbar-thumb {
   /* background-color: #909296; */
-  background-color: #818181;
+  @apply bg-neutral-5;
   border-radius: 9999px;
 }
 

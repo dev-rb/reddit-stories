@@ -20,6 +20,7 @@ export const nestedColors: string[] = [
 ];
 
 interface CommentViewProps extends Comment {
+  index: number;
   depth: number;
 }
 
@@ -34,7 +35,8 @@ export const CommentView = (props: CommentViewProps) => {
         class={cn(
           'relative max-w-full flex flex-col gap-2 -mt-2px border-y-2 border-y-dark-4 before:(content-empty absolute top-0px -left-0.5 h-[calc(100%+1px)] z-10 border-1 border-solid border-transparent border-b-0) py-4 decoration-none',
           props.depth && `before:border-l-${nestedColors[props.depth]}-5/50`,
-          props.depth === 0 && `border-y-solid`,
+          props.depth === 0 && props.index !== 0 && `border-y-solid`,
+          props.index === 0 && `border-b-solid`,
           collapsed() && 'h-0 pt-2 pb-6'
         )}
         onClick={() => setCollapsed((p) => !p)}
@@ -61,7 +63,9 @@ export const CommentView = (props: CommentViewProps) => {
           <PostInteractions totalComments={props.replies?.length ?? 0} score={props.score ?? 0} />
         </div>
       </div>
-      <For each={props.replies}>{(reply) => <CommentView {...comments[reply]} depth={props.depth + 1} />}</For>
+      <For each={props.replies}>
+        {(reply) => <CommentView {...comments[reply]} index={1} depth={props.depth + 1} />}
+      </For>
     </div>
   );
 };

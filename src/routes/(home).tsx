@@ -27,7 +27,7 @@ const Home = () => {
   const queryKey = () => ['posts', sortParam()];
 
   const posts = createQuery(() => ({
-    enabled: mounted(),
+    // enabled: mounted(),
     queryKey: queryKey(),
     queryFn: async ({ queryKey }) => {
       return await getPosts(queryKey[1]);
@@ -49,29 +49,9 @@ const Home = () => {
             enabled: false,
             queryKey: ['comments', prompt.id],
             queryFn: async () => {
-              return await fetchCommentsForPost('/r/writingprompts', prompt.id);
+              return await fetchCommentsForPost(prompt.id);
             },
-            initialData: async () => {
-              const id = prompt.id;
-              const post = unwrap(prompt);
-              const data = await db.raw(async (db) => {
-                const tx = db.transaction('comments', 'readonly');
-
-                const index = tx.store.index('commentsIndex');
-                let cursor = await index.openKeyCursor(id);
-
-                let results: Comments = {};
-
-                while (cursor) {
-                  const comment: Comment = await tx.store.get(cursor.primaryKey);
-                  results[comment.id] = comment;
-                  cursor = await cursor.continue();
-                }
-                return results;
-              });
-
-              return [post, data] as const;
-            },
+            initialData: async () => [prompt, await getPersistedComments(prompt.id)] as const,
           };
         }) ?? [],
     };
@@ -94,9 +74,9 @@ const Home = () => {
     }
   });
 
-  onMount(() => {
-    setMounted(true);
-  });
+  // onMount(() => {
+  //   setMounted(true);
+  // });
 
   const onTabChange = (newTab: string) => {
     setSearchParams({ sort: newTab });
@@ -188,7 +168,7 @@ const Home = () => {
 
   return (
     <SortTabs.Root
-      class="overflow-hidden min-h-0 flex flex-col px-4 color-white"
+      class="overflow-hidden min-h-0 flex flex-col px-2 color-white"
       value={searchParams.sort}
       onChange={onTabChange}
     >
@@ -236,7 +216,7 @@ const Home = () => {
                 <For each={KEBAB_SORT_VALUES}>
                   {(value) => (
                     <SortTabs.Content
-                      class="custom-v-scrollbar h-full flex flex-col gap-4 overflow-auto py-4 pr-4 max-sm:pr-0"
+                      class="custom-v-scrollbar h-full flex flex-col gap-2 overflow-auto py-4 pr-4 max-sm:pr-0 scroll-smooth"
                       value={value}
                     >
                       <Index each={store}>{(post) => <PostRoot {...post()} />}</Index>

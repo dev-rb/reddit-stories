@@ -7,27 +7,16 @@ import { CommentView } from '~/components/CommentView/CommentRoot';
 import { CommentsProvider } from '~/components/CommentsContext';
 import { Loading } from '~/components/Loading';
 import { PostRoot } from '~/components/Post/PostRoot';
-import { Comment, Prompt } from '~/types';
+import { Prompt } from '~/types';
+import { log } from '~/utils/common';
+import { getPersistedComments } from '~/utils/data';
 import { Comments, fetchCommentsForPost } from '~/utils/reddit';
 
 type QueryPostsData = { persisted: boolean; prompts: Prompt[] };
+type QueryCommentsData = { persisted: boolean; post: [Prompt, Comments] };
 
 const getPost = async (id: string, queryClient: QueryClient) => {
-  const persistedComments = await db.raw(async (db) => {
-    const tx = db.transaction('comments', 'readwrite');
-    const store = tx.store;
-    const index = store.index('commentsIndex');
-    let cursor = await index.openKeyCursor(id);
-
-    let results: Comments = {};
-
-    while (cursor) {
-      const comment: Comment = await store.get(cursor.primaryKey);
-      results[comment.id] = comment;
-      cursor = await cursor.continue();
-    }
-    return results;
-  });
+  const persistedComments = await getPersistedComments(id);
 
   const persistedPrompt: Prompt | undefined = await db.get('posts', id);
 
@@ -48,9 +37,16 @@ const getPost = async (id: string, queryClient: QueryClient) => {
 
     return { post: [prompt, persistedComments] as const, persisted: true };
   }
+  const queryCache = queryClient.getQueryCache().get(JSON.stringify(['comments', id]));
 
-  console.log('Fetch comments from reddit', id);
-  const comments = await fetchCommentsForPost('/r/writingprompts', id);
+  const data = await queryCache?.state.data;
+
+  if (data && !Array.isArray(data)) {
+    return data;
+  }
+
+  log('info', 'Fetch comments from reddit', id);
+  const comments = await fetchCommentsForPost(id);
 
   return { post: comments, persisted: false };
 };
@@ -76,7 +72,10 @@ const Post = () => {
   });
 
   return (
-    <div class="flex flex-col gap-2 h-screen overflow-auto custom-v-scrollbar">
+    <div
+      class="flex flex-col w-full gap-2 h-screen overflow-auto custom-v-scrollbar data-[visible=true]:px-2"
+      data-visible={!!!post.data?.post}
+    >
       <Suspense
         fallback={
           <div class="m-auto h-full w-full flex-center">
@@ -89,12 +88,18 @@ const Post = () => {
           visible={!post.data?.post?.[0]}
         >
           <Show when={post.data?.post?.[0]}>
-            {(postData) => <PostRoot class="border-none" {...postData()} downloaded={post.data?.persisted ?? false} />}
+            {(postData) => (
+              <PostRoot
+                class="border-none bg-dark-8 max-sm:mx-2"
+                {...postData()}
+                downloaded={post.data?.persisted ?? false}
+              />
+            )}
           </Show>
         </Skeleton.Root>
       </Suspense>
       <Skeleton.Root
-        class="relative flex flex-col oveflow-hidden h-full! data-[visible=true]:min-h-screen flex-1 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
+        class="relative flex flex-col oveflow-hidden h-full! data-[visible=true]:min-h-min flex-1 w-full after:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-11 bg-dark-8 animate-[skeleton-fade_1500ms_linear_infinite]) before:data-[visible=true]:(absolute rounded-xl content-empty inset-0 z-10 bg-dark-2)"
         visible={!post.data?.post}
       >
         <Show
@@ -109,7 +114,7 @@ const Post = () => {
           {(comments) => (
             <CommentsProvider comments={comments()}>
               <For each={Object.values(comments()).filter((c) => c.mainCommentId === undefined)}>
-                {(comment) => <CommentView {...comment} depth={0} />}
+                {(comment, i) => <CommentView {...comment} index={i()} depth={0} />}
               </For>
             </CommentsProvider>
           )}
