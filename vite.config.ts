@@ -8,5 +8,8 @@ export default defineConfig({
   ],
   start: {
     ssr: false,
+    server: {
+      preset: 'vercel',
+    },
   },
 });
