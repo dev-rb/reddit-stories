@@ -13,7 +13,12 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  @apply bg-dark-9;
+  --bg-color: white;
+  @apply dark:bg-dark-9;
+}
+
+.dark body {
+  --bg-color: #0f0f0f;
 }
 
 h1,
@@ -55,17 +60,17 @@ button {
 .custom-v-scrollbar::-webkit-scrollbar-track {
   /* background-color: #25262b; */
   border-radius: 9999px;
-  @apply bg-dark-8;
+  @apply bg-neutral-2 dark:bg-dark-8;
 }
 
 .custom-v-scrollbar::-webkit-scrollbar-thumb {
   /* background-color: #909296; */
-  @apply bg-neutral-5;
+  @apply bg-neutral-4 dark:bg-neutral-5;
   border-radius: 9999px;
 }
 
 .bg-content-fade {
-  background: linear-gradient(to bottom, #0f0f0f 0%, transparent 5%, transparent 95%, #0f0f0f 100%);
+  background: linear-gradient(to bottom, var(--bg-color) 0%, transparent 5%, transparent 95%, var(--bg-color) 100%);
 }
 
 input[type='number']::-webkit-inner-spin-button,

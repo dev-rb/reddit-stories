@@ -178,7 +178,10 @@ const Home = () => {
       <div class="overflow-hidden h-full flex flex-col gap-2">
         <SortTabs.TabsView
           root={{ class: 'overflow-visible bg-transparent px-2 py-0 justify-between' }}
-          trigger={{ class: 'ui-selected:bg-dark-4 rounded-lg px-4 py-2 max-sm:p-2' }}
+          trigger={{
+            class:
+              'ui-selected:(bg-neutral-3 color-black dark:(bg-dark-4 color-white)) rounded-lg px-4 py-2 max-sm:p-2',
+          }}
         />
         <div class="flex items-center justify-between w-full">
           <Switch.Root
@@ -186,18 +189,18 @@ const Home = () => {
             checked={downloadsOnly()}
             onChange={setDownloadsOnly}
           >
-            <Switch.Label class="color-neutral-5 inline-flex items-center">
+            <Switch.Label class="color-neutral-4 dark:color-neutral-5 inline-flex items-center">
               <span class="i-material-symbols:download inline-block" />
             </Switch.Label>
             <Switch.Input />
-            <Switch.Control class="w-full max-w-8 max-h-4 rounded-full bg-dark-2 ui-checked:bg-blue-5">
-              <Switch.Thumb class="w-4 h-4 rounded-full bg-white ui-checked:translate-x-full transition-transform" />
+            <Switch.Control class="w-full max-w-8 max-h-4 rounded-full bg-neutral-2 dark:bg-dark-2 ui-checked:bg-blue-5">
+              <Switch.Thumb class="w-4 h-4 rounded-full bg-neutral-4 dark:bg-white ui-checked:translate-x-full transition-transform" />
             </Switch.Control>
           </Switch.Root>
 
           <div class="z-54 flex items-center gap-4">
             <Button.Root
-              class="flex-center cursor-pointer group appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
+              class="group flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-4 dark:color-neutral-5 border-2 border-neutral-4 dark:border-neutral-7 border-solid disabled:(bg-neutral-2 dark:bg-dark-8 cursor-not-allowed border-none color-neutral-3 dark:color-neutral-6 hover:(color-neutral-3 dark:color-neutral-6)) hover:(bg-neutral-1 color-neutral-4 border-neutral-4 dark:(bg-neutral-9 color-neutral-2 border-neutral-6)) max-sm:(px-2 text-xs)"
               data-fetching={manualRefetch()}
               disabled={manualRefetch() || downloading()}
               onClick={refresh}
@@ -206,7 +209,7 @@ const Home = () => {
             </Button.Root>
 
             <Button.Root
-              class="group flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-5 border-2 border-neutral-7 border-solid disabled:(bg-dark-8 cursor-not-allowed border-none color-neutral-6 hover:(color-neutral-6)) hover:(bg-neutral-9 color-neutral-2 border-neutral-6) max-sm:(px-2 text-xs)"
+              class="group flex-center cursor-pointer appearance-none gap-2 rounded-full bg-transparent px-4 py-1 color-neutral-4 dark:color-neutral-5 border-2 border-neutral-4 dark:border-neutral-7 border-solid disabled:(bg-neutral-2 dark:bg-dark-8 cursor-not-allowed border-none color-neutral-3 dark:color-neutral-6 hover:(color-neutral-3 dark:color-neutral-6)) hover:(bg-neutral-1 color-neutral-4 border-neutral-4 dark:(bg-neutral-9 color-neutral-2 border-neutral-6)) max-sm:(px-2 text-xs)"
               disabled={posts.data?.persisted || store.every((v) => v.downloaded)}
               onClick={download}
               data-downloading={downloading()}

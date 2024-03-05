@@ -7,6 +7,7 @@ import { A, Router } from '@solidjs/router';
 import { FileRoutes } from '@solidjs/start';
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
 import { StoreDefinition, createDB } from './utils/db';
+import { checkForDarkPreference } from './utils/theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,13 +44,18 @@ export default function App() {
   }
 
   onMount(async () => {
+    if (checkForDarkPreference()) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
     db = await createDB('tavern-tales', [PostDBStore, CommentDBStore]);
   });
 
   return (
     <Router
       root={(props) => (
-        <main class="relative mx-auto max-h-screen min-h-screen overflow-y-hidden overflow-x-visible flex flex-col max-w-2xl bg-dark-9">
+        <main class="relative mx-auto max-h-screen min-h-screen overflow-y-hidden overflow-x-visible flex flex-col max-w-2xl dark:bg-dark-9">
           <QueryClientProvider client={queryClient}>
             <AppHeader />
 
