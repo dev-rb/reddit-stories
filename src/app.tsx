@@ -37,11 +37,11 @@ const CommentDBStore: StoreDefinition = {
 
 export let db: Awaited<ReturnType<typeof createDB>>;
 
-if (navigator.serviceWorker) {
-  navigator.serviceWorker.register('/sw.js');
-}
-
 export default function App() {
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+
   onMount(async () => {
     db = await createDB('tavern-tales', [PostDBStore, CommentDBStore]);
   });
