@@ -20,6 +20,9 @@ dependencies:
   '@tanstack/solid-query-persist-client':
     specifier: ^5.21.4
     version: 5.21.4(@tanstack/solid-query@5.20.5)(solid-js@1.8.14)
+  '@upstash/redis':
+    specifier: ^1.28.4
+    version: 1.28.4
   dayjs:
     specifier: ^1.11.10
     version: 1.11.10
@@ -37,7 +40,7 @@ dependencies:
     version: 1.8.14
   vinxi:
     specifier: ^0.3.9
-    version: 0.3.9(idb-keyval@6.2.1)(preact@10.19.6)
+    version: 0.3.9(@upstash/redis@1.28.4)(idb-keyval@6.2.1)(preact@10.19.6)
 
 devDependencies:
   '@iconify-json/material-symbols':
@@ -2525,6 +2528,12 @@ packages:
       - rollup
     dev: true
 
+  /@upstash/redis@1.28.4:
+    resolution: {integrity: sha512-UalkSAny/dz1m8giEhD3Y5ru1o+CPHI32wFyS3MyzDzj2TRvEN+lTw+mPwi20ojk0H2gs8TBW3qsrvwuLLy+pA==}
+    dependencies:
+      crypto-js: 4.2.0
+    dev: false
+
   /@vercel/nft@0.26.4:
     resolution: {integrity: sha512-j4jCOOXke2t8cHZCIxu1dzKLHLcFmYzC3yqAK6MfZznOL1QIJKd0xcFsXK3zcqzU7ScsE2zWkiMMNHGMHgp+FA==}
     engines: {node: '>=16'}
@@ -2608,7 +2617,7 @@ packages:
       magicast: 0.2.11
       recast: 0.23.5
       tslib: 2.6.2
-      vinxi: 0.3.9(idb-keyval@6.2.1)(preact@10.19.6)
+      vinxi: 0.3.9(@upstash/redis@1.28.4)(idb-keyval@6.2.1)(preact@10.19.6)
     dev: false
 
   /@vinxi/server-components@0.3.2(vinxi@0.3.9):
@@ -2623,7 +2632,7 @@ packages:
       astring: 1.8.6
       magicast: 0.2.11
       recast: 0.23.5
-      vinxi: 0.3.9(idb-keyval@6.2.1)(preact@10.19.6)
+      vinxi: 0.3.9(@upstash/redis@1.28.4)(idb-keyval@6.2.1)(preact@10.19.6)
     dev: false
 
   /@vinxi/server-functions@0.3.1(vinxi@0.3.9):
@@ -2638,7 +2647,7 @@ packages:
       astring: 1.8.6
       magicast: 0.2.11
       recast: 0.23.5
-      vinxi: 0.3.9(idb-keyval@6.2.1)(preact@10.19.6)
+      vinxi: 0.3.9(@upstash/redis@1.28.4)(idb-keyval@6.2.1)(preact@10.19.6)
     dev: false
 
   /@vite-pwa/assets-generator@0.2.4:
@@ -3228,6 +3237,10 @@ packages:
     peerDependenciesMeta:
       uWebSockets.js:
         optional: true
+    dev: false
+
+  /crypto-js@4.2.0:
+    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
     dev: false
 
   /css-select@5.1.0:
@@ -4724,7 +4737,7 @@ packages:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
     dev: true
 
-  /nitropack@2.9.1(idb-keyval@6.2.1):
+  /nitropack@2.9.1(@upstash/redis@1.28.4)(idb-keyval@6.2.1):
     resolution: {integrity: sha512-qgz2VKJoiFvEtC6JnFlaqVx5hirD/oonb6SIM6kQODeDjEHVaiOViZxg7pnAGq13Zu2vNHhaJe6Sf49AEG3J+A==}
     engines: {node: ^16.11.0 || >=17.0.0}
     hasBin: true
@@ -4798,7 +4811,7 @@ packages:
       unctx: 2.3.1
       unenv: 1.9.0
       unimport: 3.7.1(rollup@4.12.0)
-      unstorage: 1.10.1(idb-keyval@6.2.1)
+      unstorage: 1.10.1(@upstash/redis@1.28.4)(idb-keyval@6.2.1)
       unwasm: 0.3.7
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -5156,6 +5169,7 @@ packages:
 
   /queue-tick@1.0.1:
     resolution: {integrity: sha512-kJt5qhMxoszgU/62PLP1CJytzd2NKetjSRnyuj31fDd3Rlcz3fzlFdFLD1SItunPwyqEOkca6GbV612BWfaBag==}
+    requiresBuild: true
 
   /radix3@1.1.0:
     resolution: {integrity: sha512-pNsHDxbGORSvuSScqNJ+3Km6QAVqk8CfsCBIEoDgpqLrkD2f3QM4I7d1ozJJ172OmIcoUcerZaNWqtLkRXTV3A==}
@@ -6007,7 +6021,7 @@ packages:
       webpack-virtual-modules: 0.6.1
     dev: false
 
-  /unstorage@1.10.1(idb-keyval@6.2.1):
+  /unstorage@1.10.1(@upstash/redis@1.28.4)(idb-keyval@6.2.1):
     resolution: {integrity: sha512-rWQvLRfZNBpF+x8D3/gda5nUCQL2PgXy2jNG4U7/Rc9BGEv9+CAJd0YyGCROUBKs9v49Hg8huw3aih5Bf5TAVw==}
     peerDependencies:
       '@azure/app-configuration': ^1.4.1
@@ -6048,6 +6062,7 @@ packages:
       idb-keyval:
         optional: true
     dependencies:
+      '@upstash/redis': 1.28.4
       anymatch: 3.1.3
       chokidar: 3.6.0
       destr: 2.0.3
@@ -6120,7 +6135,7 @@ packages:
     resolution: {integrity: sha512-hGdgQozCsQJMyfK5urgFcWEqsSSrK63Awe0t/IMR0bZ0QMtnuaiHzThW81guu3qx9abLi99NEuiaN6P9gVYsNg==}
     dev: false
 
-  /vinxi@0.3.9(idb-keyval@6.2.1)(preact@10.19.6):
+  /vinxi@0.3.9(@upstash/redis@1.28.4)(idb-keyval@6.2.1)(preact@10.19.6):
     resolution: {integrity: sha512-+TKbWrmbNpDGn4QvJcbO3LonFpH4L0SVWOyI63WZ2zT94pJrSvyt+BefEcTlvYAJiKZUFPxkjUlNzsUdCRjZpg==}
     hasBin: true
     dependencies:
@@ -6147,7 +6162,7 @@ packages:
       hookable: 5.5.3
       http-proxy: 1.18.1
       micromatch: 4.0.5
-      nitropack: 2.9.1(idb-keyval@6.2.1)
+      nitropack: 2.9.1(@upstash/redis@1.28.4)(idb-keyval@6.2.1)
       node-fetch-native: 1.6.2
       path-to-regexp: 6.2.1
       pathe: 1.1.2
@@ -6158,7 +6173,7 @@ packages:
       ufo: 1.4.0
       unctx: 2.3.1
       unenv: 1.9.0
-      unstorage: 1.10.1(idb-keyval@6.2.1)
+      unstorage: 1.10.1(@upstash/redis@1.28.4)(idb-keyval@6.2.1)
       vite: 5.1.5
       ws: 8.16.0
       zod: 3.22.4
