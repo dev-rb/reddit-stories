@@ -49,34 +49,26 @@ export const getPersistedComments = async (promptId: string) => {
 };
 
 export const getPosts = async (sort: string) => {
-  const sortType = sort.includes('top') ? 'top' : sort;
-  const timeSort = sort.includes('top') ? `t=${sort.split('-')[1]}&` : '';
-  const count = 100;
-
   const persisted = await getPersistedPosts(sort);
 
   if (persisted && persisted.length) {
     return { prompts: persisted, persisted: true };
   }
 
-  const postsData: Posts = await (
-    await fetch(`https://www.reddit.com/r/writingprompts/${sortType}.json?${timeSort}limit=${count}&raw_json=1`)
-  ).json();
+  const prompts: Prompt[] = await (await fetch(`/api/posts/${sort}`)).json();
 
   log('info', 'Fetch data');
-  const prompts = await db.raw(async (db) => {
+  await db.raw(async (db) => {
     const tx = db.transaction('posts', 'readonly');
     const store = tx.store;
-    let results = [];
-    for (const post of postsData.data.children) {
-      const hasPost = await store.get(post.data.id);
-      const prompt = extractPostDetails(post);
+    for (const prompt of prompts) {
+      const hasPost = await store.get(prompt.id);
       if (hasPost) {
         prompt.downloaded = true;
       }
-      results.push(prompt);
     }
-    return results;
   });
+  console.log(prompts);
+
   return { prompts: prompts, persisted: false };
 };

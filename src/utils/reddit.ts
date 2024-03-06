@@ -17,7 +17,7 @@ export const extractPostDetails = (postInfo: PostInfo): Prompt => {
     title,
     description: sanitizeHtml(selftext_html),
     totalComments: num_comments,
-    stories: [],
+    stories: {},
     downloaded: false,
   };
 };

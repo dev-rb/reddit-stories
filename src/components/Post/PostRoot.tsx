@@ -11,8 +11,6 @@ interface PostRootProps extends Omit<OverrideComponentProps<typeof A, Prompt>, '
 }
 
 export const PostRoot = (props: PostRootProps) => {
-  props = mergeProps({ downloaded: false }, props);
-
   const isPostRoute = useMatch(() => '/post/*');
   const [self, other] = splitProps(props, [
     'downloaded',
@@ -45,7 +43,7 @@ export const PostRoot = (props: PostRootProps) => {
         <span>{dayjs(self.created).fromNow()}</span>
         <ToggleButton.Root
           as="div"
-          class="ml-auto aspect-square flex-center rounded-full bg-transparent color-neutral-5 dark:color-neutral-6 ui-pressed:(color-blue-5)"
+          class="ml-auto aspect-square flex-center rounded-full bg-transparent color-neutral-5 dark:color-neutral-6 ui-pressed:color-blue-5 dark:ui-pressed:color-blue-5"
           pressed={self.downloaded}
         >
           <span class="i-material-symbols:download inline-block text-base" />

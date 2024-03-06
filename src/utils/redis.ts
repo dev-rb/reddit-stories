@@ -1,5 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { KebabSortTypes, Prompt } from '~/types';
+import { log } from './common';
+import { Comments } from './reddit';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
@@ -7,11 +9,36 @@ const redis = new Redis({
 });
 
 export class RedisCache {
-  static getPosts = async (sortType: string): Promise<Prompt[] | null> => {
-    const data: string | null = await redis.get(sortType);
-    if (!data) return null;
+  static getStories = async (promptId: string): Promise<[Prompt, Comments] | undefined> => {
+    let result;
+    try {
+      const data = await redis.get<Prompt>(promptId);
 
-    return JSON.parse(data);
+      if (!data) return result;
+
+      return [data, data.stories];
+    } catch (e) {
+      log('error', 'Failed to get comments from redis: ', e);
+    }
+
+    return result;
+  };
+
+  static addStories = async (promptId: string, comments: Comments) => {
+    try {
+      const t = await redis.json.set(promptId, 'stories', comments);
+      console.log(t);
+    } catch (e) {
+      log('error', 'Failed to add comments to redis');
+    }
+  };
+
+  static getPosts = async (sortType: string): Promise<Prompt[]> => {
+    const data: Prompt[] | null = await redis.get(sortType);
+
+    if (!data) return [];
+
+    return data;
   };
 
   static addPosts = async (posts: Prompt[], sortType: KebabSortTypes) => {

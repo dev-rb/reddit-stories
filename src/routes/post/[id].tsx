@@ -46,7 +46,7 @@ const getPost = async (id: string, queryClient: QueryClient) => {
   }
 
   log('info', 'Fetch comments from reddit', id);
-  const comments = await fetchCommentsForPost(id);
+  const comments = await (await fetch(`/api/comments/${id}`)).json();
 
   return { post: comments, persisted: false };
 };

@@ -1,3 +1,5 @@
+import { Comments } from '~/utils/reddit';
+
 export interface Prompt {
   title: string;
   description: string;
@@ -8,7 +10,7 @@ export interface Prompt {
   permalink: string;
   totalComments: number;
   downloaded: boolean;
-  stories: Comment[];
+  stories: Comments;
 }
 
 export interface Comment {
