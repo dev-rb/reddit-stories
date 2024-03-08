@@ -1,6 +1,6 @@
 import { db } from '~/app';
-import { Prompt, Posts, Comment } from '~/types';
-import { Comments, extractPostDetails } from './reddit';
+import { Prompt, Comment } from '~/types';
+import { Comments } from './reddit';
 import { log } from './common';
 
 export const getPersistedPosts = async (sort: string) => {

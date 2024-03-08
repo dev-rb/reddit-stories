@@ -9,6 +9,7 @@ import { PostRoot } from '~/components/Post/PostRoot';
 import { SortTabs } from '~/components/SortTabs';
 import { KEBAB_SORT_VALUES, SORT_MAP } from '~/constants/sort';
 import { KebabSortTypes, Prompt } from '~/types';
+import { log } from '~/utils/common';
 import { getPersistedComments, getPosts } from '~/utils/data';
 import { fetchCommentsForPost } from '~/utils/reddit';
 
@@ -146,7 +147,7 @@ const Home = () => {
           await db.upsertMany(`comments`, Object.entries(comments));
           setStore((p) => p.id === prompt.id, 'downloaded', true);
         } catch (e) {
-          console.log('Error: ', e);
+          log('error', 'Error: ', e);
         }
       });
 

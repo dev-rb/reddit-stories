@@ -1,7 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 import { Comment, Prompt } from '~/types/app';
 import { PostInfo, RedditCommentRoot, CommentDetails } from '~/types/reddit';
-import { log } from './common';
 
 export type Comments = { [key: string]: Comment };
 
@@ -32,8 +31,6 @@ export const fetchCommentsForPost = async (postId: string) => {
   const filteredComments = commentDetails.filter(
     (comment) => comment.data.author !== 'AutoModerator' && (comment.kind === 't1' || comment.kind === 'Listing')
   );
-
-  // log('info', commentDetails);
 
   let map: Comments = {};
 
